@@ -1,6 +1,6 @@
 ---
 title: Dot.Pulse — Platform Knowledge
-version: 1.0.3
+version: 1.1.0
 status: active
 owners: [Pulse Platform Lead, Community Agent, Registry Agent]
 platform-id: dot-pulse
@@ -136,6 +136,36 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed. This repo auto-detected **both** Claude Code and GitHub Copilot as configured agents — the only platform in the pass to get both `CLAUDE.md` and `AGENTS.md` guideline files; `.mcp.json`/`boost.json` also in place. (Ran on the `feature/ecosystem-sso` branch, consistent with the rest of this platform's recent work.)
 - **Code-quality pass** — Pint: 92 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (106 tests / 99 passed / 186 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Pulse` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Trending hashtag recalculation** — `app/Console/Commands/RecalculateTrending.php` (`pulse:trending`), scheduled hourly in `routes/console.php`. Recomputes published-post hashtag counts and busts a cache key. No content, money, or user standing is affected; pure derived-metric refresh. Routine analytics/monitoring per §2's Level 1 examples.
+- **Badge eligibility awarding** — `app/Console/Commands/AwardBadges.php` (`pulse:badges`), scheduled daily at 03:00, delegates to `app/Services/BadgeAwarder.php`. Grants achievement badges to users based on activity; reversible, additive, non-adversarial gamification bookkeeping. Routine internal task management.
+- **Queue worker execution** — `Schedule::command('queue:work --stop-when-empty')->everyFiveMinutes()->withoutOverlapping()` in `routes/console.php`. Infrastructure plumbing that drains the queue (database driver, per `config/queue.php` / `QUEUE_CONNECTION=database`), not a business decision itself.
+- **Transactional notifications** — `app/Notifications/{NewFollower,PostReacted,NewCommentOnPost,MentionNotification,SolutionAccepted}.php`, all `ShouldQueue`, database-channel only. Routine, expected, user-triggered social notifications (someone followed you, your post got a reaction) — no owner approval implicated.
+- **AI post enrichment (metadata only)** — `app/Jobs/EnrichPost.php` → `app/Services/AiModerationService.php` generates summary/tags/sentiment/topics/keywords via Claude and writes them to `PulsePostEnrichment`. The enrichment itself (non-publishing metadata) is routine automated tagging/analytics.
+
+### Level 2 — Escalate
+
+None found as currently implemented. I checked every queued job (`app/Jobs/EnrichPost.php`), every scheduled command (`routes/console.php`, `app/Console/Commands/*`), and every controller action with side effects (`app/Http/Controllers/Api/V1/PostController.php`, `PulseController.php`) for a "system prepares, human approves before execution" pattern per §2's Level 2 shape. There isn't one — Dot.Pulse's automated actions either execute directly (Level 1 in mechanism, see the moderation gap below) or land in a human-only queue with zero automated pre-action (Level 3, next section). No code path pauses a prepared action for authorized sign-off before it takes effect.
+
+**Flagged as a genuine gap, not a finding to file under Level 2:** `AiModerationService::upsertEnrichment()` (`app/Services/AiModerationService.php`) auto-executes two content-standing decisions with no human step *before* they take effect — `moderation_status: approved` auto-publishes the post (`$post->update(['status' => 'published'])`, fires `PostPublished`), and `moderation_status: rejected` auto-removes it (`$post->update(['status' => 'removed'])`) — both driven by an unreviewed Claude classification. Per the task brief's own framing, auto-removal of user content without human review is exactly the case that "would need careful Level 2/3 classification." As built, this process is *mechanically* Level 1 (it executes without owner or moderator approval, in either direction) despite being reputational/speech-affecting — it does not currently have the "prepare and wait for approval" shape Level 2 requires. This is recorded as a design gap in the summary below, not relabeled Level 2, because relabeling it would misdescribe what the code actually does today.
+
+### Level 3 — Human Control
+
+- **Manual moderation queue (human-only actions)** — `app/Livewire/Pulse/ModerationQueue.php`, backing `resources/views/livewire/pulse/moderation-queue.blade.php` and `resources/views/pulse/moderation/index.blade.php`, routed at `/moderation` (`routes/web.php`, gated by `moderator`/`admin` role in `PulseController::moderation()` and `ModerationQueue::authorizeModeratorAccess()`). `approve()` and `reject()` are moderator-only actions, each writing a `PulseModerationLog` row with `is_ai_decision: false`. This queue only ever surfaces posts already sitting in `pending`/`flagged` status — it has no code path for restoring a post the AI already auto-removed (`status: removed`), so that particular removal decision is fully outside human control as implemented, which is the gap flagged under Level 2 above.
+- **User content reporting → human record, no auto-action** — `POST /api/v1/posts/{id}/report` (`routes/api.php`) → `PostController::report()` → `app(ReportContent::class)->handle(...)`. Creates a report record for later human handling; confirmed no automated removal or penalty fires from a user report alone.
+- **Role/permission assignment** — moderator/admin role is a `PulseProfile.role` column checked ad hoc (`PostPolicy::isModerator()`, `PulseController::moderation()`, `ModerationQueue::authorizeModeratorAccess()`); no self-service or automated path elevates a user to `moderator`/`admin` anywhere in the routes or controllers I checked — this is operator-only account administration, done outside the app (direct DB/admin action).
+- **CI/CD and deployment** — confirmed no `.github/workflows/*` or any CI pipeline file exists in the repo (`find . -iname "*.yml"` under the app tree returns nothing outside `node_modules`/`vendor`). Only `.github/copilot-instructions.md` and `.github/agents/dot-pulse.agent.md` exist, which are AI-agent guidance files, not automation. Deployment is manual/human-operated by default (Laravel Cloud is named as the deploy target in `CLAUDE.md`, but no automated deploy trigger exists in this repo).
+- **Legal/policy content** — Privacy Policy, Terms, Cookie Policy (`routes/web.php` `/cookies`, Jetstream `terms.show`/`policy.show`) are static Markdown files a human authors and commits; nothing in the app generates or edits their content.
+
+### Gap summary
+
+Dot.Pulse has no real Level 2 process today: nothing in the codebase prepares an action and waits for authorized human approval before executing. Its most consequential automation — AI-driven auto-publish and auto-remove in `AiModerationService::upsertEnrichment()` — currently behaves as unreviewed Level 1 despite affecting user content standing, and the moderation queue has no restore path for AI-auto-removed posts. The platform's first genuine Level 1 process (in the *good* sense — safe, low-stakes, already correctly unsupervised) already exists (trending recalculation, badge awarding); its first genuine Level 2 process would require inserting a human-approval gate ahead of the `rejected → removed` transition (e.g., route `rejected` into the existing moderator queue instead of auto-executing) so content removal follows the same Context → Evidence → Risk → Recommendation → Proposed Action shape §2 requires.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -145,6 +175,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.2 | 2026-08-01 | DKP Architect (prompt 02, AI) | Taxonomy OQ struck (schemas/taxonomy.json published) |
 
 | 1.0.3 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Pulse's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
