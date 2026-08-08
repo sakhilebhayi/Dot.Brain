@@ -1,6 +1,6 @@
 ---
 title: Dot.Mines — Platform Knowledge
-version: 1.0.2
+version: 1.1.0
 status: active
 owners: [Mining Platform Lead, Mining Agent, Registry Agent]
 platform-id: dot-mines
@@ -117,6 +117,35 @@ The canonical thread, restated as the test fixture:
 3. **PR back:** moisture-indexed inspection scheduling — confidence 0.83, impact `mining.false_finding_rate` −40% predicted, guards (maintenance backlog, operator workload) declared, expiry 30 days. Accepted at Kolomela.
 4. **Outcome:** `dkp:mines:out:2026-06-28:0003` verifies −64%; S-2026-001 opens, Sishen replication follows, P-2026-001 promotes — one pack ID traceable from field observation to proven pattern.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/mines` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Real-time monitoring/alert pipeline**, `app/Services/RealtimeEventScheduler.php`, registered from `app/Providers/AppServiceProvider.php:45`. Runs on the Laravel scheduler with no owner approval at any step: location updates every 10s (`MachineLocationUpdateJob`), alert generation every 30s (`AlertGenerationJob`), geofence crossing detection every 30s (`GeofenceCrossingDetectionJob`), machine status monitoring every 20s (`MachineStatusMonitoringJob`). All read metrics/integration data and either broadcast an event or write an `Alert`/`GeofenceEntry` row — none writes back to physical equipment or takes an irreversible action.
+- **Route speed and machine-idle monitoring**, `app/Jobs/RouteSpeedMonitoringJob.php` and `app/Jobs/MachineIdleMonitoringJob.php`, scheduled directly in `routes/console.php` (`everyFiveMinutes()` / `everyTenMinutes()`, `withoutOverlapping()->onOneServer()`). Both only read `machine_metrics` and create an `Alert` record (`createSpeedViolationAlert()`, `createIdleAlert()`) with dedup guards against duplicate alerts. Routine automated monitoring, matches brain.autonomy.md §2's own example.
+- **Operator fatigue alerting**, `app/Services/RealTimeAlertService.php::dispatchFatigueAlert()` → `app/Notifications/OperatorFatigueAlert.php`. Creates an `Alert` and emails the team automatically once a fatigue score crosses "high"/"critical" — no approval gate before the notification goes out. It informs humans to act (`This operator should be relieved...`); it does not itself relieve, reassign, or stop the operator.
+- **AI recommendation/insight generation**, `app/Console/Commands/RunAIAnalysis.php` (`ai:analyze`) → `App\Services\AI\AIOptimizationService::runComprehensiveAnalysis()`. Writes `AIRecommendation` and insight rows and prints a savings estimate; it does not execute anything against machines, routes, or dispatch — output is informational, reviewed later at `/ai-optimization`. Analytics/reporting generation itself is Level 1; what a human does with the recommendation is Level 3 (see below).
+- **Fuel Reserve Runway cushion**, `app/Services/FuelReserveRunwayCalculator.php` + `app/Livewire/FuelCushion.php`. Confirmed read-only: `calculate()` only sums `FuelTank`/`FuelTransaction` rows and returns a display array (`days`, `basis`, `what_if`); the Livewire component only assigns the result to a public property for `resources/views/livewire/fuel-cushion.blade.php` to render. No write, no dispatch, no alert side-effect — this is end-user insight, not operator-facing automation, and is included here only to document that it was checked, not because it is itself a Level 1 process.
+
+### Level 2 — Escalate
+
+None found. Checked: `app/Jobs/*` (8 job classes — all either monitoring/alert generation or read-only sync, none stage a consequential action pending approval), `app/Console/Commands/*` (6 commands — `ai:analyze` and dev/CI diagnostics `scan:blade-unescaped`, `livewire:verify`, `storage:verify-s3`, `roads:generate-paths`, none produce a pending-approval action object), `app/Livewire/AIOptimizationDashboard.php` (`implementRecommendation()`/`rejectRecommendation()` — these only flip an `AIRecommendation.status` flag after a human has already carried out the change themselves; the system never proposes-then-executes on approval), and `app/Livewire/BillingPortal.php` (`subscribe()`, `cancelSubscription()`, `switchBillingCycle()` — all fire immediately on the acting user's own click, with no separate operator-approval step). There is no code path anywhere in the app where the system prepares an action and a distinct approval step triggers its execution — the Context→Evidence→Risk→Recommendation→Proposed Action shape brain.autonomy.md §2 requires for Level 2 does not exist in this codebase yet.
+
+### Level 3 — Human Control
+
+- **Shift changes**, `app/Console/Commands/PerformShiftChange.php` (`shift:change {team_id} {shift_type} {--default-mine-area=}`) → `app/Services/ShiftService.php::performShiftChange()`. Not scheduled anywhere — `app/Console/Kernel.php:25` has `// $schedule->command('shift:change 1 day')->dailyAt('06:00');` commented out, and no controller/Livewire component invokes the command or the service. It snapshots machine assignments and production metrics inside a `DB::transaction`; only a human running the artisan command triggers it.
+- **AI recommendation implementation**, `app/Livewire/AIOptimizationDashboard.php::implementRecommendation()`. The actual operational change (rerouting, dispatch, maintenance action) is carried out by a human outside the system entirely; the button only records that it happened (`$recommendation->markAsImplemented(auth()->user())`) and is gated by `AIRecommendationPolicy::update()`.
+- **Billing/subscription actions**, `app/Livewire/BillingPortal.php` (`subscribe()`, `manageBilling()`, `cancelSubscription()`, `resumeSubscription()`, `switchBillingCycle()`). Financial commitments; no automated code path calls any of these — a human must click.
+- **Machine/equipment control**: confirmed absent. Searched `app/Services` and `app/Jobs` for any send-command/remote-control pattern (`sendCommand`, `controlMachine`, `dispatchToMachine`, `remoteControl`) — no matches. This platform only reads telemetry and writes alerts/recommendations; it never issues a command back to physical mining equipment, so real machine control stays fully manual by construction.
+- **Destructive data operations**: confirmed absent from automation. Searched `app/Console` and `app/Jobs` for `forceDelete`/`truncate(` — no matches; nothing in the job/command layer permanently deletes data unattended.
+- **Deployment / CI-CD**: `.github/workflows/` contains only `dependabot.yml` and `delete-old-runs.yml` — no auto-deploy workflow exists; `deploy/queue-worker.service` and `deploy/queue-worker.supervisord.conf` are operator-run infrastructure config, not an automated pipeline.
+
+### Gap summary
+
+No Level 2 process exists today because nothing in the codebase stages a proposed action for approval before executing it — `AIOptimizationService` stops at generating recommendations, and the dashboard's "implement" button only logs that a human already acted. The platform's first real Level 1 process (the monitoring/alert jobs above) already exists; the first real Level 2 process would require building an actual propose→approve→execute path — e.g. an `AIRecommendation` with a `pending_approval` state whose "implement" action, once an authorized approver confirms it, actually calls a service to make the change (route reassignment, maintenance scheduling) instead of just flipping a status flag after the fact.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -125,6 +154,7 @@ The canonical thread, restated as the test fixture:
 | 1.0.1 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Loop-latency OQ resolved: canonical two-lane contract lives in dot-central.md §6 |
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Mines's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
