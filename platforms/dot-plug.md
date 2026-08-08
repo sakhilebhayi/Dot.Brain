@@ -1,6 +1,6 @@
 ---
 title: Dot.Plug — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Plug Platform Lead, Extension Agent, Registry Agent]
 platform-id: dot-plug
@@ -133,6 +133,30 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 12 files reformatted, formatting-only. `composer audit`: patched 12 advisories across 2 packages — `guzzlehttp/guzzle` → 7.15.1 (host/cookie/proxy-header advisory set, same fix as dot-farms) and `league/commonmark` baseline set. `npm audit`: already clean. Full suite reconfirmed green (59 tests / 52 passed / 103 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Plug` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked every real background/automated surface in the codebase: `routes/console.php` registers only the stock Laravel `inspire` command (no custom Artisan commands); `app/Console/` (Commands/Kernel) does not exist; `app/Jobs/` does not exist — nothing is queue-dispatched; there are no event listeners; `.github/` does not exist — there is no CI/CD pipeline of any kind; `bootstrap/app.php`'s `withMiddleware()` closure is empty (no custom middleware beyond Jetstream/Fortify defaults). Every real process in this app either executes synchronously inside an authenticated HTTP request initiated by a human (marketplace listing CRUD, install/uninstall in `app/Http/Controllers/Plug/ExtensionController.php`) or is a manual, out-of-band admin action (certification, see Level 3). There is no code path in this repository that runs without a human directly in the loop.
+
+### Level 2 — Escalate
+
+None found. A Level 2 process requires the system to prepare an action (Context → Evidence → Risk → Recommendation → Proposed Action) that a human then approves — no such proposal-generation code exists anywhere in `app/`. The closest candidate, extension certification, is not a system-prepared recommendation awaiting approval; wiki.md §3 states plainly that `status` (draft/certified/decertified) on `Extension` "stands in for the certification pipeline... it's a flag an admin would flip by hand today, not a workflow" — confirmed in code: `grep -rn "certified" app/` turns up no assignment of `status = 'certified'` anywhere in the app (`ExtensionController::store()`, `app/Http/Controllers/Plug/ExtensionController.php`, hardcodes every new listing to `'draft'` with the comment "MVP: no certification pipeline yet... self-published listings start life as 'draft' rather than being auto-certified"). `app/Notifications/ExtensionCertifiedNotification.php` exists but its own docblock says it is "Not yet wired to any automatic trigger — there is no certification pipeline yet... dispatch manually." This document's own §13 "capability-risk scoring" worked round-trip is Brain-side illustrative documentation of a future intelligence-consumption pattern, not a real, running Dot.Plug process — it is out of scope for this audit, which classifies only real code.
+
+### Level 3 — Human Control
+
+- **Extension certification / decertification (marketplace-listing publish gate).** `status` column on `Extension` (`app/Models/Extension.php`, values `draft`/`certified`/`decertified`) is the sole gate before an extension is publicly listed (`ExtensionController::index()`, `app/Http/Controllers/Plug/ExtensionController.php` line ~44, filters `where('status', 'certified')`) or installable (`ExtensionController::install()` same file, `abort_if($extension->status !== 'certified', 403, ...)`). No route, controller action, console command, job, or listener anywhere in the codebase ever writes `status = 'certified'` — every certification is a manual, out-of-band database edit by an operator/admin, per wiki.md §3 and §7 (roadmap item: "Build the certification pipeline... replace the hand-set `status` flag"). This is precisely the auto-approve/auto-publish trust boundary the task flagged as needing Level 2/3 — and today it is fully Level 3 (stricter than the floor), since no system-prepared recommendation exists at all yet.
+- **Capability grants (what an installed extension may touch).** wiki.md §3 confirms this is entirely unbuilt: "Nothing in this MVP models a capability grant at all; `Installation` currently just records that a team installed a version, not what it's allowed to touch." Any scoping of extension access today would necessarily be a fully manual, outside-the-codebase operator decision.
+- **Anomaly detection / runtime-behavior enforcement.** wiki.md §3 lists this as "Not built — still planned." No automated detection or remediation exists; any response to an extension exceeding its granted scope is manual.
+- **Knowledge Pack publishing to Dot.Brain.** wiki.md §3 and §5 confirm zero `observation`/`insight`/`outcome`/`incident` payloads are emitted anywhere in this codebase — the DKP round-trip described in this document's §12–§13 is not yet real code; if/when built, publishing signed packs crosses an inter-entity trust boundary (brain.autonomy.md §1) and starts life under manual review regardless.
+- **CI/CD and deployment.** No `.github/workflows/` or any other CI/CD configuration exists in the repository — builds, tests, and deploys are entirely manual operator actions today.
+
+### Gap summary
+
+Dot.Plug's first real Level 1 process would need actual automation code to exist first — there is currently no scheduled command, queued job, or listener of any kind in the repository to classify. The most natural starting candidate is routine, low-risk marketplace housekeeping (e.g., a scheduled job to expire stale draft listings or recompute marketplace-health aggregates) that touches no certification or capability-grant state; certification itself must remain at least Level 2 once a real pipeline is built, per the task's own trust-boundary constraint, since auto-approving or auto-publishing untrusted third-party code can never be Level 1.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -140,6 +164,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: extension entity model closed (capability holders, not code; internals excluded at type level), third-party boundary wired (publisher-signed packs, host-manifest inheritance, trust from 0.50, no mandatory Brain relationship — future.md non-reservation honored), dual-keyed tenancy with publisher consent rule, developer-aimed prohibited patterns withheld, 3 domain metrics, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Plug's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
