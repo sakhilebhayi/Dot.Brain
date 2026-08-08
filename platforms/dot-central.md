@@ -1,6 +1,6 @@
 ---
 title: Dot.Central — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Operations Intelligence Lead, Mining Agent, Registry Agent]
 platform-id: dot-central
@@ -122,6 +122,32 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 26 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (55 tests / 48 passed / 98 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Central` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked `routes/console.php` (contains only Laravel's default `inspire` Artisan command — no scheduled tasks registered), `bootstrap/app.php` (no `->withSchedule()` closure, so no cron-driven work exists at all), and searched the whole `app/` tree for a `Jobs` directory (none exists — no queued/background jobs). Every state-changing endpoint (`ControlRoomController`, `DispatchDecisionController`, `AlertController`, `OperatorSessionController`) executes synchronously inside an authenticated human HTTP request; nothing in the repo runs without a human initiating that request.
+
+### Level 2 — Escalate
+
+None found. No code path assembles a Context → Evidence → Risk → Recommendation → Proposed Action proposal and waits for operator approval before executing. The one candidate, `AgentChatService::chat()` (`app/Services/AgentChatService.php`), calls the Anthropic API synchronously in response to a human-submitted chat message and returns the reply directly in the same request/response cycle — it is a human-triggered conversation, not a system-initiated proposal awaiting sign-off.
+
+### Level 3 — Human Control
+
+- **Control-room lifecycle (tenant root)** — `app/Http/Controllers/ControlRoomController.php`: create/edit/update/delete all require an authenticated team member (`authorizeAccess()` calls `belongsToTeam`/`ownsTeam`); no autonomous path creates or removes a control room.
+- **Dispatch decision recording** — `app/Http/Controllers/DispatchDecisionController.php`: decisions are only ever inserted by a human via `store()`, stamped with `decided_by_user_id` from the authenticated request; deletion is likewise manual (append-only log with human-only writes).
+- **Alert lifecycle** — `app/Http/Controllers/AlertController.php`: raising, clearing (`update()` sets `cleared_at`), and deleting alerts are all human web actions; the resulting `AlertRaisedNotification` (`app/Notifications/AlertRaisedNotification.php`) is an in-app database notice to teammates, not an autonomous remediation.
+- **Operator session (shift) management** — `app/Http/Controllers/OperatorSessionController.php`: starting, ending, and deleting shift sessions are manual, human-only writes.
+- **Ecosystem SSO login** — `app/Http/Controllers/Auth/EcosystemAuthController.php`: consumes a single-use Sanctum personal access token scoped to `ecosystem:read`, deletes it, and logs the user in — security-credential handling, Level 3 by definition regardless of how routine it looks.
+- **Team, user, and credential management** — `app/Actions/Jetstream/*.php` (`CreateTeam`, `DeleteTeam`, `AddTeamMember`, `RemoveTeamMember`, `InviteTeamMember`, `UpdateTeamName`, `DeleteUser`) and `app/Actions/Fortify/*.php` (`CreateNewUser`, `ResetUserPassword`, `UpdateUserPassword`, `UpdateUserProfileInformation`), gated by `app/Policies/TeamPolicy.php`'s `ownsTeam` checks — account and credential ownership, non-delegable per §2.
+- **Deployment/CI-CD** — no `.github/workflows/`, no deploy scripts, and no scheduler exist anywhere in the repo (confirmed by direct search); whatever deployment process exists today happens entirely outside this codebase and is therefore fully manual by default, not automated-and-unclassified.
+
+### Gap summary
+
+Dot.Central currently has zero code paths that run without a human first opening a browser tab and submitting a form — there is no scheduler entry, no queued job, and no CI/CD pipeline in the repository. The platform's first real Level 1 process would need an actual trigger with no human in the loop: for example, a scheduled Artisan command (registered in `bootstrap/app.php`'s `withSchedule()`) that recomputes alert thresholds or exports a knowledge pack on a timer, running end-to-end without requiring Sakhile Bhayi to initiate or approve it.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -129,6 +155,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: decision-moment ownership, dispatch-workflow node ID scheme (registry gap closed), canonical two-lane loop-latency contract, tenancy, withheld operator-speed surface, 3 domain metrics, manifest, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Central's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
