@@ -1,6 +1,6 @@
 ---
 title: Dot.Tutor — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Tutor Platform Lead, Registry Agent]
 platform-id: dot-tutor
@@ -73,12 +73,37 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 9 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (52 tests / 45 passed / 91 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Tutor` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked every location a Level 1 process would live: `app/Console/Commands/` does not exist (only `routes/console.php`'s stock `inspire` Artisan demo command); `bootstrap/app.php`'s `withRouting()`/`withMiddleware()` calls register no `->withSchedule()` block, so nothing runs on a cron; `app/Jobs/` does not exist — `QUEUE_CONNECTION=database` is configured in `.env.example` but there is no Job class anywhere in the codebase to dispatch onto it; `app/Notifications/` does not exist, so no automated email/SMS/push ever fires (`MAIL_MAILER=log` in `.env.example` confirms mail isn't even wired to a real transport). There is no unattended process on this platform today.
+
+### Level 2 — Escalate
+
+None found. A Level 2 process requires a system that analyses, prepares an action, and stages it for human approval (Context → Evidence → Risk → Recommendation → Proposed Action). No such staging/approval surface exists in the code: there is no admin or moderation controller, no pending-approval queue model, and no notification-to-approver flow. The one candidate — `TutorProfile.status` moving to `'approved'` — is read in three places (`app/Http/Controllers/TutorBookingController.php:26,46,63`) but written nowhere in application code or `database/seeders/DatabaseSeeder.php`; it is set directly against the database (e.g. via `artisan tinker`), which is manual execution, not a system preparing a proposal for review — so it classifies as Level 3, not Level 2.
+
+### Level 3 — Human Control
+
+- **Deployment.** No CI/CD pipeline exists — `.github/` is absent from the repo, and there is no `Dockerfile`, `docker-compose.yml`, `Procfile`, `fly.toml`, or deploy script of any kind. Every deploy is a manual operator action outside version control.
+- **Dependency/security patching.** The 2026-08-07 `composer audit` (6 `league/commonmark` DoS advisories) and `npm audit` (postcss path-traversal, shell-quote ReDoS) patches recorded above were a manual, human-run pass — there is no Dependabot config, no scheduled audit command, and no `app/Console/Commands/` entry that would make this recurring or unattended.
+- **Tutor profile approval.** `TutorProfile.status = 'approved'` gates marketplace visibility (`TutorBookingController::browse`/`show`, `app/Http/Controllers/TutorBookingController.php:26,46,63`) but no controller, form, or admin UI ever writes that value — it is set directly in the database by an operator (`artisan tinker` or a raw update), with no review workflow around it.
+- **Session lifecycle progression.** `TutorSession.status` starts at `'pending'` on booking (`TutorBookingController.php:84`) and the only other transition in the codebase is `'cancelled'` (`TutorBookingController.php:112`). Nothing in `app/Jobs/`, `app/Console/Commands/`, or the controllers ever moves a session to `'confirmed'` or `'completed'` — that state change, if it happens at all today, is a manual database edit by an operator.
+- **Ecosystem SSO token issuance.** `EcosystemAuthController::handle()` (`app/Http/Controllers/Auth/EcosystemAuthController.php`) *consumes* a pre-issued `ecosystem:read` Sanctum token per login request automatically — that per-request consumption is end-user-facing and out of scope for this operator-autonomy audit — but nothing in this repo shows how such tokens get *minted* in the first place; that issuance path is external to Dot.Tutor and, absent evidence otherwise, is operator-controlled.
+
+### Gap summary
+
+Dot.Tutor has zero unattended operator processes today — no scheduled commands, no queued jobs, no notification classes, and no CI/CD, despite `QUEUE_CONNECTION=database` already being configured in `.env.example`. The platform's first real Level 1 candidate would be small and low-risk: a scheduled `app/Console/Commands/` job that auto-transitions past-due `pending` sessions to a `no_show`/`expired` state (pure internal bookkeeping, no money movement, no customer-facing side effects), registered via `bootstrap/app.php`'s `->withSchedule()` and covered by a test — that alone would move this platform from "no automation exists" to "one narrow, auditable Level 1 process exists."
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-02 | Repository Steward Agent | Initial registration. Platform audited: SSO contract verified, a live cross-user session-data disclosure fixed on /dashboard, branding resolved (confirmed dot.logos10.png is this platform's real logo, not a misplaced personal mark), leftover "coming soon" template removed, README corrected to match the real (booking-UI-incomplete) state. |
 | 1.1.0 | 2026-08-02 | Sakhile Bhayi | **Booking flow built** (`TutorBookingController`, `TutorSessionPolicy`, browse/show/store/cancel routes and views) — the platform's core missing piece from 1.0.0 is closed. §1/§2/§7/§8 updated; open question about booking-UI priority resolved (it shipped). |
+| 1.2.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
