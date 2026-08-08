@@ -1,6 +1,6 @@
 ---
 title: Dot.Auction — Platform Knowledge
-version: 1.0.3
+version: 1.1.0
 status: active
 owners: [Auction Platform Lead, Marketplace Agent, Registry Agent]
 platform-id: dot-auction
@@ -141,6 +141,31 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 24 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (67 tests / 60 passed / 135 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Auction` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked: `app/Console/Commands` does not exist; `bootstrap/app.php` registers `routes/console.php` for commands but defines no `->withSchedule()` call, and `routes/console.php` contains only the stock `inspire` Artisan command — there is no scheduler running any operator-side process. `app/Jobs` and `app/Listeners` do not exist — no queued or event-driven background work runs unattended, even though `QUEUE_CONNECTION=database` is configured (a queue with nothing dispatched to it). The three real `App\Notifications` classes (`AuctionEndingSoonNotification`, `AuctionWonNotification`, `OutbidNotification`) are database-channel, in-app notifications; only `OutbidNotification` fires automatically today, and it fires synchronously from `App\Livewire\Auctions\BidPanel::placeBid()` inside an end user's own bidding request — that is a user acting on their own transaction, not a platform-operator autonomy process, per this audit's scope. `AuctionEndingSoonNotification` and `AuctionWonNotification` are unwired (no sweep/settlement job invokes them — see wiki.md §6, §7 roadmap and each class's own doc comment).
+
+### Level 2 — Escalate
+
+None found. Checked for any code path that analyzes/prepares an action and stops short of executing it pending human sign-off (e.g. a proposed price change, a flagged listing, a draft recommendation surfaced for approval): no such construct exists in `app/Http/Controllers`, `app/Livewire`, `app/Policies`, or `app/Actions` — every controller/Livewire action either executes immediately within a normal end-user request (place bid, toggle watchlist, create team) or is gated by an `AuctionPolicy`/`TeamPolicy` authorization check that answers "can this user do this to their own data," not "does this action need operator sign-off before it runs." There is no admin-review queue, moderation panel, or approval-gated action anywhere in the app.
+
+### Level 3 — Human Control
+
+- **Deploys and releases** — no CI/CD exists to make this anything but manual: `find .github/workflows` and repo-wide searches for `*deploy*`, `Dockerfile`, or `Procfile` return nothing. Every release documented in the wiki.md Change Log (e.g. `wiki.md` v0.3.0, v0.4.0 entries) was a manually-run, manually-committed pass by Sakhile Bhayi / an AI session acting on his behalf, not an automated pipeline.
+- **Schema/data fixes and migrations** — `database/migrations/*` (e.g. the `auctions`, `bids`, `auction_categories`, `watchlists`, `auction_items` tables per wiki.md §3) run only via a human invoking `php artisan migrate`; no migration-runner automation exists in the repo.
+- **Credential and secret rotation** — `.env` holds `QUEUE_CONNECTION`, DB, and mail credentials in plaintext at the repo root with no rotation tooling; `EcosystemAuthController` (`app/Http/Controllers/Auth/EcosystemAuthController.php`) consumes Sanctum personal-access tokens minted and revoked entirely outside this codebase — token issuance/rotation is a manual operator action on whatever system mints them.
+- **Security patching** — `composer.json`/`composer.lock` and `package.json`/`package-lock.json` dependency updates are manual (`composer audit`/`npm audit` fixes recorded in the "Verified Infrastructure State (2026-08-07)" section above were a human-initiated pass, not a scheduled dependabot/renovate job — no such bot config exists in the repo).
+- **Admin/moderation actions** — there is no admin role, admin controller, or moderation surface in `app/Http/Controllers` or `app/Livewire` at all; any dispute, fraudulent-listing takedown, or reserve/policy override today can only happen by a human operator acting directly on the database or codebase, since `AuctionPolicy` only authorizes ordinary sellers/bidders against their own auctions.
+- **The unbuilt settlement moment** — per wiki.md §6/§7, "on `ends_at` passing, resolve winner, flip `status` to `ended`" has no job at all yet, so today an auction's actual close is whatever a human notices and acts on by hand.
+
+### Gap summary
+
+The platform has zero background execution surface today — no scheduler entry, no `app/Jobs`, no `app/Listeners`, no CI/CD — so there is nothing for a Level 1 process to run on. The first real Level 1 candidate is the already-scoped-but-unbuilt auction settlement job (wiki.md §6: resolve winner on `ends_at`, flip status, emit a settlement event) paired with the `AuctionEndingSoonNotification` sweep; building both as an actual Laravel scheduled command/queued job (not just the notification classes that exist today) would give the platform its first process an operator doesn't have to run or notice by hand.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -150,6 +175,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.2 | 2026-08-01 | DKP Architect (prompt 02, AI) | Taxonomy OQ struck (schemas/taxonomy.json published) |
 
 | 1.0.3 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Auction's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
