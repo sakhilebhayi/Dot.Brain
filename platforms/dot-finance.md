@@ -1,6 +1,6 @@
 ---
 title: Dot.Finance — Platform Knowledge
-version: 2.0.0
+version: 2.1.0
 status: active
 owners: [Finance Platform Lead, Finance Agent, Registry Agent]
 platform-id: dot-finance
@@ -95,6 +95,31 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 8 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal and shell-quote ReDoS (via concurrently). Full suite reconfirmed green (64 tests / 57 passed / 120 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Finance` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Dot.Finance has no real automation the operator can currently stay out of the loop for — every operational task listed below still needs a human. There is no scheduled command (`routes/console.php` defines only the stock `inspire` Artisan command; `bootstrap/app.php`'s `withMiddleware()` closure is empty and there is no `app/Console/Kernel.php`, `app/Jobs/`, or `app/Notifications/` directory), no queued job, no outbound notification, and no CI/CD pipeline (no `.github/workflows`, `Dockerfile`, or deploy config in the repo root). The CRUD flows in `app/Http/Controllers/{Account,Transaction,Category,Budget}Controller.php` and the read-only `ReserveRunwayCalculator` service (`app/Services/ReserveRunwayCalculator.php`) are end-user self-service — the user acting on their own data — not platform-operator automation, so they are excluded from this classification per Step 2's distinction, not counted here as Level 1.
+
+### Level 2 — Escalate
+
+None found — no code path currently prepares a decision and routes it for approval; anything resembling this today is fully manual, not semi-automated. `ReserveRunwayCalculator::calculate()` produces a reserve-runway figure and a "what-if" projection (`app/Services/ReserveRunwayCalculator.php`), but it is served directly to the end user as their own read-only insight, not surfaced to the platform operator for a go/no-go decision — it does not qualify.
+
+### Level 3 — Human Control
+
+- **Deploys.** No CI/CD or deploy pipeline exists in the repository (no `.github/workflows`, `Dockerfile`, or `fly.toml`); every deploy is a manual operator action.
+- **Database schema changes and data fixes.** All migrations and any ad hoc data correction run manually via Artisan/tinker; nothing automates or self-heals schema or data state.
+- **Dependency and security patching.** The 2026-08-07 `composer audit`/`npm audit` remediation (documented above under Verified Infrastructure State) was a manual pass by an operator/agent session — no automated patch pipeline exists to repeat it.
+- **User and team administration (Jetstream/Fortify).** `app/Actions/Jetstream/{DeleteUser,DeleteTeam,RemoveTeamMember,AddTeamMember,InviteTeamMember,UpdateTeamName,CreateTeam}.php` and `app/Actions/Fortify/{CreateNewUser,UpdateUserPassword,ResetUserPassword,UpdateUserProfileInformation}.php` are standard Jetstream/Fortify scaffolding gated by policies (`app/Policies/TeamPolicy.php`) that check `ownsTeam`/`belongsToTeam` — these execute in response to the account owner's own actions inside the app, not the platform operator, but any operator-side account recovery, credential rotation, or forced account action on a user's behalf would go through this same manual path with no autonomous alternative.
+- **Security credential ownership.** Sanctum API tokens and application secrets (`.env`) are managed manually; no rotation automation exists.
+- **Ecosystem auth integration.** `app/Http/Controllers/Auth/EcosystemAuthController.php` handles the `/auth/ecosystem` route — any change to how it trusts or verifies ecosystem identity is a manual, human-reviewed code change, not a runtime-configurable or self-adjusting process.
+
+### Gap summary
+
+Dot.Finance has zero scheduled jobs, queued jobs, or notification channels in its codebase today, so there is no existing automated process to promote to Level 1 — the first candidate would be a genuinely operator-facing scheduled job (e.g., an automated dependency-audit check, or an automated backup/health-check command registered in `routes/console.php`) that runs and reports without requiring Sakhile Bhayi to invoke it manually.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -102,6 +127,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: three-way money boundary (settlement/instruments/products) drawn canonically, regulatory watch closed as a hosted service with versioned machine-checkable rule packs and gate-acknowledgment change control, three queued questions answered, individual credit data excluded at type level, `finproduct.*` namespace resolving the Billing prefix flag, 3 domain metrics, worked round-trip |
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Finance's own wiki.md (platform repo) as the platform-owned source of truth |
 | 2.0.0 | 2026-08-01 | Repository Steward Agent (human-directed reconciliation) | Full rewrite to match the actual repository: replaced the financial-products/regulatory-watch platform description with the real personal-finance tracker (accounts, transactions, categories, budgets); retracted `finproduct.*` metrics and the regulatory watch; documented the resulting orphaned dependencies in Charts, Auction, Billing, and governance/HR docs (§12) |
+| 2.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
