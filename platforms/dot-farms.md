@@ -1,6 +1,6 @@
 ---
 title: Dot.Farms — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Agriculture Platform Lead, Agriculture Agent, Registry Agent]
 platform-id: dot-farms
@@ -123,13 +123,37 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 18 files reformatted, formatting-only. `composer audit`: patched 12 advisories across 2 packages — `guzzlehttp/guzzle` → 7.15.1 (host-only cookie scope, noncanonical cookie/host bypass, proxy-auth header leak to origin, URI-fragment Referer disclosure, unbounded response-cookies DoS) and `league/commonmark` baseline set. `npm audit`: already clean. Full suite reconfirmed green (62 tests / 55 passed / 107 assertions) after every change. (A stray, unrelated `.claude/worktrees/` directory — leftover Claude Code tooling artifact, not part of this platform — was correctly left out of every commit in this pass.)
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Farms` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked every place a Level 1 process would live: `routes/console.php` contains only Laravel's stock `inspire` command (no custom Artisan commands, no `Schedule::` calls anywhere in the repo — there is no `app/Console/Commands` directory and no scheduling registration in `bootstrap/app.php`); `app/Jobs` does not exist as a directory, so there are no queued jobs; `config/queue.php` sets `QUEUE_CONNECTION=database` but nothing dispatches to it in application code — the only place a queue worker runs is the local dev script (`composer.json` → `scripts.dev`, `php artisan queue:listen`); and `app/Notifications` contains exactly one class, `HarvestRecordedNotification` (`app/Notifications/HarvestRecordedNotification.php`), whose own docblock states it is "Not yet wired to any automatic trigger — dispatch manually ... until the `agriculture.harvest.recorded` event ... is actually published anywhere." No process in this codebase currently runs without a human-initiated request or a manual dispatch call.
+
+### Level 2 — Escalate
+
+None found. There is no code path that stages a proposed action and waits for operator approval before executing it — no draft/approve queue, no pending-review state machine, nothing resembling the Context → Evidence → Risk → Recommendation → Proposed Action shape brain.autonomy.md §2 requires for Level 2. The request-time actions that do exist (`app/Http/Controllers/Farms/*Controller.php` — farm/field/crop-cycle/planting/harvest CRUD wired in `routes/web.php`) execute immediately inside an authenticated end-user's own request; they are end-user self-service, not an operator-facing escalation, and are excluded from this classification per the task's operator-autonomy framing.
+
+### Level 3 — Human Control
+
+- **Deployment / CI-CD** — no `.github/workflows` directory exists in the repo at all (confirmed: `find .github` returns nothing). Nothing automatically builds, tests, or deploys this platform on push or on a schedule; whoever ships a change runs it by hand.
+- **Provisioning and migrations** — `composer.json` → `scripts.setup` runs `composer install`, `artisan key:generate`, `artisan migrate --force`, and the npm build as a manual, human-invoked sequence. There is no automated migration-on-deploy step anywhere in the repo.
+- **Dependency / security patching** — no `dependabot.yml` or `renovate.json` exists (checked repo root and `.github`). The dot-farms.md "Verified Infrastructure State (2026-08-07)" entry above documents that the most recent round of security patching (`composer audit` fixes to `guzzlehttp/guzzle` and `league/commonmark`, 18 files reformatted by Pint) was a manually-run, human-driven pass — not a bot or scheduled job.
+- **Secrets / environment management** — `.env` / `.env.example` are the only configuration source; there is no vault or secrets-manager integration in application code (the `vault://keys/...` reference in §12's manifest example is illustrative DKP-schema documentation, not code that runs in this repo). Rotating or provisioning secrets is entirely manual.
+- **Team/tenant authorization boundaries** — `app/Policies/FarmPolicy.php` and `app/Policies/TeamPolicy.php` encode the tenant boundary (`user->belongsToTeam($farm->team)`), but the policies themselves are only ever changed by a human editing code; there is no self-modifying or auto-tuning authorization logic to consider for a lower tier.
+
+### Gap summary
+
+Dot.Farms has no queued job, scheduled command, or automatically-triggered notification anywhere in its codebase today — the platform's first real Level 1 candidate is sitting unbuilt in plain sight: wiring `HarvestRecordedNotification` to actually fire when a `HarvestRecord` is created (an Eloquent observer or model event), which is exactly the "publish `agriculture.harvest.recorded`" gap the notification's own docblock and the wiki.md §5 event table already flag.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: entities, events, packs, consumed intelligence, value chain, tenancy, dopamine surface, 4 domain metrics registered, manifest, worked round-trip |
-
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Farms's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
