@@ -1,6 +1,6 @@
 ---
 title: Dot.Billing — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Billing Platform Lead, Finance Agent, Registry Agent]
 platform-id: dot-billing
@@ -142,12 +142,38 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 26 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (67 tests / 60 passed / 116 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Billing` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked: `routes/console.php` (only the stock `inspire` Artisan command; no `Schedule::` calls anywhere in the real app tree), `app/Console/Commands/` (one command — `PublishDkpMetricPack` — deliberately hand-run, not scheduled, per its own docblock), `app/Jobs/` (directory does not exist — no queued jobs), `app/Notifications/` (`InvoiceDueNotification` and `PaymentFailedNotification` both exist but are explicitly documented as "not yet wired to any automatic trigger — dispatch manually"), and `.github/` at the repo root (no workflow files; the only `.github` directories present are inside `node_modules`, not platform code). No process in this codebase executes on its own without a human initiating it.
+
+### Level 2 — Escalate
+
+None found. An escalation process requires a system that analyses and prepares an action and presents it for approval (Context → Evidence → Risk → Recommendation → Proposed Action per §2). Nothing in the codebase assembles or routes a proposal: `app/Services/AiBillingService.php` (`analyzeSpend()`) generates plain-language spend commentary for the end-user dashboard via a direct Claude API call, with canned fallback copy on failure — it produces read-only insight text, not a proposed action awaiting operator sign-off. `app/Services/PaymentReliabilityCalculator.php` is the same pattern (see Level 3 note below). Neither writes anywhere, triggers a workflow, or blocks on approval; both are single-shot read computations rendered straight into a Livewire view (`app/Livewire/Billing/UsageDashboard.php`, `app/Livewire/Billing/PaymentReliability.php`).
+
+### Level 3 — Human Control
+
+- **DKP metric pack publishing** — `app/Console/Commands/PublishDkpMetricPack.php`. Signs and writes one JSON knowledge pack; the class docblock states it is "deliberately not a scheduled job or pipeline" and requires a human to run `php artisan dkp:publish-metric` with `--contributor-email`/`--contributor-name`, plus a signing key manually placed at the path in `storage/app/private/README.md`. Security-credential ownership (the Ed25519 signing key) and knowledge-publication authority stay with the operator.
+- **Payment Reliability Calculator** — `app/Services/PaymentReliabilityCalculator.php`, surfaced via `app/Livewire/Billing/PaymentReliability.php`. Confirmed read-only: it computes an on-time-payment "cushion" percentage plus a hypothetical `what_if` projection from existing `BillingInvoice` rows and returns an array to a Blade view. It writes nothing, sends nothing, and triggers no downstream action — it is end-user self-service insight (a subscriber's own team viewing their own payment reliability), not operator-facing automation, so it does not itself qualify for Level 1 or Level 2 classification under this program (which classifies platform-operator autonomy, not end-user read views). Any future version that acted on this number (e.g. auto-adjusting credit terms) would need its own Level 2/3 classification at build time.
+- **Ecosystem SSO login** — `app/Http/Controllers/Auth/EcosystemAuthController.php`. Consumes a Sanctum personal access token scoped `ecosystem:read`, single-use (deleted on use), expiry-checked, then logs the user in. Token issuance and the `ecosystem:read` ability grant happen outside this codebase; account/session authority stays manual.
+- **Invoice access authorization** — `app/Policies/BillingInvoicePolicy.php` and `app/Policies/TeamPolicy.php`, enforced in `app/Http/Controllers/Billing/InvoiceController.php` via `Gate::authorize('view', $invoice)`. Team membership (who can see which team's invoices) is Jetstream-managed, human-administered.
+- **Route-level auth gating** — `routes/web.php` guards `/dashboard` and `/invoices/{invoice}` with `auth:sanctum`, the Jetstream auth-session middleware, and `verified`; `bootstrap/app.php` registers no custom middleware beyond framework defaults. Session and credential handling remain entirely human/framework-controlled, no autonomous logic layered on top.
+- **AI spend commentary** — `app/Services/AiBillingService.php`. Direct, unauthenticated-by-default (falls back to canned copy without an API key) call to the Claude Messages API for plain-language insights shown to the end user on `UsageDashboard`. No write path, no action taken on the operator's behalf — content generation only, reviewed by no one before display, but also changes nothing; included here because it is the platform's only outbound AI call and its API key is a credential the operator holds manually via `config('services.anthropic.api_key')`.
+
+### Gap summary
+
+Dot.Billing's first real Level 1 process would need three things this codebase doesn't yet have: an event or scheduler trigger (no `Schedule::` calls or queued `Jobs` exist to hang automation off), a write action tied to that trigger (today every computation — `PaymentReliabilityCalculator`, `AiBillingService` — stops at rendering a value, it never calls `->save()`, sends a notification, or calls out to another platform), and a bounded, monitored blast radius so it's safe to run unattended (the settlement/payout/dunning domains §1 of this document flags as still aspirational are exactly where that would first matter). The two Notification classes (`InvoiceDueNotification`, `PaymentFailedNotification`) are the nearest scaffolding — wiring them to real invoice/payment lifecycle events would be routine reporting/monitoring (Level 1 by the §2 examples), not the settlement-domain automation that would need Level 2 escalation.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: settlement-domain ownership, seam-metric canonical statement, two-tier aggregation-floor configuration (registry gap closed, manifest-enforced), restricted-by-default classification, minimal dopamine surface by policy, 3 domain metrics, worked round-trip |
 | 1.1.0 | 2026-08-02 | Sakhile Bhayi | §4 flagged: the target contract below is still aspirational, but Dot.Billing has now cleared real DKP onboarding step 1 (key, manifest, publish script, one verified signed pack) — see os/19-Knowledge-Packs.md §4a. |
+| 1.2.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Billing's own wiki.md (platform repo) as the platform-owned source of truth |
 
