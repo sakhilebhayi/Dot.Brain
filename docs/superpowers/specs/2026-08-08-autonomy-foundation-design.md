@@ -275,6 +275,36 @@ No CLI-level tests beyond what `market-research`'s test suite already
 establishes as sufficient coverage for this pattern (unit tests on the
 logic, one manual end-to-end CLI run for verification).
 
+## Repository registration (mandatory — not optional polish)
+
+`brain.cushion.md` and `brain.market_intelligence.md` were built earlier in
+this program and shipped without being added to any of Dot.Brain's own
+registration surfaces — a real gap, fixed retroactively in a separate
+truth-reconciliation commit. This sub-project's final task must not repeat
+that: registering `brain.autonomy.md` and `services/intervention-log/` is
+part of the deliverable, not a follow-up. Concretely, the same four files
+touched in that reconciliation commit:
+
+- **`README.md`** — add `brain.autonomy.md` to the annotated repository
+  tree (with owner/consumer annotation) and the Document Ownership Matrix;
+  add `services/intervention-log/` under the existing `services/` tree
+  entry; bump the document count in the repository-map Mermaid diagram;
+  changelog entry.
+- **`indexes/INDEX.md`** — add `brain.autonomy.md` to the Full Document
+  Catalog (a new "Autonomy" domain group, since it doesn't fit Operations &
+  Trust or People & Value cleanly); add it to the Executive persona reading
+  order alongside `brain.cushion.md`/`brain.market_intelligence.md`;
+  changelog entry.
+- **`indexes/CROSSREF.md`** — add a per-document reference row: `brain.autonomy.md`
+  defines the classification levels, score formula, and streak rule that
+  any future score/dashboard sub-project will consume; changelog entry.
+- **`indexes/GLOSSARY.md`** — add canonical entries for "Autonomy Score",
+  "Level 1/2/3 classification", "Owner Intervention Log", and "Owner-Free
+  Operating Streak" in their alphabetical sections; changelog entry.
+
+Each file's own version number and change-log table get bumped, matching
+the convention every other entry in those files already follows.
+
 ## Explicitly out of scope for this sub-project
 
 - Computing or displaying a live Autonomy Score for any entity (needs real
