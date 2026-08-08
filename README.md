@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Repository Root
-version: 1.4.0
+version: 1.5.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-08-07
@@ -62,17 +62,20 @@ flowchart TD
     R[README.md] --> M[MANIFESTO.md]
     R --> OS[os/ — Ecosystem Operating System, 20 docs + Appendix]
     R --> IDX[indexes/ — INDEX · GLOSSARY · CROSSREF]
-    R --> CORE[brain.*.md — 33 core domain documents]
+    R --> CORE[brain.*.md — 35 core domain documents]
     R --> ADR[adr/ — Architecture Decision Records]
     R --> SCH[schemas/ — JSON Schemas for DKP & graph objects]
     R --> TPL[templates/ — document, ADR, DKP, incident templates]
     R --> PLT[platforms/ — one knowledge doc per platform]
+    R --> SVC[services/ — runnable code implementing a brain.*.md contract]
     IDX --> CORE
     CORE --> ADR
+    CORE --> SVC
     PLT --> SCH
     OS --> CORE
 ```
 *`os/` sits one level above `brain.*.md`: ecosystem-wide operating doctrine (how ~20 platforms are built, secured, owned) versus Dot.Brain's own detailed technical specification. See [os/README.md](os/README.md).*
+*`services/` is new as of `brain.market_intelligence.md`: most `brain.*.md` documents are contracts each platform implements in its own stack, but a document may host its own reference implementation directly in this repository when it defines a capability Dot.Brain itself runs (e.g. `services/market-research/` implements `brain.market_intelligence.md`).*
 *Every document is reachable within two clicks of this README — directly, or via `indexes/INDEX.md`.*
 
 ## Annotated Repository Tree
@@ -111,6 +114,8 @@ dot-brain/
 ├── brain.business.md                # Business intelligence & automation · Business Agent · executives
 ├── brain.governance.md              # Governance model & approval chains · Governance Agent · human approvers
 ├── brain.resilience.md              # Resilience & Continuity Framework (anti-fragility) · Resilience Agent · SRE
+├── brain.cushion.md                 # Financial/resource shock-absorption dimension registry (distinct from SRE resilience) · Business Agent · platform engineers, executives
+├── brain.market_intelligence.md     # Market/competitor/customer research contract — fact hierarchy, research-memory schema, governance · Business Agent · platform engineers, executives
 ├── brain.experiments.md             # Experiment registry & protocols · Evolution Agent · AI agents
 ├── brain.failures.md                # Failure knowledge base (incidents → assets) · Resilience Agent · SRE, all
 ├── brain.success.md                 # Success pattern library · Learning Agent · all platforms
@@ -151,10 +156,12 @@ dot-brain/
 │   ├── dot-engage.md
 │   ├── dot-press.md
 │   └── dot-tutor.md
-└── indexes/
-    ├── INDEX.md                     # Master persona-based navigation · Repository Steward Agent · everyone
-    ├── GLOSSARY.md                  # Canonical term definitions · Knowledge Agent · everyone
-    └── CROSSREF.md                  # Machine-readable cross-reference map · Knowledge Agent · AI agents
+├── indexes/
+│   ├── INDEX.md                     # Master persona-based navigation · Repository Steward Agent · everyone
+│   ├── GLOSSARY.md                  # Canonical term definitions · Knowledge Agent · everyone
+│   └── CROSSREF.md                  # Machine-readable cross-reference map · Knowledge Agent · AI agents
+└── services/                        # Dot.Brain's own runnable code, one directory per brain.*.md that hosts an implementation · Business Agent · Dot.Brain itself
+    └── market-research/             # Implements brain.market_intelligence.md · Business Agent · Dot.Brain itself
 ```
 
 All `platforms/*.md` documents follow `templates/platform-knowledge.template.md` (defined by prompt 03 — referenced here, not written here).
@@ -182,6 +189,7 @@ All `platforms/*.md` documents follow `templates/platform-knowledge.template.md`
 | brain.evolution.md, brain.experiments.md | Evolution Agent | Governance Agent | Chief AI Engineer | Quarterly |
 | brain.dopemine.md, brain.community.md | Dopamine / Community Agents | Governance Agent | Ethics Officer | Quarterly |
 | brain.resilience.md, brain.failures.md | Resilience Agent | Security Agent | SRE Lead | Monthly |
+| brain.cushion.md, brain.market_intelligence.md, services/ | Business Agent | Data Agent | Executive Sponsor | Quarterly |
 
 ## Front-Matter Standard
 
@@ -235,6 +243,7 @@ Followed by a one-paragraph purpose statement and a "Related documents" cross-li
 | 1.2.0 | 2026-08-01 | Repository Steward Agent | Added `os/` — the Ecosystem Operating System document set (see ADR-0012); repository map and annotated tree updated to reference it |
 | 1.3.0 | 2026-08-02 | Repository Steward Agent | Registered 7 more platforms (dot-files, dot-docs, dot-forms, dot-sheet, dot-engage, dot-press, dot-tutor) — added to the annotated tree; brain.platforms.md updated to 28 of 28 platforms registered. |
 | 1.4.0 | 2026-08-07 | Dot.Brain truth-reconciliation pass | Registered `infodot` — the ecosystem's own SSO hub had no platform document or registry row at all (`platforms/dot-infodot.md`, brain.platforms.md §2), despite every other platform's cross-platform relationship depending on it. Ecosystem is now 29 of 29 real, discovered platforms registered (28 prior + infodot). Also landed an ecosystem-wide verified-infrastructure pass across all 26 buildable platforms (legal/branding/auth standardization, Laravel Boost, code-quality + security patching) — see brain.platforms.md v1.0.21 for the full summary and each `platforms/<platform>.md` §"Verified Infrastructure State (2026-08-07)" for per-platform detail. |
+| 1.5.0 | 2026-08-08 | Truth-reconciliation pass | Registered `brain.cushion.md` and `brain.market_intelligence.md` — both existed in the repository but were missing from the annotated tree, ownership matrix, and change log. Added `services/` as a first-class repository-tree entry (previously undocumented) now that `brain.market_intelligence.md` has a real reference implementation at `services/market-research/`. |
 
 ## Open Questions
 

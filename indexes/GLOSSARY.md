@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Glossary
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Documentation Agent
@@ -29,6 +29,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Contradiction (CONTRADICTS)** | Active conflict edge; applies ×0.70 to affected confidence until resolved; opened at Δ ≥ 0.20 per ADR-0004 | [../brain.relationships.md](../brain.relationships.md), [../adr/ADR-0004](../adr/) |
 | **Corroboration factor** | ×1.10 per independent source, capped at 1.30; community reputation may feed this, never trust | [../brain.dkp.md](../brain.dkp.md), reputation rule [../brain.community.md](../brain.community.md) §4 |
 | **Crypto-shredding** | Legal erasure by provable destruction of a per-subject data-encryption key; `sensitive` fields only; leaves `[erased: legal]` markers | [../adr/ADR-0009-crypto-shredding-legal-erasure.md](../adr/ADR-0009-crypto-shredding-legal-erasure.md) |
+| **Cushion dimension** | A named, independently-real business shock-absorption metric (e.g. reserve runway, payment reliability); never combined into one composite score across unlike dimensions; a dimension with no real underlying data renders as `insufficient_data`, never a fabricated number | [../brain.cushion.md](../brain.cushion.md) |
 
 ## D–G
 
@@ -40,6 +41,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Dormant** | Knowledge below 0.50 confidence: retained, searchable, unusable as inference input | [../brain.dkp.md](../brain.dkp.md), [../brain.reasoning.md](../brain.reasoning.md) |
 | **Engagement-metric prohibition** | Session time, open counts, scroll depth, notification CTR, streak length, etc. may be measured but never optimized as targets | [../brain.dopemine.md](../brain.dopemine.md) §1–2 |
 | **Ethics gate checklist** | Five questions (human-outcome target? not prohibited? guard declared? user benefit? visible + opt-out?); any "no" ⇒ rejection | [../brain.governance.md](../brain.governance.md) §5 |
+| **Fact hierarchy** | Facts → Observations → Insights → Hypotheses → Recommendations; speculation is never presented as fact regardless of how confidently phrased | [../brain.market_intelligence.md](../brain.market_intelligence.md) §1 |
 | **Golden signals** | Latency, traffic, errors, saturation per pipeline stage; definitions owned by telemetry | [../brain.telemetry.md](../brain.telemetry.md) §2 |
 | **Guard metric** | Paired harm-detection metric a recommendation must declare; breach auto-opens an incident and retro-flags the gate decision | [../brain.metrics.md](../brain.metrics.md) §5, [../brain.dopemine.md](../brain.dopemine.md) §5 |
 
@@ -64,6 +66,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Promotion gate (telemetry → metric)** | Five steps: named decision, statable commitment, 8-field registration, dopamine check, attached baseline | [../brain.telemetry.md](../brain.telemetry.md) §4 |
 | **Proxy laundering** | Disguising a prohibited engagement target as a legitimate-sounding metric; caught by causal-ancestry trace | [../brain.dopemine.md](../brain.dopemine.md) §3 |
 | **Reputation ≠ trust** | Community standing may corroborate claims but never sets trust scores; contamination is an incident | [../brain.community.md](../brain.community.md) §4 |
+| **Research memory** | Persisted, non-expired findings keyed by topic + market; a new research request must reuse a valid match before fetching anything (reuse-before-research cost discipline) | [../brain.market_intelligence.md](../brain.market_intelligence.md) §2, §4 |
 | **RTO/RPO tiers (T0–T3)** | Recovery commitments: ledger 1 h/0 · graph 4 h/5 min · 12 h/1 h · indexes 48 h/24 h (disposable) | [../adr/ADR-0007-rto-rpo-tier-model.md](../adr/ADR-0007-rto-rpo-tier-model.md) |
 
 ## S–Z
@@ -89,6 +92,7 @@ Spelling note: the *file/platform* is **Dopemine** (brain.dopemine.md, Dot.Dopem
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial glossary: 34 canonical terms across the 21 published brain documents (closes F-04, part 1) |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Added "Dot.Charts vs. dashboards" disambiguation entry |
+| 1.0.2 | 2026-08-08 | Truth-reconciliation pass | Added "Cushion dimension", "Fact hierarchy", "Research memory" — terms brain.cushion.md and brain.market_intelligence.md defined but never registered here |
 
 ## Open Questions
 

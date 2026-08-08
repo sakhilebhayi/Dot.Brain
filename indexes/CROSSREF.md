@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Cross-Reference Map
-version: 1.0.34
+version: 1.0.35
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Reasoning Agent
@@ -58,6 +58,8 @@ flowchart TD
 | [../brain.analytics.md](../brain.analytics.md) | Analysis-product catalog, packing rule, confound mandate | brain.telemetry, brain.metrics §5 (Goodhart), brain.reasoning (no causal shortcut), brain.community §3 (floor) |
 | [../brain.dopemine.md](../brain.dopemine.md) | Prohibited/preferred metric lists §2, proxy-laundering trace §3, gate-outcome learning | brain.governance §5 (checklist canon), brain.metrics §5, brain.agents §8c |
 | [../brain.community.md](../brain.community.md) | Distillation pipeline, floor operationalization §3, reputation ≠ trust §4 | brain.governance §6 (floor canon), brain.dopemine (contribution-quality target), agents/community.charter.md |
+| [../brain.cushion.md](../brain.cushion.md) | Cushion dimension registry, no-fabrication rule, shared UI pattern | — (deliberately standalone; distinct scope from brain.resilience, see brain.cushion.md's own boundary note) |
+| [../brain.market_intelligence.md](../brain.market_intelligence.md) | Fact hierarchy, research-memory schema, reuse-before-research cost discipline, robots.txt/no-credential-bypass governance | brain.governance (escalation pattern reused, not a hard dependency) |
 | [../brain.personas.md](../brain.personas.md) | Persona catalog + rendering contracts, extension procedure | brain.api §5 (serving surface), brain.learning Loop C (template evolution), brain.security §3 (persona ≠ permission) |
 | [../brain.recommendations.md](../brain.recommendations.md) | Recommendation object, decision lifecycle, quality bar, terminal-state learning table | brain.workflows §5–7 (gates/delivery/outcome), brain.reasoning (anchoring conclusions), brain.api §4 (evidence links), brain.dopemine (target/guard rules), brain.metrics §1 (impact-block gate) |
 | [../brain.experiments.md](../brain.experiments.md) | Pre-registration protocol, E1–E4 classes, evidence-class ranking, stopping rules | brain.metrics §1 (metric pre-registration), brain.reasoning I3 (result consumption), brain.governance (approval tiers + gates), brain.community §3 (E4 floor) |
@@ -133,6 +135,7 @@ flowchart TD
 | 1.0.32 | 2026-08-01 | Agent Colony Architect (prompt 04, AI) | F-07-01/F-07-04 cleared: four charters authored (people, logistics, delivery, extension), Marketplace narrowed, ADR-0010 added, roster 24 → 28 |
 | 1.0.33 | 2026-08-01 | DKP Architect (prompt 02, AI) | F-07-02/F-07-06 cleared: schemas/taxonomy.json published (four consumer OQs struck), ADR-0011 embedding-model registration added |
 | 1.0.34 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Second consecutive review: F-07-05 fixed (patterns condition-family queue), README matrix co-ownership noted; no blockers, all dimensions ≥ 4 — **repository declared internally consistent; cadence shifts to quarterly maintenance** |
+| 1.0.35 | 2026-08-08 | Truth-reconciliation pass | brain.cushion.md and brain.market_intelligence.md published outside the quarterly-maintenance cadence (real work, not a scheduled document): rows added to §2 |
 
 ## Open Questions
 
