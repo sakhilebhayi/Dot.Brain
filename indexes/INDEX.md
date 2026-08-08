@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Master Navigation Index
-version: 1.2.0
+version: 1.3.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-08-01
@@ -36,7 +36,7 @@ Purpose: persona-based navigation for the entire Dot.Brain repository, so any re
 1. [../brain.identity.md](../brain.identity.md) · [../brain.vision.md](../brain.vision.md)
 2. [../MANIFESTO.md](../MANIFESTO.md)
 3. [../brain.business.md](../brain.business.md) · [../brain.analytics.md](../brain.analytics.md) · [../brain.metrics.md](../brain.metrics.md)
-4. [../brain.cushion.md](../brain.cushion.md) — shock-absorption capacity per platform · [../brain.market_intelligence.md](../brain.market_intelligence.md) — how research becomes decisions
+4. [../brain.cushion.md](../brain.cushion.md) — shock-absorption capacity per platform · [../brain.market_intelligence.md](../brain.market_intelligence.md) — how research becomes decisions · [../brain.autonomy.md](../brain.autonomy.md) — owner-independence classification and scoring
 5. [../brain.future.md](../brain.future.md) — what's next
 
 ### 🔐 Security Reviewer
@@ -66,9 +66,10 @@ Purpose: persona-based navigation for the entire Dot.Brain repository, so any re
 | Knowledge Exchange | brain.dkp, brain.platforms, brain.relationships, platforms/, schemas/ |
 | Operations & Trust | brain.security, brain.telemetry, brain.governance, brain.resilience, brain.cushion, brain.failures, brain.operating_model |
 | People & Value | brain.personas, brain.design, brain.community, brain.dopemine, brain.business, brain.analytics, brain.metrics, brain.success, brain.market_intelligence |
+| Autonomy | brain.autonomy — classification, scoring, streak, anti-fabrication rules for the Owner Independence program |
 | Agents | brain.agents |
 | Navigation | INDEX, GLOSSARY, CROSSREF |
-| Runnable Services | services/ — Dot.Brain's own reference implementations of a brain.*.md contract (currently: market-research) |
+| Runnable Services | services/ — Dot.Brain's own reference implementations of a brain.*.md contract (currently: market-research, intervention-log) |
 
 ---
 
@@ -79,6 +80,7 @@ Purpose: persona-based navigation for the entire Dot.Brain repository, so any re
 | 1.0.0 | 2026-08-01 | Repository Architect (prompt 01) | Initial persona-based navigation index |
 | 1.1.0 | 2026-08-01 | Repository Steward Agent | Added os/ (Ecosystem Operating System) to New Contributor path and Full Document Catalog |
 | 1.2.0 | 2026-08-08 | Truth-reconciliation pass | Registered brain.cushion.md and brain.market_intelligence.md (Executive reading order + Full Document Catalog); added Runnable Services row for services/ |
+| 1.3.0 | 2026-08-08 | Autonomy Foundation sub-project | Registered brain.autonomy.md (Executive reading order + new Autonomy catalog group); added intervention-log to Runnable Services row |
 
 ## Open Questions
 

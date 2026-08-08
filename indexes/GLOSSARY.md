@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Glossary
-version: 1.0.2
+version: 1.0.3
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Documentation Agent
@@ -22,6 +22,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 |---|---|---|
 | **Aggregation floor (n ≥ 20)** | No claim may be made about a cohort of fewer than 20 identifiable people; counted by distinct contributors, with intersection-attack checks | [../brain.governance.md](../brain.governance.md) §6, operationalized [../brain.community.md](../brain.community.md) §3 |
 | **Analysis pack** | DKP carrying an analytical finding: question, method, data window, cohort + floor check, confidence, mandatory confounds | [../brain.analytics.md](../brain.analytics.md) §3 |
+| **Autonomy Score** | Weighted 11-category score (see brain.autonomy.md §3); a category with no real signal scores 0 and is never excluded from the average | [../brain.autonomy.md](../brain.autonomy.md) §3 |
 | **Capability URL** | Unguessable evidence link embedded in a Brain PR; serves frozen-at-PR-open chain + current diff; PR lifetime + 1 year | [../brain.api.md](../brain.api.md) §4 |
 | **Causal bar** | Requirements to promote `OBSERVED_WITH` to `CAUSES`: input ≥ 0.70, mechanism Why block, experiment or expert evidence, Reasoning Agent only | [../brain.relationships.md](../brain.relationships.md) §4.2 |
 | **Classification levels** | `public → ecosystem → restricted → sensitive`; labels travel with knowledge; most-restrictive propagation on derived nodes | [../brain.security.md](../brain.security.md) §2 |
@@ -53,6 +54,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Inference rules (I1–I7)** | Aggregation ·95, correlation ·80, causal promotion ·95, analogy ·60 candidate-only, contradiction, temporal projection ·70, lesson application ·90 | [../brain.reasoning.md](../brain.reasoning.md) |
 | **Ledger** | Append-only hash-chained audit record; T0 tier (RTO 1 h, RPO 0); ledger-before-graph, ledger-before-action invariants | [../adr/ADR-0006-audit-ledger-design.md](../adr/ADR-0006-audit-ledger-design.md), [../brain.workflows.md](../brain.workflows.md) |
 | **Lesson** | Incident-derived knowledge; never decays (λ = 0); always hot; propagation ≤ 72 h | [../brain.learning.md](../brain.learning.md) Loop D, [../brain.resilience.md](../brain.resilience.md) |
+| **Level 1 / 2 / 3 (autonomy classification)** | Autonomous (no approval needed) / Escalate (prepared, needs human approval) / Human Control (owner has non-delegable authority) | [../brain.autonomy.md](../brain.autonomy.md) §2 |
 | **Loops A–D** | Learning loops: trust calibration / conclusion calibration (overrides double-weight) / explanation templates / lessons | [../brain.learning.md](../brain.learning.md) |
 | **Measure vs. optimize** | Engagement signals are legitimate observations (telemetry, guards) and prohibited optimization targets | [../brain.dopemine.md](../brain.dopemine.md) §1 |
 
@@ -61,6 +63,8 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | Term | Definition | Canonical |
 |---|---|---|
 | **Never-forget set** | Knowledge exempt from all forgetting: lessons, ledger, active contradictions | [../brain.memory.md](../brain.memory.md) |
+| **Owner Intervention Log** | Records every time the owner acts on something an entity was expected to handle autonomously; entity/category/problem/trigger/root_cause/why_automation_failed/recommended_permanent_solution required on every entry | [../brain.autonomy.md](../brain.autonomy.md) §8, implementation [../services/intervention-log/](../services/intervention-log/) |
+| **Owner-Free Operating Streak** | Consecutive days without a routine owner intervention; a strategic intervention does not reset it, a routine one does | [../brain.autonomy.md](../brain.autonomy.md) §6 |
 | **Persona** | Rendering register (`engineer`/`operator`/`executive`/`auditor`); changes presentation depth, never content truth | [../brain.personas.md](../brain.personas.md) |
 | **PR Generator** | W5: the Brain's only write path to platforms — opens PRs with open-PR-only tokens; "Dot.Brain proposes; you decide" | [../brain.workflows.md](../brain.workflows.md) §5 |
 | **Promotion gate (telemetry → metric)** | Five steps: named decision, statable commitment, 8-field registration, dopamine check, attached baseline | [../brain.telemetry.md](../brain.telemetry.md) §4 |
@@ -93,6 +97,7 @@ Spelling note: the *file/platform* is **Dopemine** (brain.dopemine.md, Dot.Dopem
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial glossary: 34 canonical terms across the 21 published brain documents (closes F-04, part 1) |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Added "Dot.Charts vs. dashboards" disambiguation entry |
 | 1.0.2 | 2026-08-08 | Truth-reconciliation pass | Added "Cushion dimension", "Fact hierarchy", "Research memory" — terms brain.cushion.md and brain.market_intelligence.md defined but never registered here |
+| 1.0.3 | 2026-08-08 | Autonomy Foundation sub-project | Added "Autonomy Score", "Level 1 / 2 / 3 (autonomy classification)", "Owner Intervention Log", "Owner-Free Operating Streak" |
 
 ## Open Questions
 
