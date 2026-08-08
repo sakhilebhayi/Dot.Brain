@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Platform Knowledge (Self-Referential)
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [Chief Intelligence Architect, Governance Agent, Registry Agent]
 platform-id: dot-brain
@@ -126,11 +126,50 @@ One incident pack (2026-02): a corroboration-multiplier bug applied ×1.10 twice
 3. **PR back (decay adjustment):** domain-volatility-indexed decay schedules (trading edges decay ~2× faster than agronomy edges); confidence 0.85, impact `brain.calibration_error` −30% predicted in volatile domains, guards: no edge's decay slows (strictly conservative change), verification-rate tracking per domain for two quarters, Governance Board acknowledgment obtained before threshold effect.
 4. **Outcome:** `dkp:brain:out:2026-07-30:0001` — calibration error −36% in trading/logistics bands verified, stable domains unaffected. The Brain's stated confidence now means the same thing in every domain — the loop, having run twenty-one times through twenty-one platforms, finally ran once through itself.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against Dot.Brain's own real repository on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked every real, runnable process in this repository for anything that executes without a human or a Claude session manually invoking it:
+
+- `services/market-research/src/cli.js` — its own README states plainly: "Scheduled/continuous monitoring -- this is invoked on-demand only" (`services/market-research/README.md`, "What's not implemented"). Every research run requires an explicit `node src/cli.js research ...` invocation.
+- `services/intervention-log/src/cli.js` — its README states: "No automatic detection of interventions -- every entry is asserted by a Claude session or the owner; nothing here infers that an intervention happened" (`services/intervention-log/README.md`, "What's NOT implemented").
+- No `.github/workflows/` directory exists anywhere in this repository (checked at repo root — no `.github/` at all).
+- No `scripts/` directory exists at the repo root.
+- No root-level `package.json` exists, and neither service's `package.json` (`services/market-research/package.json`, `services/intervention-log/package.json`) defines anything beyond a `test` script — no scheduled or postinstall automation.
+- No cron configuration, launchd plist, or task-runner config was found anywhere in the repository.
+
+The knowledge-pack ingestion → validation → recommendation-PR loop described in §3–§6 above (`brain.pack.validated`, `brain.recommendation.issued`, the DKP manifest) is the aspirational contract this document describes for the wider ecosystem; no code implementing pack validation, confidence scoring, or PR generation exists in `services/` or anywhere else in this repository today. It is not counted here as a real Level 1 process.
+
+### Level 2 — Escalate
+
+None found. A Level 2 process requires something that analyses a situation and prepares a proposal for human approval before it executes (per brain.autonomy.md §2: "Context → Evidence → Risk → Recommendation → Proposed Action"). Neither real CLI does this:
+
+- `services/intervention-log/src/cli.js log` only records an intervention a human or session already asserts happened — it does not analyse anything or propose an action for approval.
+- `services/market-research/src/cli.js research` fetches and stores structured findings on request; it does not generate a proposal awaiting sign-off, and explicitly has no scheduled/autonomous trigger to begin with (see Level 1).
+
+The recommendation/PR machinery in §3–§6 above would be the natural home for a real Level 2 process (a proposal a human approves before it "ships"), but as with Level 1, no such pipeline is implemented in this repository's actual code.
+
+### Level 3 — Human Control
+
+- **Registering a new `brain.*.md` document.** Adding a document and reflecting it in `README.md`, `indexes/INDEX.md`, `indexes/CROSSREF.md`, and `indexes/GLOSSARY.md` is entirely manual. `README.md` (line 53) describes the step as "drop one manifest-driven knowledge document in `platforms/`" with no automated check that the four registration points stay in sync. `os/12-README-Automation.md` §2 is explicit about the ceiling on today's automation: "No CI runner is available in this session's working environment... this document proposes a manual convention that works today with zero new infrastructure" — and names the future CI job as "recommended, not built" (§4). No lint, hook, or workflow in this repository enforces registration consistency today.
+- **Invoking `services/market-research/src/cli.js`.** Every run is a manual `node src/cli.js research ...` command — no scheduler triggers it (`services/market-research/README.md`).
+- **Invoking `services/intervention-log/src/cli.js`.** Every `log`/`list`/`streak` call is manual, run by "a Claude session or the owner" (`services/intervention-log/README.md`).
+- **Committing to this repository.** All `git commit`/`git push` actions require the operator or an assisting session to run them directly; there is no `.github/workflows/` or other CI/CD that commits, merges, or deploys anything automatically.
+- **Logging an Owner Intervention Log entry itself.** Per brain.autonomy.md §8 and `services/intervention-log/README.md`, every entry is a human- or session-asserted claim — nothing in the codebase infers or detects that an intervention occurred, so the act of logging is itself Level 3.
+
+### Gap summary
+
+For Dot.Brain to have its first real Level 1 process, something in this repository would need to run without any human or Claude session manually starting it — for example, a cron entry or a `.github/workflows/` job that periodically executes `services/market-research/src/cli.js` against a standing watchlist, or a lint/CI check that automatically verifies `indexes/INDEX.md`, `indexes/CROSSREF.md`, and `indexes/GLOSSARY.md` stay in sync with the `brain.*.md` files on every commit. Neither exists today: the repository has no `.github/workflows/`, no `scripts/`, and no cron or task-scheduler configuration of any kind.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial self-referential integration package: registry self-knowledge OQ answered (yes, under stricter-than-tenant rules — human verification only, no self-grading, unsuppressable drift channel), custody-not-ownership tenancy, no trust self-score (Governance Board attestation instead), 3 domain metrics, calibration round-trip. Completes F-06 at 21 of 21 |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
