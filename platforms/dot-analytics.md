@@ -1,6 +1,6 @@
 ---
 title: Dot.Analytics — Platform Knowledge
-version: 1.0.2
+version: 1.1.0
 status: active
 owners: [Analytics Platform Lead, Analytics Agent, Registry Agent]
 platform-id: dot-analytics
@@ -130,14 +130,45 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 146 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched a moderate postcss path-traversal advisory. Full suite reconfirmed green (494 tests / 487 passed / 1070 assertions) after every change. (Ran on the `feature/ecosystem-sso` branch, consistent with the rest of this platform's recent work.)
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Analytics` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Scheduled intelligence-engine runs** — `routes/console.php` schedules `analytics:run-engines` (`App\Console\Commands\RunIntelligenceEnginesCommand`) every 6 hours via `Schedule::command(...)->everySixHours()->withoutOverlapping()->onOneServer()`. It queries all teams and dispatches `App\Jobs\Analytics\RunIntelligenceEngineJob` per team/engine with no owner approval gate. Routine analytics/monitoring, matches the §2 Level 1 example list directly.
+- **Executive briefing generation** — `routes/console.php` schedules `analytics:briefings` (`App\Console\Commands\GenerateBriefingsCommand`) daily at 06:00, weekly on Mondays at 06:30, and monthly on the 1st at 07:00. It calls `App\Actions\Analytics\GenerateExecutiveBriefingAction`, which queues `App\Jobs\Analytics\GenerateExecutiveBriefingJob` — an AI-generated summary written to `ExecutiveBriefing` records. Runs and publishes unattended; routine reporting.
+- **Business DNA recompute** — `routes/console.php` schedules `analytics:recompute-dna` (`App\Console\Commands\RecomputeDnaCommand`) daily at 02:00, calling `App\Services\BusinessDnaService::computeForTeam()` for every team and dispatching `App\Jobs\Analytics\ComputeBusinessDnaJob`. Pure computation over already-ingested data, no external side effect.
+- **Platform-snapshot ingestion** — `App\Jobs\Analytics\IngestPlatformSnapshotJob` (queued, not scheduled directly — dispatched on data-source events) validates payload quality and writes `AnalyticsSnapshot` rows. No owner involvement; read-and-record only.
+- **Anomaly detection** — `App\Services\AnomalyDetectionService::detectForTeam()` runs Z-score and IQR checks over `ComputedMetric` history and automatically creates `AnalyticsAlert` records surfaced in the alerts panel. It only ever writes an alert for a user to see inside their own account — it takes no action against any system or account outside the tenant, so it clears the platform-operator bar for Level 1 (it is not "self-service"; there is no cross-account or infrastructure effect at all).
+- **KPI-catalog sync** — the platform doc (§7) describes a daily `analytics.catalog.synced` job diffing the KPI catalog against the registry and blocking publication on drift; this is Analytics' own accepted knowledge doc, not something re-verified line-by-line against a scheduler entry in this audit, but it is consistent with the real `routes/console.php` scheduling pattern already confirmed above (dispatch-and-publish with no approval step) and involves no spend, contract, or irreversible action.
+
+### Level 2 — Escalate
+
+None found. Checked `app/Jobs/Analytics/*`, `app/Console/Commands/*`, `app/Services/*`, and `app/Http/Controllers/**` for anything that prepares an action and stops short of executing it pending owner approval (the defining Level 2 shape: Context → Evidence → Risk → Recommendation → Proposed Action). Nothing in the real code halts for approval — every automated pipeline found (engines, briefings, DNA, ingestion, anomaly alerts) runs straight through to completion. The closest candidate, the KPI-catalog drift check (§7), auto-blocks publication and opens an incident on its own rather than routing a proposal to a human for a yes/no — that is automated remediation, not an escalation gate, so it does not qualify either.
+
+### Level 3 — Human Control
+
+- **Deploys / CI pipeline** — `.github/workflows/ci.yml` runs tests, PHPStan, `composer audit`, and a Docker build (`Dockerfile`, `production` target) on push/PR to `main`/`develop`/`feature/**`, but the workflow only builds (`push: false`); there is no CD step that ships to production, no `fly.toml`/`Procfile`/deploy script in the repo. Every release is a manual, human-executed step outside this codebase.
+- **Credential / signing-key rotation** — the platform manifest (§12, `platform.dkp.json`) references `signing_key_ref: vault://keys/dot-analytics/dkp-signing/v1`; no rotation job, command, or automated key-management code exists anywhere under `app/Console`, `app/Jobs`, or `app/Services`. Rotation is manual and external to the repo.
+- **Auth/permission boundary changes** — `app/Policies/{TeamPolicy,DataSourcePolicy,CrossPlatformInsightPolicy}.php` and `auth:sanctum` middleware (`routes/api.php`) gate every API route, but editing these files, granting roles, or provisioning tenant access is a manual code/deploy change — no self-modifying authorization code exists.
+- **Security-header / CSP policy changes** — `app/Http/Middleware/SecurityHeaders.php` hardcodes the CSP, HSTS, and permissions-policy values; changing them requires a manual code edit and deploy, not a runtime toggle.
+- **Dependency and vulnerability patching** — the CI `security` job runs `composer audit` as a check only (no auto-patch step); the platform doc's Verified Infrastructure State (2026-08-07) records 6 `league/commonmark` and 1 `postcss` advisories patched by a human/agent session directly editing `composer.json`/`package.json`, not by any code in this repo.
+- **Schema/data fixes and migrations** — all files under `database/migrations/` are applied manually via `php artisan migrate`; there is no auto-migrate-on-deploy or self-healing data-repair job in `app/Console` or `app/Jobs`.
+- **Admin/destructive actions on tenant data** — `app/Http/Controllers/Api/V1/PlatformController.php` and `SavedReportController.php` expose delete/destroy endpoints gated behind `auth:sanctum` and the policies above; these are end-user self-service on their own tenant's data (out of scope for this operator-autonomy audit per the task framing), and no unattended/scheduled process in the codebase calls them — any operator-initiated deletion is manual.
+
+### Gap summary
+
+Every real Level 1 process found today is read/compute/report-and-store (ingest, compute DNA, run engines, generate briefings, raise alerts) — none of them touch money, external accounts, or another platform's data, so they clear the bar cheaply. There is no real Level 2 process yet because nothing in the codebase pauses an automated pipeline for human sign-off; the first genuine Level 2 candidate would be the KPI-catalog drift/incident path (§7) rewired to open an approval-gated proposal (Context → Evidence → Risk → Recommendation → Proposed Action per §2) instead of auto-blocking publication, giving the owner a real decision point rather than a fait accompli.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: reporting-domain ownership (composes, never re-measures), KPI-catalog sync contract (registry gap closed), agri chain view as delegated Analytics product, inherited-provenance rule for insight packs, strictest-source floor inheritance, 3 domain metrics, worked round-trip |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Rendering-path OQ reworded (Charts misattribution corrected) and struck (resolved by dot-design.md §7.1) |
-
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Analytics's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
