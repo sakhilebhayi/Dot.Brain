@@ -1,6 +1,6 @@
 ---
 title: Dot.Tasks — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Tasks Platform Lead, Delivery Agent, Registry Agent]
 platform-id: dot-tasks
@@ -129,6 +129,29 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 23 files reformatted, formatting-only. `composer audit` / `npm audit`: already clean, no advisories found. Full suite reconfirmed green (24 tests / 24 passed / 45 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Tasks` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **`tasks:check-due-soon` scheduled command.** Runs unattended daily at 07:00 (`Schedule::command('tasks:check-due-soon')->dailyAt('07:00')`, `routes/console.php:12`). The command (`app/Console/Commands/CheckTasksDueSoon.php`) queries tasks due within two days, sends an in-app `database`-channel `TaskDueSoonNotification` to each assignee, and de-duplicates against the last 24h so re-runs don't spam. It executes with no owner approval, has a bounded/idempotent blast radius, and is low-risk routine monitoring/reporting — a textbook Level 1 example per §2 ("routine … monitoring … reporting"). This is the only scheduled process in the codebase (`app/Console/Commands/` contains exactly one command; no other `Schedule::` calls exist outside `routes/console.php`).
+
+### Level 2 — Escalate
+
+None found. Checked for: queued/background jobs (`app/Jobs/` does not exist as a directory; no class in the repo implements `Illuminate\Contracts\Queue\ShouldQueue`, confirmed via a repo-wide grep — `QUEUE_CONNECTION=database` in `.env.example` is configured but unused), any workflow that prepares an action and waits on operator sign-off before executing it, and any auto-remediation. The one AI-adjacent capability in the codebase, `app/Services/AiTaskBreakdownService.php` (calls the Anthropic Messages API to split a task into subtasks), is synchronous, user-invoked, and writes its result directly for the requesting end user with no operator-approval step in between — it is end-user self-service, not a platform-operator escalation, so it is out of scope for this classification rather than a Level 2 candidate.
+
+### Level 3 — Human Control
+
+- **Deployment / release process.** No CI/CD exists anywhere in the repo — `find .github -type f` and a repo-wide `*.yml`/`*.yaml` search (excluding `vendor/`, `node_modules/`) both return nothing. `composer.json`'s `scripts` block (`composer.json`) defines only local `setup`/`dev`/`test` scripts (`composer install`, `artisan key:generate`, `artisan migrate --force`, `npm run build`); there is no pipeline that builds, tests, or ships a release without a human running these commands by hand. Shipping code to this platform is entirely manual today.
+- **Database migration / initial provisioning.** The `composer run setup` script runs `php artisan migrate --force` directly against the target database with no gate, approval step, or automated trigger — an operator must invoke it (`composer.json` `scripts.setup`).
+- **`ANTHROPIC_API_KEY` credential ownership.** `config/services.php:38-40` reads the Anthropic API key and model straight from `.env` (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` in `.env.example:72-73`) for `AiTaskBreakdownService`. There is no rotation, vaulting, or automated provisioning in the codebase — provisioning and rotating this secret is a manual operator action, matching §2's "security credential ownership" example directly.
+- **Ecosystem SSO token issuance.** `app/Http/Controllers/Auth/EcosystemAuthController.php` logs a user in by redeeming a Sanctum `PersonalAccessToken` scoped to the `ecosystem:read` ability (single-use — the token is deleted on redemption). The repo contains no code path that mints these tokens; creating and distributing an `ecosystem:read` token to another platform is a manual, operator-controlled security action outside this codebase.
+
+### Gap summary
+
+Dot.Tasks has exactly one real autonomous process today (`tasks:check-due-soon`), and it is narrow: a single daily reminder job with no downstream action beyond a notification. For the platform's *next* Level 1 process to exist, the highest-leverage build is queue-backed automation with a real trigger-condition → safe-action loop and no owner in the path — e.g. auto-escalating a routine that has failed repeatedly (the `routine.template.escalated` event already described in §3 of this document is defined at the knowledge-pack level but has no implementing code in `app/Console/Commands/` or `app/Jobs/` yet). Level 2 is emptier still: nothing in the codebase currently proposes an action and waits for Sakhile's approval before executing it; the nearest candidate would be gating `routine.template.escalated` behind an approval step before it fires into Dot.Projects, which does not exist today.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -136,6 +159,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: routine-granularity ownership deferring to dot-projects boundary statement, execution-substrate role and outcome-evidence seam, done/rework pairing made structural (decertified-streak lesson), open-classified template structures, 3 domain metrics, worked round-trip corroborating the canonical Mines outcome |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Tasks's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
