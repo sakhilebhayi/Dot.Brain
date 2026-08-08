@@ -7,7 +7,7 @@
     "market-research": "./src/cli.js"
   },
   "scripts": {
-    "test": "node --experimental-sqlite --test test/"
+    "test": "node --experimental-sqlite --test"
   },
   "engines": {
     "node": ">=22.5.0"
