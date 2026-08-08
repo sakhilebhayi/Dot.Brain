@@ -1,6 +1,6 @@
 ---
 title: Dot.Sheet — Platform Knowledge
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [Sheet Platform Lead, Registry Agent]
 platform-id: dot-sheet
@@ -74,11 +74,35 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed via `composer require --dev --ignore-platform-req=php` (this platform shares `maatwebsite/excel`'s `phpoffice/phpspreadsheet` dependency with dot-forms, which requires `php <8.5.0` against this ecosystem's PHP 8.5.9); `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 42 files reformatted, formatting-only. `composer audit`: **26 advisories across 9 packages**, all patched — same combination and fix as dot-forms: `laravel/framework` (signed-URL/CRLF), `phpoffice/phpspreadsheet` → 1.30.6 (SSRF/RCE via `IOFactory::load`, XSS, memory-exhaustion DoS chain), `symfony/*` transitive, `league/commonmark` baseline. `npm audit`: patched `ws` uninitialized-memory-disclosure + memory-exhaustion DoS (via engine.io-client, 11 issues). Full suite reconfirmed green (45 passed / 7 skipped / 89 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Sheet` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Transactional notification dispatch (no operator involvement, ever).** `App\Notifications\MentionedInComment` and `App\Notifications\WorkflowRuleTriggered` (`app/Notifications/MentionedInComment.php`, `app/Notifications/WorkflowRuleTriggered.php`) fire automatically — the mention notification from `app/Livewire/CellCommentsPanel.php` and `app/Livewire/ShowSpreadsheet.php`, the workflow-rule notification inline in `app/Livewire/ShowSpreadsheet.php:1417` — and are delivered via mail/database channels with zero human review or approval gate. Sakhile never sits in this loop today; it already runs unattended. Note: the *action* being reported (a mention, a rule match) is end-user-initiated, but the *dispatch decision itself* is a system process requiring no operator authorization, which is what makes it a genuine Level 1 finding rather than end-user self-service.
+- **Runtime tenancy authorization enforcement.** `App\Policies\SpreadsheetPolicy` and `App\Policies\TeamPolicy` (`app/Policies/SpreadsheetPolicy.php`, `app/Policies/TeamPolicy.php`) evaluate on every request with no human in the loop — this is what closed the privilege-escalation gap recorded in §7/§10 above. It is safe automated remediation-by-design (deny-by-default access checks), not a decision that ever needs Sakhile's sign-off per-request.
+
+### Level 2 — Escalate
+
+None found. Checked: routes (`routes/web.php`, `routes/api.php`, `routes/console.php`), all three queued jobs (`app/Jobs/BulkPasteChunkJob.php`, `app/Jobs/ImportRowsChunkJob.php`, `app/Jobs/SimulateSpreadsheetEditJob.php`), both notifications, `app/Services/*` (`FormulaEvaluatorService.php`, `AiService.php`, `SpreadsheetImportExportService.php`), and both console commands. No process in this codebase prepares an action and then pauses for authorized human approval before executing (no Context→Evidence→Risk→Recommendation→Proposed Action gate exists anywhere) — every real automated process here either runs fully unattended (Level 1) or requires a human to manually invoke it in the first place (Level 3). The AI panels (`AiService.php`) are end-user-initiated, in-app, human-in-the-loop-by-the-end-user features, not operator-facing escalations, so they are out of scope for this operator-autonomy classification.
+
+### Level 3 — Human Control
+
+- **Database + storage backups, including destructive pruning.** `php artisan ops:backup` (`app/Console/Commands/RunBackupCommand.php`) is a real, working backup command — but it is registered nowhere: `routes/console.php` contains only the stock `inspire` command, and `bootstrap/app.php` declares no `withSchedule()` closure at all (confirmed by direct read; no `Schedule::` call exists anywhere in the codebase). It only runs when an operator types the command by hand. It also permanently deletes backup directories older than the retention window (`pruneOldBackups()`, same file) with no confirmation step — a destructive operation that today depends entirely on Sakhile (or whoever holds shell access) remembering to run it and choosing the retention window.
+- **Load-test traffic generation against production/staging data.** `php artisan spreadsheet:load-test` (`app/Console/Commands/SpreadsheetLoadTestCommand.php`), which dispatches a `Bus::batch` of `App\Jobs\SimulateSpreadsheetEditJob` (`app/Jobs/SimulateSpreadsheetEditJob.php`) — an operator must supply a real spreadsheet ID and manually invoke the command; nothing schedules or gates it.
+- **CI/CD pipeline: none exists.** No `.github/workflows/`, no other CI config file (`*.yml`/`*.yaml`) anywhere in the repo root or subdirectories, and `deploy/` contains only two `*.conf.example` Supervisor templates (`deploy/supervisor/queue-worker.conf.example`, `deploy/supervisor/horizon.conf.example`) — illustrative process-manager config, not a working pipeline. Every build, test, and deploy step for this platform is currently a fully manual operator action.
+
+### Gap summary
+
+Two real Level 1 processes exist today (notification dispatch, policy-based tenancy enforcement), but both are incidental side-effects of application code rather than a deliberately built owner-independence capability — there is no Level 2 escalation queue at all. The first genuine owner-independence milestone would be turning `ops:backup` into a real `Schedule::command()` entry with alerting on failure (removing the "operator must remember to SSH in and type a command" dependency), which would also be this platform's first process to move from Level 3 into a monitored Level 1/2 pairing (automatic backup = Level 1, automatic prune-to-delete = Level 2 escalation requiring approval before destructive deletion runs).
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-02 | Repository Steward Agent | Initial registration. Platform audited: SSO contract verified, DB_DATABASE misconfiguration fixed, a broken /dashboard route repaired, a systemic missing-authorization gap across six Livewire components closed (the most severe finding of the 7-platform integration pass), favicon wired into the authenticated layout, README corrected. |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
