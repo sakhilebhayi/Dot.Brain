@@ -1,6 +1,6 @@
 ---
 title: Dot.Dopemine — Platform Knowledge
-version: 1.0.2
+version: 1.1.0
 status: active
 owners: [Dopemine Platform Lead, Ethics Agent, Registry Agent]
 platform-id: dot-dopemine
@@ -138,6 +138,32 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 13 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: already clean. Full suite reconfirmed green (66 tests / 59 passed / 155 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Dopemine` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked: `app/Console/Commands` (directory does not exist), `routes/console.php` (only the stock `inspire` command, no `Schedule::` entries), `app/Jobs` (directory does not exist — the `jobs` DB table is present but unused, `composer.json`'s `dev` script starts `queue:listen` against an empty queue), `app/Notifications` (directory does not exist — `NotificationBell.php` reads the `notifications` table but nothing in the codebase ever calls `->notify(...)`), and `.github/` (does not exist at all — no CI, no automated test run, no deploy pipeline). No process in this codebase executes without a human clicking through the UI today.
+
+### Level 2 — Escalate
+
+None found. No code path in `app/Actions/Dopemine/` or elsewhere analyses data and prepares a proposal for human approval before executing (the Context → Evidence → Risk → Recommendation → Proposed Action shape required by brain.autonomy.md §2 is not implemented anywhere). The one process that would fit this level — automated "mechanic-retirement candidate" flagging from engagement/outcome decoupling — is documented in `wiki.md` §3–4.1 ("Wellbeing observation" and "Mechanic outcome" ledgers "remain design intent") and referenced only as backstory prose in a code comment in `app/Actions/Dopemine/DecertifyMechanic.php`; no model, table, job, or validation computes decoupling. Every real mutation (certify, decertify, deploy, retire) is a direct, human-initiated Livewire action, not a system-prepared recommendation awaiting sign-off.
+
+### Level 3 — Human Control
+
+- **Mechanic certification** — `app/Actions/Dopemine/CertifyMechanic.php` plus the acid-test gate in `app/Models/Mechanic.php`'s `static::saving()` listener (lines 60-68, throws `RuntimeException` if `status === Certified` without `acid_test_passed`). Invoked only via a human click in `app/Livewire/MechanicCatalog.php`, gated by `canGovern()` (lines 71-76: `$user->hasTeamRole($team, 'admin')`) — the Jetstream `admin` team role standing in for a not-yet-built dedicated Ethics Officer permission, per the component's own docblock.
+- **Mechanic decertification** — `app/Actions/Dopemine/DecertifyMechanic.php`, requires a human-supplied `reason` string, cascades to retire all of the mechanic's `activeDeployments`; invoked via the same `canGovern()`-gated Livewire actions (`startDecertify`/`confirmDecertify`) in `app/Livewire/MechanicCatalog.php`.
+- **Deploying a certified mechanic to a team** — `app/Actions/Dopemine/DeployMechanic.php` and the `MechanicDeployment::creating()` listener in `app/Models/MechanicDeployment.php` (lines 47-58); invoked via `deployToCurrentTeam()` in `app/Livewire/MechanicCatalog.php` — human-initiated, no admin gate, open to any authenticated team member.
+- **Retiring a deployment** — `app/Actions/Dopemine/RetireMechanicDeployment.php`, invoked via `retire()` in `app/Livewire/MechanicDeployments.php` — human-initiated, no admin gate.
+- **Seeding the initial mechanic catalog and prohibited-metric reference list** — `database/seeders/MechanicCatalogSeeder.php`, run only by a human via `php artisan db:seed`; not invoked by any job, command, or CI step.
+- **Application setup and deployment** — `composer.json` `setup`/`dev` scripts (install, migrate, build, `serve`/`queue:listen`/`pail`) are human-run local operations; with `.github/` entirely absent, any deployment to production is manual end-to-end — there is no pipeline to gate in the first place.
+- **Ethics Officer authority** — currently exercised as the generic Jetstream `admin` team role (`app/Providers/JetstreamServiceProvider.php:44-58`), assigned/removed by a human team owner; there is no distinct, code-enforced Ethics Officer permission separate from general team administration.
+
+### Gap summary
+
+Every real mutation in this codebase already requires a human click, and nothing runs unattended — so the platform has no Level 1 or Level 2 process today, only Level 3. The first real Level 1 candidate would be a scheduled, code-only job (e.g. `app/Console/Commands` + a `Schedule::` entry) that computes read-only observation/reporting output — such as the `engagement.outcome_coupling_rate` metric in §11 — with no mutation and no human step. The first real Level 2 candidate would be that same kind of job extended to detect engagement-up/outcome-flat decoupling and write a flagged "retirement candidate" record surfaced to an admin for approval, in the Context → Evidence → Risk → Recommendation → Proposed Action shape brain.autonomy.md §2 requires — none of which exists yet; today "decoupling" is documentation only (`wiki.md` §3–4.1).
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -146,6 +172,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Intent-label wording OQ struck (resolved by dot-design.md §7.1) |
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Dopemine's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
