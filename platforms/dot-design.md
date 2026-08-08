@@ -1,6 +1,6 @@
 ---
 title: Dot.Design — Platform Knowledge
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Design Platform Lead, UX Agent, Registry Agent]
 platform-id: dot-design
@@ -143,6 +143,29 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 7 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (58 tests / 51 passed / 106 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Design` on 2026-08-08 — not aspirational.
+
+The real repository is a Laravel 11 + Jetstream/Fortify SaaS scaffold (canvas-based AI graphic design tool per the pre-existing "Domain mismatch" open question below), not the enterprise design-token/component-library system most of this document describes. This audit covers only what actually exists in code: `routes/console.php`, `routes/web.php`, `routes/api.php`, `bootstrap/app.php`, `app/` (Actions, Http/Controllers, Models, Policies, Providers — no `app/Jobs`, `app/Notifications`, `app/Console`, or `app/Http/Middleware` directories exist), `.github/` (an `agents/docs-manager.agent.md` routing doc only — no `workflows/` directory), and `docs/DEVOPS.md` (a CI/CD *specification*, confirmed unimplemented: no `.github/workflows/*.yml` file exists on disk).
+
+### Level 1 — Autonomous
+None found. Checked for: scheduled commands (`routes/console.php` defines only the Laravel-stock `inspire` command — no business-logic schedule; no `app/Console/Kernel.php` or `app/Console/Commands/`), queued jobs (no `app/Jobs/` directory; `QUEUE_CONNECTION=database` is configured and `composer.json`'s `dev` script runs `artisan queue:listen`, but no `ShouldQueue` job class exists anywhere in `app/` for it to process), and notifications (no `app/Notifications/` directory; `MAIL_MAILER=log`, so no outbound channel is even wired). Nothing in the real codebase runs on its own without a human or an end-user HTTP request triggering it.
+
+### Level 2 — Escalate
+None found. Checked for: any code path that prepares a consequential action and stops for operator approval before executing (the Level 2 Context → Evidence → Risk → Recommendation → Proposed Action pattern). No such gate exists — every action-producing code path in `app/Http/Controllers/` (`ComponentController`, `DesignTokenController`, `TokenConsumptionRecordController`, `TokenSetController`, `EcosystemAuthController`) executes synchronously and immediately for the authenticated end user who called it; there is no queued-for-operator-review step, no draft/approval model, and no admin-approval UI in the repo.
+
+### Level 3 — Human Control
+- **Deployment and release** — `composer.json`'s `setup` script (`composer install` → `.env` bootstrap → `artisan key:generate` → `artisan migrate --force` → `npm install` → `npm run build`) is a manual, operator-run sequence. No CI/CD pipeline exists to run it: `docs/DEVOPS.md` §2 specifies a `.github/workflows/ci.yml`, but `find .github -type f` shows only `.github/agents/docs-manager.agent.md` — the workflow file does not exist on disk. Every deploy is Sakhile Bhayi running these commands by hand.
+- **Database migrations** — `artisan migrate --force` in the same `setup` script; there is no automated migration runner (no post-deploy hook, no workflow) — an operator must execute it.
+- **Local process orchestration** — `composer.json`'s `dev` script hand-starts four processes (`php artisan serve`, `php artisan queue:listen`, `php artisan pail`, `npm run dev`) via `concurrently`; there is no supervisor/systemd config or containerized process manager in the repo (no `docker-compose.yml`, `Caddyfile`, or supervisor config found at the repo root), so keeping the queue worker alive in any real environment is a manual operator responsibility.
+- **Dependency/security patching** — the prior verified pass recorded in this document's "Verified Infrastructure State (2026-08-07)" section (`composer audit` / `npm audit` fixes, Pint reformatting) was a manually run, human-initiated audit — no scheduled or CI-triggered audit job exists in the repo to do this on its own.
+- **Auth/credential issuance** — `app/Http/Controllers/Auth/EcosystemAuthController.php` consumes a pre-issued Sanctum `PersonalAccessToken` scoped to `ecosystem:read` for cross-platform SSO login; the token itself must be minted and distributed by an operator/process outside this repo (no token-issuance endpoint exists here) — credential ownership stays with a human per brain.autonomy.md §2.
+- **Team/account destructive actions** — `app/Actions/Jetstream/DeleteTeam.php` and `app/Actions/Jetstream/DeleteUser.php` perform permanent deletion, gated by `TeamPolicy` (`app/Policies/TeamPolicy.php`) to the resource-owning end user, not an autonomous platform process — consistent with Level 3's "permanent deletion" example, though the human holding control here is the account owner, not the platform operator, so this is noted rather than counted toward operator autonomy.
+
+### Gap summary
+The platform has zero automated processes today — no scheduler, no queue-consuming job, no notification channel — so there is nothing to promote to Level 1 or 2 yet. The first real Level 1 candidate would be standing up `docs/DEVOPS.md`'s already-specified `.github/workflows/ci.yml` (tests/lint run on push with no human trigger) and/or an `app/Console/Commands/` scheduled task with an actual queued `app/Jobs/` class behind it (e.g. the `docs/AI-INTEGRATION.md`-specified queued AI-generation job) — both are currently documented intent in `docs/`, not code.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -150,6 +173,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: token-consumption contract closed (versioned pinning, 90-day breaking notice, drift ceiling, Brain-surface comprehension certification, Plug inheritance), four inherited OQs settled (intent-label wording, single rendering path via Analytics views, worker-visibility component, Loop C comprehension measurement), 3 domain metrics, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Design's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.0.2 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
