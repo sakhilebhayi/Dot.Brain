@@ -1,6 +1,6 @@
 ---
 title: Dot.Memory — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Memory Platform Lead, Memory Agent, Registry Agent]
 platform-id: dot-memory
@@ -140,12 +140,42 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 10 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: already clean. Full suite reconfirmed green (14 tests / 14 passed / 502 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Memory` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked every category the classification covers, and none has an implemented, unattended process:
+
+- **Scheduled commands** — `routes/console.php` registers exactly one command, the framework's stock `inspire` (an inspirational quote), and nothing else. No `app/Console/Commands` directory exists, so there is no `Schedule::` cron entry anywhere to run autonomously.
+- **Queued jobs** — `QUEUE_CONNECTION=database` is configured and a `jobs` table migration exists (`database/migrations/0001_01_01_000002_create_jobs_table.php`), but no `app/Jobs` directory exists. The queue infrastructure is provisioned; no job class has been written to run on it.
+- **Notifications** — a `notifications` table migration exists (`database/migrations/2026_08_01_100001_create_notifications_table.php`), but no `app/Notifications` directory exists. Nothing dispatches a notification.
+- **The §3/§10 event and pack pipeline** described in this same document (`memory.sla.breach`, `memory.tier.migration_completed`, `memory.integrity.check_completed`, `dkp:memory:*` packs) — grepped the full `app/`, `config/`, `routes/`, `database/` trees for these identifiers: zero matches. They are DKP-registry documentation of an intended pipeline, not code that runs it.
+- **CI/CD** — no `.github/workflows` directory (or any other CI config) exists in the repo. There is no pipeline to run autonomously in the first place.
+
+### Level 2 — Escalate
+
+None found. A Level 2 process requires code that analyses a situation and prepares a Context → Evidence → Risk → Recommendation → Proposed Action package for human approval. No such preparation path exists anywhere in the app — there is no queued job, command, or service class that builds a proposal object; the SLA-breach and degraded-mode behaviors this document describes in §7/§10 are, per the Level 1 grep above, unimplemented. The two real controllers in the app (`IndexController`, `DurabilityController`) are both read-only `view()` renders with no side effects to escalate.
+
+### Level 3 — Human Control
+
+- **Deployment.** No CI/CD pipeline exists (`.github/workflows` absent) and `composer.json`'s `"setup"` script (`composer.json` scripts block) — `composer install`, `key:generate`, `migrate --force`, `npm install`, `npm run build` — is a manual sequence a human runs by hand. Nothing in the repo triggers a deploy or a migration on its own.
+- **Ecosystem auth token issuance.** `app/Http/Controllers/Auth/EcosystemAuthController.php` *consumes* a Sanctum `PersonalAccessToken` carrying the `ecosystem:read` ability (validates it, logs the tokenable user in, deletes the token) — but grepping the full `app/` and `database/` trees turns up no code path that *issues* one of these tokens. Minting an ecosystem-auth token is a manual, out-of-band operator action; the app has no self-service or automated issuance/rotation flow.
+- **Database migrations.** `php artisan migrate --force` runs only as a step in the manual `composer run setup` sequence above — there is no scheduled or CI-triggered migration runner.
+- **Middleware/kernel changes.** `bootstrap/app.php`'s `withMiddleware()` closure is empty (framework defaults only); any change to auth/permission middleware is a direct code edit and deploy, done by a human, not a runtime-configurable or self-adjusting process.
+
+### Gap summary
+
+Every piece of infrastructure a Level 1 process would need — a `jobs` table, a `notifications` table, `QUEUE_CONNECTION=database` — is already provisioned, but no job, command, or notification class has been written against it. The first real Level 1 candidate is the platform's own documented weekly `memory.integrity.check_completed` durability check (§3): it would need an actual `app/Console/Commands` class, a `Schedule::command()` entry in `routes/console.php` (or a queued job), and a write path into `durability_outcomes` — none of which exist in the codebase today.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: infrastructure/platform layer separation (stores without reading; telemetry-only publication by construction), retrieval SLA contract closed (four classes with specified degraded modes, SRE-owned, consumer-acknowledged), brain.memory.md straggler metrics homed, Central two-lane layering clarified, 3 domain metrics, worked round-trip |
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Memory's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
