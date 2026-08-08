@@ -1,6 +1,6 @@
 ---
 title: Dot.Projects — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Projects Platform Lead, Delivery Agent, Registry Agent]
 platform-id: dot-projects
@@ -131,6 +131,29 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 27 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (69 tests / 62 passed / 123 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Projects` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Daily milestone due-soon reminder.** `app/Console/Commands/CheckMilestonesDueSoon.php`, scheduled via `Schedule::command('projects:check-milestones-due')->dailyAt('07:00')` in `routes/console.php`. Runs unattended every day: queries milestones due within the next two days that aren't yet `completed`, dedupes against notifications already sent for the same milestone in the last 24 hours (so a re-run or a missed-schedule catch-up doesn't spam), and dispatches an in-app `MilestoneDueSoonNotification` (`app/Notifications/MilestoneDueSoonNotification.php`, database channel, synchronous) to the project's owner and members. Non-destructive, informational, idempotent, no spend/legal/security stakes — the operator (Sakhile Bhayi) is never in the loop for this to run correctly. This matches §2's L1 examples of routine monitoring and reporting.
+
+### Level 2 — Escalate
+
+None found. Checked: `app/Jobs/` does not exist (zero queued jobs of any kind in the codebase, despite `queue:listen` being wired into the local `composer dev` script), so there is no job pipeline that could stage a prepared-but-unexecuted action. Grepped the full `app/` tree for `approv|pending_review|escalat` — zero matches. No model, migration, controller, or policy carries a pending/awaiting-approval state. There is currently no real process in Dot.Projects that prepares an action and holds it for authorised human sign-off before executing.
+
+### Level 3 — Human Control
+
+- **Deployment.** No `.github/` directory, no CI/CD workflow file, no Dockerfile, no Procfile, and no deploy script exist anywhere in the repo. `composer.json`'s `setup` script (`composer install` → `.env` copy → `key:generate` → `migrate --force` → `npm install` → `npm run build`) is a local bootstrap script, not a pipeline — nothing invokes it against production. Shipping a change to this platform is entirely manual today and stays with the operator by default (§2: nothing may execute Level-3-adjacent, unautomated operations on its own).
+- **Dependency security patching.** The verified-infrastructure note in this same document (§"Verified Infrastructure State (2026-08-07)") records `composer audit` / `npm audit` fixes (6 `league/commonmark` DoS advisories, postcss/shell-quote issues) applied by hand during a manual pass — there is no scheduled or CI-gated audit job in the codebase (`app/Console/Commands/` contains only `CheckMilestonesDueSoon.php`) that would catch the next advisory without an operator (or an agent acting for one) running it.
+- **Ecosystem SSO token issuance and revocation.** `app/Http/Controllers/Auth/EcosystemAuthController.php` consumes a pre-issued Sanctum personal access token scoped to `ecosystem:read` to log a user in and then deletes the token (single use). The controller only *consumes* tokens; nothing in the repo shows where or how `ecosystem:read` tokens are minted, rotated, or revoked at scale — that credential-issuance authority (§2 L3: "security credential ownership") is not automated anywhere in this codebase and stays manual/out-of-repo.
+- **Database migrations.** `php artisan migrate` (`--force` in the setup script, `--graceful` in `post-create-project-cmd`) is triggered by a human or an agent acting under human instruction; there is no scheduled or CI-triggered migration runner.
+
+### Gap summary
+
+The platform's only automated process (the milestone reminder) is read-and-notify with no write side effects, so it never needed an approval gate — that's why no Level 2 process exists yet. The first real Level 1 candidate with actual escalation stakes would need a process that *writes* on the operator's behalf (e.g., an automated dependency-security-patch bot that opens a PR, or a CI/CD pipeline that deploys after tests pass) plus a `Jobs/`-based staging step that holds the prepared action for sign-off before Dot.Projects would have a genuine Level 2 process to classify.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -138,6 +161,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: project/task boundary (phased vs. recurring, exclusive ownership, spawn/escalate handoffs), HR structure-to-structure consumption contract, failed-closure honesty rule, verified team-milestone mechanic deployment terms, 3 domain metrics, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Projects's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
