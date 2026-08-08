@@ -1,6 +1,6 @@
 ---
 title: Dot.Notify — Platform Knowledge
-version: 1.0.1
+version: 1.1.0
 status: active
 owners: [Notify Platform Lead, Documentation Agent, Registry Agent]
 platform-id: dot-notify
@@ -129,6 +129,31 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 32 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (84 tests / 77 passed / 181 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Notify` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked `routes/console.php` (only the stock Laravel `inspire` command — no scheduled commands or `Schedule::` calls in `bootstrap/app.php`), `app/` for a `Jobs/` directory (none exists — no queued jobs), and `.github/` for CI/CD workflows (directory does not exist — no automated pipeline runs unattended). The one process that looks automated at a glance — `POST /webhooks/{token}` in `app/Http/Controllers/WebhookInboundController.php`, which verifies an inbound webhook's HMAC signature and auto-creates a `NotifyInboundEvent` plus a matching `NotifyLog` row when an active `NotifyRule` exists — stops short of actually executing anything: the log is created in `queued` status only. The controller's own inline comment states dispatching to a channel driver "is the pre-existing send pipeline gap noted in wiki.md, not something introduced here." An operation that never delivers a notification does not qualify as an autonomous operator process.
+
+### Level 2 — Escalate
+
+None found. Checked `app/Services/AiNotifyService.php` (calls the Anthropic API to draft a notification template's subject/body/variables) and its only caller, `app/Livewire/Notify/TemplateEditor.php::generate()`. The generated draft is held in Livewire component state (`$generatedSubject`, `$generatedBody`) and displayed back to the logged-in user; nothing persists or executes until the same user manually triggers the separate `saveTemplate()` action from the UI. This is synchronous, same-request human-operated drafting inside an authenticated Livewire form — not a background process presenting Context → Evidence → Risk → Recommendation → Proposed Action for a separate approver to release. It is Level 3 (human-operated tooling), not Level 2 (system-prepared, human-approved autonomous process).
+
+### Level 3 — Human Control
+
+- **Channel and template management** — `app/Livewire/Notify/ChannelManager.php` (`addChannel`, `toggleChannel`, `deleteChannel`) and `app/Livewire/Notify/TemplateEditor.php` (`generate`, `saveTemplate`): every channel registration, activation toggle, deletion, and AI-drafted template save is a synchronous `wire:click` action a logged-in operator performs by hand; nothing runs without that click.
+- **AI template drafting** — `app/Services/AiNotifyService.php`: calls `https://api.anthropic.com/v1/messages` directly with `curl` inside the request cycle to draft copy; the draft is inert until a human clicks save (see Level 2 rationale above).
+- **Notification delivery pipeline** — `app/Http/Controllers/WebhookInboundController.php`: verifies inbound webhook signatures and creates a `NotifyLog` in `queued` status, but there is no channel-driver dispatch anywhere in the codebase (no `app/Jobs/`, no mailer/SMS/push send call found), so every queued notification currently requires a human/manual mechanism to actually reach a recipient.
+- **Ecosystem SSO handoff** — `app/Http/Controllers/Auth/EcosystemAuthController.php::handle()`: consumes a one-time Sanctum personal access token scoped `ecosystem:read`, deletes it, and logs the bearer in — a security-credential-adjacent operation, inherently Level 3 per brain.autonomy.md §2's "security credential ownership" example.
+- **Team/access authorization** — `app/Policies/TeamPolicy.php`: every mutating team action (`update`, `addTeamMember`, `updateTeamMember`, `removeTeamMember`, `delete`) is gated on `$user->ownsTeam($team)`, i.e. a specific human owner's authority, not an automated actor.
+- **Code-quality/dependency remediation** — the 2026-08-07 verified-infrastructure pass (Pint reformatting, `composer audit`/`npm audit` patching) recorded above was a manual, human-run pass; no CI/CD workflow exists in the repo (`.github/` absent) to make this run unattended in the future.
+
+### Gap summary
+
+For a first real Level 1 process to exist, Dot.Notify needs a queue worker or scheduled job that actually dispatches a `queued` `NotifyLog` to its channel driver (email/SMS/push/webhook/Slack/in-app) end-to-end without a human click, plus a CI/CD pipeline (currently absent — no `.github/workflows/`) so dependency/security patching and test runs happen unattended instead of the manual pass recorded 2026-08-07.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -136,6 +161,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: delivery-domain ownership, domain-agent assignment gap closed (Documentation Agent, sprawl alternative rejected), Pulse cross-org consent scope resolved (default-off, role-addressed, degrade-to-digest), structural no-absence-trigger enforcement, attention-economics insight channel, 3 domain metrics, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Notify's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
