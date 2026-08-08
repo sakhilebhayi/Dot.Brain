@@ -1,6 +1,6 @@
 ---
 title: Dot.HR — Platform Knowledge
-version: 1.0.2
+version: 1.0.3
 status: active
 owners: [HR Platform Lead, People Agent, Registry Agent]
 platform-id: dot-hr
@@ -146,6 +146,30 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 11 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: already clean. Full suite reconfirmed green (43 tests / 42 passed / 91 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.HR` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+None found. Checked for anything that could execute without owner/operator approval: `routes/console.php` defines only Laravel's stock `inspire` Artisan command (no real business logic); there is no `app/Console/Commands` directory, no scheduled tasks registered via `bootstrap/app.php` or a Kernel; there is no `app/Jobs` directory and no class implementing `ShouldQueue` anywhere in `app/` (confirmed via repo-wide grep); and `app/Notifications/LeaveRequestSubmittedNotification.php` is explicitly documented in its own docblock as "not yet wired to any automatic trigger" — it only fires if a developer dispatches it manually from Tinker/console. No process in this codebase runs on its own.
+
+### Level 2 — Escalate
+
+None found. Escalate presumes a system that analyses and prepares an action, then routes it to a human for approval (Context → Evidence → Risk → Recommendation → Proposed Action). There is no such pipeline in Dot.HR: the `LeaveRequest` approve/deny flow (`app/Http/Controllers/LeaveRequestController.php` `approve()`/`deny()`) looks superficially like an approval step, but it is not a system-prepared proposal — it is a plain human-initiated CRUD mutation a team admin performs directly against a request another human already submitted, with no automated analysis or recommendation attached. No knowledge-pack publication, alert, or recommendation-generation logic exists in the app layer (that behavior is described prospectively in this document's §3–5 but is not implemented in the platform's real code as of this audit).
+
+### Level 3 — Human Control
+
+- **Employee record CRUD** (create/update/delete of PII: name, email, phone, employment type, status, dates) — `app/Http/Controllers/EmployeeController.php` `store()`/`update()`/`destroy()`. Gated by `app/Policies/EmployeePolicy.php`, which restricts mutation to the team owner or a member holding the `admin` team role; every action is a synchronous response to an authenticated human HTTP request, with no background or scheduled path to the same mutation.
+- **Employment status changes, including termination** — the `status` field (`active` / `on_leave` / `terminated`) is set only through `EmployeeController::update()`'s `validateEmployee()` (`app/Http/Controllers/EmployeeController.php`), authorized the same way as above. There is no automated termination process, no scheduled job that transitions status, and no salary, national ID, or background-check field exists on the `Employee` model at all — `app/Models/Employee.php`'s docblock states this is deliberate ("No national ID/passport number, no salary, no medical/disability data. If those fields are ever added, they need real encryption-at-rest and access-control review first"). No automated pay change or automated background-check process exists anywhere in the repo.
+- **Leave request approval/denial** — `app/Http/Controllers/LeaveRequestController.php` `approve()`/`deny()`, gated by `app/Policies/LeaveRequestPolicy.php` (`update` ability restricted to team admin/owner via `isTeamAdmin()`). A human admin reviews and decides on every request; no auto-approval or auto-denial path exists.
+- **Leave request creation on behalf of an employee** — `LeaveRequestController::create()`/`store()`, also restricted to team admins by `LeaveRequestPolicy::create()`, specifically to prevent a non-admin fabricating leave records for another employee (documented in the policy's own docblock).
+- **Auth/team administration** (user creation, password reset, team membership changes) — standard Laravel Fortify/Jetstream actions under `app/Actions/Fortify/` and `app/Actions/Jetstream/`, all synchronous, human-initiated, and credential/identity-sensitive by nature.
+
+### Gap summary
+
+Dot.HR currently has zero automated processes of any kind — no scheduled commands, no queued jobs, no auto-triggered notifications — so there is nothing misclassified as Level 1 today; every real process is manual-only and correctly Level 3 given the PII it touches. The platform's first real Level 1 candidate would need to be something genuinely low-risk and non-PII, e.g. the weekly `people.certification.expiring_cohort` aggregate-cohort event described in §3 of this document, implemented as an actual scheduled Artisan command operating only on `aggregate-standard`-tier data (cohort counts, not individual records) — that would satisfy Level 1's "routine reporting/monitoring" bar without touching anything on the §7 `prohibited` tier.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -154,6 +178,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Worker-visibility channel OQ struck (resolved by dot-design.md §7.1) |
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.HR's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.0.3 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
