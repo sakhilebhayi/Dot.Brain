@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — The Cushion (Business Resilience Visibility)
-version: 1.0.0
+version: 1.1.0
 status: draft
 owners: [Platform Integrator]
 last-review: 2026-08-08
@@ -44,6 +44,7 @@ A dimension entering this table does not imply any platform has built it — thi
 | `supplier_concentration` | Share of a critical input sourced from a single supplier | percent | Not yet implemented anywhere |
 | `institutional_knowledge_concentration` | Share of a critical process/workflow understood by only one person | percent | Not yet implemented anywhere |
 | `operational_capacity_margin` | Unused capacity as a share of total capacity | percent | Not yet implemented anywhere |
+| `fuel_reserve_runway` | Days of fuel reserves remaining at current dispensing rate, computed from tank levels and real dispensing-transaction history | days | **Dot.Mines** (pilot, this round) — the physical-resource analog of `reserve_runway`, distinct because the unit and underlying resource (fuel, not cash) differ enough to warrant its own entry rather than overloading `reserve_runway` |
 
 New dimensions get added to this table by whichever platform builds the first real implementation of them — the registry entry and the first real implementation ship together, never a registry entry alone (avoids the "aspirational schema field nobody implements" pattern already found and flagged in the DKP classification field, §Context of ChartSense's own `2026-08-08-knowledge-pack-publishing-i3-inbound-gate.md` design).
 
@@ -69,6 +70,7 @@ A "Cushion" card/section on the platform's own dashboard:
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-08 | Platform Integrator | Initial shared contract: dimension registry (2 real pilots — Dot.Finance reserve_runway, Dot.Billing payment_reliability — 4 named-but-unimplemented), honesty rule, UI pattern, explicit scope boundary against brain.resilience.md's unrelated SRE-continuity meaning. |
+| 1.1.0 | 2026-08-08 | Platform Integrator | Added `fuel_reserve_runway` (Dot.Mines pilot) — a new dimension, the physical-resource analog of `reserve_runway`, proving the registry extends to non-financial resources. |
 
 ## Open Questions
 
