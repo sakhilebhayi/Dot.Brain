@@ -1,6 +1,6 @@
 ---
 title: Dot.Ehail — Platform Knowledge
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Ehail Platform Lead, Logistics Agent, Registry Agent]
 platform-id: dot-ehail
@@ -142,6 +142,32 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 19 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (63 tests / 56 passed / 117 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Ehail` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Automatic in-app ride-completion notification.** `app/Observers/RideObserver.php`, registered in `app/Providers/AppServiceProvider.php::boot()` (`Ride::observe(RideObserver::class)`), fires whenever a `Ride.status` transitions to `completed`. It dispatches `App\Notifications\RideCompletedNotification` (database channel only) to the ride's passenger and driver with no operator step in between — no approval, no queue, no manual trigger. This is routine, reversible, low-risk notification/reporting behavior with a real automatic trigger in code, so it qualifies as Level 1 under the "routine ... reporting" example class. It is the only process found anywhere in the repo that both (a) is real (not planned) and (b) runs with zero operator involvement.
+
+No other qualifying process was found: `routes/console.php` contains only Laravel's stock `inspire` Artisan command (no `app/Console/Kernel.php`, no `schedule()` method, no cron entries anywhere in the repo), there is no `app/Jobs/` directory (no queue worker–driven business process despite `QUEUE_CONNECTION=database` being configured in `.env`), and no CI/CD pipeline exists (`.github/workflows/` is absent) that could auto-deploy or auto-remediate anything.
+
+### Level 2 — Escalate
+
+None found. Level 2 requires a system that analyses and *prepares* an action for a named human to approve before it executes (Context → Evidence → Risk → Recommendation → Proposed Action). Checked: `app/Notifications/DriverApplicationSubmittedNotification.php` is the closest candidate — it's built for a driver-application review workflow — but its own docblock states it is "not yet wired to any automatic trigger — dispatch manually ... until driver onboarding has real observer/event wiring." No controller, observer, or job in the repo calls it; there is no code path that prepares a driver-approval decision for Sakhile Bhayi (or anyone) to approve. `grep -rli "approve|approval" app` returns zero matches — driver `status` (`pending`/`approved` on `DriverProfile`) has no approve/reject controller or action anywhere; it can only be changed by hand (console/DB), which makes it Level 3, not Level 2 (there is no automated proposal stage, only a manual field). No recommendation, pricing, spend, or partnership logic exists in the codebase at all (`app/Actions/` is Jetstream/Fortify account-management boilerplate only — team invites, password resets, profile updates — none of it ecosystem- or business-decision-facing).
+
+### Level 3 — Human Control
+
+- **Driver application approval.** `DriverProfile.status` (`app/Models/DriverProfile.php`, fillable `status`) has no code path that transitions it from `pending` to `approved` — no controller, Livewire component, or console command touches it. Every approval is a manual, out-of-band operator action (direct DB/Tinker edit today). `DriverApplicationSubmittedNotification` (`app/Notifications/DriverApplicationSubmittedNotification.php`) exists to alert an operator that a decision is needed but must itself be dispatched by hand, per its docblock.
+- **Deployment / CI-CD.** No `.github/workflows/` directory exists anywhere in the repo (confirmed by direct search). There is no automated test-gate, build, or deploy pipeline; every release, migration run, and environment change is a manual operator action.
+- **Security credential and key management.** `.env` / `.env.example` hold `QUEUE_CONNECTION`, `BROADCAST_CONNECTION`, `MAIL_MAILER`, and Sanctum/Jetstream secrets directly on disk with no vault or rotation automation in this repo; the manifest referenced from `platforms/dot-ehail.md` §12 (`vault://keys/dot-ehail/dkp-signing/v1`) is aspirational for this platform — no signing-key code exists in `~/Dot/Dot.Ehail` itself. Credential issuance and rotation are manual operator actions.
+- **Ecosystem SSO token issuance.** `app/Http/Controllers/Auth/EcosystemAuthController.php` only *consumes* a pre-issued Sanctum `PersonalAccessToken` (validates the `ecosystem:read` ability, logs the user in, deletes the token). Nothing in this repo issues, scopes, or revokes ecosystem tokens proactively — that authority sits entirely with whichever human/process mints the token upstream, i.e. Sakhile Bhayi/ops, not this platform.
+- **Knowledge Pack publishing pipeline.** Per `wiki.md` §5/§8 and confirmed absent in code: `logistics.trip.completed`/`cancelled` and the other events in this doc's §3 have no publishing pipeline in the repo. Any corridor-cell aggregation, floor-gate enforcement, or pack signing described in §7/§12 of this document is manual/non-existent today, not an automated Level 1 or Level 2 process.
+
+### Gap summary
+
+The platform's only real automatic process (Level 1 ride-completion notification) is a passive side-effect, not a decision. For a first genuine Level 1 *business* process to exist, the platform needs at minimum: a scheduled command or queued job (neither directory exists yet) that does real autonomous work — e.g. an automated driver-application pre-screen that checks license/ID validity and either auto-approves low-risk applications or escalates to Level 2 for Sakhile Bhayi's review — backed by an actual approve/reject code path, which does not exist today (`DriverProfile.status` has none).
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -149,6 +175,8 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: fleet entity model closed (fleet + corridor cell as graph units, individual trips excluded by design), spatial-first publication discipline (geohash-5 cells, O-D pair prohibition, dual floors), gig-economy prohibited-list instantiations named, P-2026-001 recorded as non-transfer candidate with failed condition, 3 domain metrics, worked round-trip |
 
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Ehail's own wiki.md (platform repo) as the platform-owned source of truth |
+
+| 1.0.2 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
