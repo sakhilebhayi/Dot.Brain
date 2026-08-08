@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Repository Root
-version: 1.6.0
+version: 1.7.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-08-07
@@ -163,7 +163,8 @@ dot-brain/
 │   └── CROSSREF.md                  # Machine-readable cross-reference map · Knowledge Agent · AI agents
 └── services/                        # Dot.Brain's own runnable code, one directory per brain.*.md that hosts an implementation · Business Agent · Dot.Brain itself
     ├── market-research/             # Implements brain.market_intelligence.md · Business Agent · Dot.Brain itself
-    └── intervention-log/            # Implements brain.autonomy.md §8 · Business Agent · Dot.Brain itself
+    ├── intervention-log/            # Implements brain.autonomy.md §8 · Business Agent · Dot.Brain itself
+    └── autonomy-score/              # Implements brain.autonomy.md §3 scoring · Business Agent · Dot.Brain itself
 ```
 
 All `platforms/*.md` documents follow `templates/platform-knowledge.template.md` (defined by prompt 03 — referenced here, not written here).
@@ -247,6 +248,7 @@ Followed by a one-paragraph purpose statement and a "Related documents" cross-li
 | 1.4.0 | 2026-08-07 | Dot.Brain truth-reconciliation pass | Registered `infodot` — the ecosystem's own SSO hub had no platform document or registry row at all (`platforms/dot-infodot.md`, brain.platforms.md §2), despite every other platform's cross-platform relationship depending on it. Ecosystem is now 29 of 29 real, discovered platforms registered (28 prior + infodot). Also landed an ecosystem-wide verified-infrastructure pass across all 26 buildable platforms (legal/branding/auth standardization, Laravel Boost, code-quality + security patching) — see brain.platforms.md v1.0.21 for the full summary and each `platforms/<platform>.md` §"Verified Infrastructure State (2026-08-07)" for per-platform detail. |
 | 1.5.0 | 2026-08-08 | Truth-reconciliation pass | Registered `brain.cushion.md` and `brain.market_intelligence.md` — both existed in the repository but were missing from the annotated tree, ownership matrix, and change log. Added `services/` as a first-class repository-tree entry (previously undocumented) now that `brain.market_intelligence.md` has a real reference implementation at `services/market-research/`. |
 | 1.6.0 | 2026-08-08 | Autonomy Foundation sub-project | Registered `brain.autonomy.md` and `services/intervention-log/` — annotated tree, ownership matrix, document count. Registered as part of this sub-project's own deliverable, not deferred to a later reconciliation pass. |
+| 1.7.0 | 2026-08-08 | Autonomy Score sub-project | Registered `services/autonomy-score/` and `platforms/autonomy-signals.json` in the services/ tree entry. |
 
 ## Open Questions
 

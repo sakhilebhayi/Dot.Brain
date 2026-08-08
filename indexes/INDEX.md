@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Master Navigation Index
-version: 1.3.0
+version: 1.4.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-08-01
@@ -69,7 +69,7 @@ Purpose: persona-based navigation for the entire Dot.Brain repository, so any re
 | Autonomy | brain.autonomy — classification, scoring, streak, anti-fabrication rules for the Owner Independence program |
 | Agents | brain.agents |
 | Navigation | INDEX, GLOSSARY, CROSSREF |
-| Runnable Services | services/ — Dot.Brain's own reference implementations of a brain.*.md contract (currently: market-research, intervention-log) |
+| Runnable Services | services/ — Dot.Brain's own reference implementations of a brain.*.md contract (currently: market-research, intervention-log, autonomy-score) |
 
 ---
 
@@ -81,6 +81,7 @@ Purpose: persona-based navigation for the entire Dot.Brain repository, so any re
 | 1.1.0 | 2026-08-01 | Repository Steward Agent | Added os/ (Ecosystem Operating System) to New Contributor path and Full Document Catalog |
 | 1.2.0 | 2026-08-08 | Truth-reconciliation pass | Registered brain.cushion.md and brain.market_intelligence.md (Executive reading order + Full Document Catalog); added Runnable Services row for services/ |
 | 1.3.0 | 2026-08-08 | Autonomy Foundation sub-project | Registered brain.autonomy.md (Executive reading order + new Autonomy catalog group); added intervention-log to Runnable Services row |
+| 1.4.0 | 2026-08-08 | Autonomy Score sub-project | Added autonomy-score to Runnable Services row |
 
 ## Open Questions
 
