@@ -1,0 +1,15 @@
+{
+  "name": "@dot-brain/intervention-log",
+  "version": "1.0.0",
+  "description": "Owner Intervention Log -- records when the owner had to act on something a Dot ecosystem entity was expected to handle autonomously. See ../../brain.autonomy.md §8 for the full contract.",
+  "type": "module",
+  "bin": {
+    "intervention-log": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --experimental-sqlite --test"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
