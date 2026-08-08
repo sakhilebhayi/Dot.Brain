@@ -1,6 +1,6 @@
 ---
 title: Dot.Emall — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Marketplace Platform Lead, Marketplace Agent, Registry Agent]
 platform-id: dot-emall
@@ -124,6 +124,32 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed; `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 27 files reformatted, formatting-only. `composer audit`: patched 6 `league/commonmark` DoS advisories. `npm audit`: patched postcss path-traversal + shell-quote ReDoS (via concurrently). Full suite reconfirmed green (77 tests / 70 passed / 158 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.Emall` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **In-app order notification** — `App\Notifications\NewOrderNotification` (`app/Notifications/NewOrderNotification.php`), dispatched from `App\Http\Controllers\CartController::checkout()` (`app/Http/Controllers/CartController.php`) to each affected store owner once an order commits. Database channel only, synchronous, no owner approval anywhere in the path.
+- **In-app review notification** — `App\Notifications\NewReviewNotification` (`app/Notifications/NewReviewNotification.php`), dispatched from `App\Http\Controllers\ReviewController::store()` the moment a buyer posts a review. Same pattern: routine, automatic, informational, no owner in the loop.
+- **Checkout / order creation** — `CartController::checkout()` (`app/Http/Controllers/CartController.php`) runs the full cart→Order→OrderItem flow autonomously inside one DB transaction, including the `lockForUpdate()` + WHERE-guarded atomic stock decrement that closed the stock-race incident (`app/Console/Commands/PublishDkpIncidentPack.php` documents the fix). No human approves any individual checkout. This is routine commerce processing, not a financial commitment by the platform operator — actual settlement/fund movement is explicitly out of this codebase's scope (owned by Dot.Billing per §1/§6 above); Emall's checkout only ever creates order records and decrements stock.
+
+### Level 2 — Escalate
+
+None found. Checked: `routes/web.php`, `routes/api.php`, `app/Http/Controllers/*`, `app/Console/Commands/PublishDkpIncidentPack.php`, `app/Events/OrderPlaced.php`, `app/Policies/*`. Nothing in the codebase follows the Level 2 shape (system analyses/prepares an action, then blocks on human approval before executing). The one place that looks adjacent — `dkp:publish-incident` — is not system-initiated analysis awaiting approval; it is a command a human runs end-to-end by hand (see Level 3 below), so it doesn't fit the Level 2 pattern of an automated proposal gated by a human gate.
+
+### Level 3 — Human Control
+
+- **DKP incident-pack publishing** — `php artisan dkp:publish-incident`, implemented in `app/Console/Commands/PublishDkpIncidentPack.php`. The class's own docblock states it directly: "one hand-run script, not a pipeline" that "does not transmit anywhere" — a human runs it, supplies `--contributor-email`/`--contributor-name`, and reads the signed JSON it writes to `storage/app/dkp/packs/`. No scheduler entry exists for it (`app/Console/Kernel.php` / `routes/console.php` register only the stock Laravel `inspire` command).
+- **Signing-key custody** — `config/dkp.php` points at `storage/app/private/dkp-signing.key` (present, gitignored per `storage/app/private/.gitignore`), an Ed25519 signing seed a human must generate, store, and rotate; there is no automated key-management or rotation code anywhere in the repo. Textbook "security credential ownership" per brain.autonomy.md §2.
+- **Dependency/security patching** — the platform doc's own Verified Infrastructure State (2026-08-07) records `composer audit` and `npm audit` fixes (6 `league/commonmark` advisories, postcss/shell-quote) as hand-run during a manual pass, not CI-gated. Confirmed: no `.github/workflows/`, no CI config of any kind exists in the repo (`find .github -type f` and repo-wide `*.yml`/`*.yaml` search both return nothing outside `vendor/`/`node_modules/`).
+- **Deploys and migrations** — `composer.json`'s `setup` script runs `artisan migrate --force` and `npm run build` directly; there is no pipeline that runs this automatically on push or merge. Every release step is triggered by a human at a terminal.
+- **Middleware/auth configuration** — `bootstrap/app.php`'s `withMiddleware()` closure is empty; access control lives entirely in hand-written route groups (`routes/web.php`: `auth:sanctum`, `verified`) and hand-written policies (`app/Policies/OrderPolicy.php`, `app/Policies/ReviewPolicy.php`, `app/Policies/TeamPolicy.php`). Changing who can see what is a manual code change reviewed and merged by a human, not a runtime-configurable or self-adjusting system.
+
+### Gap summary
+
+Every real autonomous behavior in this codebase (notifications, checkout) is a synchronous side effect of a single HTTP request, not an independent background process — there is no scheduled command (`app/Console/Kernel.php` registers nothing but the default `inspire`), no queued job (`app/Jobs/` doesn't exist), and no CI/CD. The first real Level 1 *operator-relief* process (as opposed to routine request-time automation) would need an actual scheduler entry or queue worker doing something today's human does by hand — the most obvious candidate is automating `dkp:publish-incident` into a triggered/queued job so future incident packs don't require a human to run the artisan command and read the file manually.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -134,6 +160,7 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 
 | 1.0.3 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Emall's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-08-02 | Sakhile Bhayi | §4 flagged: the target contract below is still aspirational, but Dot.Emall has now cleared real DKP onboarding step 1 (key, manifest, publish script, one verified `incident_report` pack) — the ecosystem's second platform to do so, see os/19-Knowledge-Packs.md §4b. |
+| 1.2.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 
 ## Open Questions
 
