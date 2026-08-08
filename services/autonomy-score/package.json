@@ -1,0 +1,15 @@
+{
+  "name": "@dot-brain/autonomy-score",
+  "version": "1.0.0",
+  "description": "Computes the Autonomy Score (brain.autonomy.md §3) per entity from platforms/autonomy-signals.json's real signals -- binary per-category formulas, no fabricated continuous scores.",
+  "type": "module",
+  "bin": {
+    "autonomy-score": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
