@@ -1,6 +1,6 @@
 ---
 title: Dot.Docs — Platform Knowledge
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [Docs Platform Lead, Registry Agent]
 platform-id: dot-docs
@@ -76,10 +76,36 @@ Confirmed directly against the real repo during the ecosystem-wide standardizati
 - **Laravel Boost** — `laravel/boost` ^2.5 installed. Boost's own install banner ("Let's give **Laravel** a Boost") surfaced a pre-existing, unrelated cosmetic gap: `.env`'s `APP_NAME` is still the stock `Laravel` value — already documented in this repo's own mail-theme code comments, not touched. `.mcp.json`/`boost.json`/`CLAUDE.md` guideline block in place.
 - **Code-quality pass** — Pint: 43 files reformatted, formatting-only. `composer audit`: **23 advisories across 9 packages**, all patched — same combination and fix as dot-press: `laravel/framework` (signed-URL/CRLF), `dompdf/dompdf` → 3.1.6, `symfony/*` transitive, `league/commonmark` baseline. `npm audit`: patched `ws` uninitialized-memory-disclosure + memory-exhaustion DoS (12 issues); separately, `package.json` had the same unusual `axios` upper-bound pin (`>=1.11.0 <=1.14.0`) found on dot-forms, blocking 7 real advisories — loosened to `^1.19.0`, usage confirmed minimal (`bootstrap.js` only), `npm run build` verified clean (TipTap + Alpine + Echo stack). Full suite reconfirmed green (43 passed / 4 skipped / 82 assertions) after every change.
 
+## Autonomy Classification (brain.autonomy.md)
+
+Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against the real codebase at `~/Dot/Dot.docs` on 2026-08-08 — not aspirational.
+
+### Level 1 — Autonomous
+
+- **Daily notification digest** — `app/Console/Commands/SendDailyDigest.php` (`notifications:digest`), scheduled via `routes/console.php` (`Schedule::command('notifications:digest')->dailyAt('08:00')`). Runs unattended on a cron trigger, queries users with unread notifications, and emails a summary via `DailyDigestNotification`. Routine reporting/notification — no owner review needed for it to run or to decide who receives it.
+- **Queued in-app/email notification delivery** — `app/Notifications/CommentPostedNotification.php` and `app/Notifications/MentionedInCommentNotification.php`, both `implements ShouldQueue`, dispatched automatically when a `Comment` is posted (via `app/Events/CommentPosted.php`) with no human step in between. Routine, low-stakes, user-to-user notification traffic.
+- **Per-request authorization enforcement** — `app/Policies/DocumentPolicy.php` and `app/Policies/TeamPolicy.php`, evaluated automatically on every request via Laravel's policy gate (no custom middleware directory exists; `bootstrap/app.php`'s `withMiddleware()` closure is empty, so `auth:sanctum` / `verified` / Jetstream's session guard plus these policies are the real access-control surface). Access allow/deny decisions execute without the operator being in the loop for any individual request — this is what "safe automated remediation"-class routine operation looks like here.
+
+### Level 2 — Escalate
+
+None found. I checked for anything matching the L2 examples in brain.autonomy.md §2 (significant spending, pricing changes, partnerships, contract changes, high-value sales, sensitive customer communications, material resource allocation, significant hiring): there is no billing/payments integration, no queued job or controller action that prepares a high-stakes action and pauses for operator sign-off, and `app/Jobs/` and `app/Listeners/` are both empty. The one candidate — `app/Services/WebhookService.php` firing outbound HTTP calls to user-configured third-party URLs on document save/export — executes synchronously and immediately with no approval gate at all (it's per-document, owner-configured, and logs failures rather than escalating them), so as implemented it doesn't rise to a genuine Level 2 "prepare and wait for approval" pattern; it also doesn't match any L2 example category. There is currently no code path in Dot.docs that presents Context → Evidence → Risk → Recommendation → Proposed Action and waits for a human.
+
+### Level 3 — Human Control
+
+- **No CI/CD pipeline exists.** `find .github -type f` returns nothing and `ls -la .github` fails (directory absent) as of 2026-08-08. Every deploy, dependency-security pass, and formatting pass documented in this file's own "Verified Infrastructure State" section (Pint reformat, `composer audit` fixing 23 advisories, `npm audit` fixing the `ws` and `axios` issues) was run manually by a human-directed session, not by an automated pipeline. This remains true today.
+- **Background worker & broadcast-server operation.** `config/queue.php` defaults to `QUEUE_CONNECTION=database` (confirmed in `.env` and `.env.example`), and the queued notifications above depend on a running `php artisan queue:work` process; `routes/channels.php` and `app/Broadcasting/DocumentPresenceChannel.php` depend on a running Reverb broadcast server for the realtime presence/collaboration events described in this file's §3. No `Procfile`, supervisor config, or any process-manager file was found anywhere in the repo (`find . -iname "Procfile*" -o -iname "supervisor*"` returns nothing outside `vendor`/`node_modules`). Keeping these processes alive and monitored is currently a manual operator responsibility.
+- **Credential and environment configuration.** `.env` / `.env.example` hold the OpenAI API key, database credentials, and app secrets directly; there is no automated secret-rotation or credential-issuance process in the codebase. Per brain.autonomy.md §2, security credential ownership is explicitly non-delegable.
+- **Open security reviews already flagged as human-only in this document's own §"Open Questions".** The public `/shared/{uuid}` password/expiry routes (`routes/web.php`) and `Document::cachedContent()`'s caching strategy under concurrent/private access are both recorded above as unreviewed and routed to a human Security/Architecture Agent — that routing is itself the correct Level 3 call, not a gap.
+
+### Gap summary
+
+Level 2 has no real occupant today because Dot.docs has no workflow that both (a) prepares a materially consequential action automatically and (b) blocks on operator approval before executing it — everything automated here is low-stakes and fires immediately (Level 1), and everything higher-stakes (deploys, dependency patching, credential handling) is entirely manual with no automation attempting it at all (Level 3). The first real Level 1→2 boundary would need something like: outbound webhook *registration* (not delivery) requiring approval before a new third-party endpoint starts receiving document data, or a CI/CD pipeline that runs `composer audit`/`npm audit`/tests automatically and opens a human-approved deploy gate instead of the current fully-manual pass.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.0.0 | 2026-08-02 | Repository Steward Agent | Initial registration. Platform audited: SSO contract verified, DB_DATABASE misconfiguration fixed, two real IDOR gaps closed (VersionHistory, TemplateGallery), favicon wired into the main app-shell layout (previously missing), README corrected (Laravel 12→13, Anthropic→OpenAI, unshipped Redis/Horizon/Scout/Meilisearch removed). |
 
 ## Open Questions
