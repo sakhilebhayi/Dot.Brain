@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — System Architecture & Component Model
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Security Agent
@@ -12,7 +12,7 @@ review-cadence: quarterly
 
 Purpose: the structural blueprint of Dot.Brain — its layers, components, data flows, storage tiers, and extension points. Every other technical document (DKP protocol, graph model, workflows, APIs) describes one part of the machine defined here.
 
-> **Related documents:** [brain.identity.md](brain.identity.md) — what this architecture serves · [brain.dkp.md](brain.dkp.md) — the ingestion contract · [brain.relationships.md](brain.relationships.md) — the graph this machinery maintains · [brain.agents.md](brain.agents.md) — who operates it · [adr/ADR-0001-repository-structure.md](adr/ADR-0001-repository-structure.md), [adr/ADR-0006-audit-ledger.md](adr/ADR-0006-audit-ledger.md), [adr/ADR-0007-rto-rpo-tiers.md](adr/ADR-0007-rto-rpo-tiers.md) — decisions this document implements.
+> **Related documents:** [brain.identity.md](brain.identity.md) — what this architecture serves · [brain.dkp.md](brain.dkp.md) — the ingestion contract · [brain.relationships.md](brain.relationships.md) — the graph this machinery maintains · [brain.agents.md](brain.agents.md) — who operates it · [adr/ADR-0001-repository-structure.md](adr/ADR-0001-repository-structure.md), [adr/ADR-0006-audit-ledger-design.md](adr/ADR-0006-audit-ledger-design.md), [adr/ADR-0007-rto-rpo-tier-model.md](adr/ADR-0007-rto-rpo-tier-model.md) — decisions this document implements.
 
 ---
 
@@ -75,7 +75,7 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 |---|---|---|---|
 | Ingestion Gateway | Receive, authenticate, rate-limit, queue DKPs; retry semantics | [brain.dkp.md](brain.dkp.md) §8 | Registry |
 | Validation Pipeline | Schema (draft 2020-12), Ed25519/JCS signature (ADR-0002), trust lookup, classification, `DKP_*` error codes | [brain.dkp.md](brain.dkp.md) §4 | Testing (rules), Security (gates) |
-| Audit Ledger | Hash-chained append-only record of every ingest, decision, override, PR | [adr/ADR-0006](adr/ADR-0006-audit-ledger.md) | Governance |
+| Audit Ledger | Hash-chained append-only record of every ingest, decision, override, PR | [adr/ADR-0006](adr/ADR-0006-audit-ledger-design.md) | Governance |
 | Knowledge Graph | Nodes (`dot:node:…`) + edges (`dot:edge:…`), lifecycle & supersession | [brain.relationships.md](brain.relationships.md) | Knowledge |
 | Registries | Platform manifests, metric registry projections | [brain.platforms.md](brain.platforms.md), [brain.metrics.md](brain.metrics.md) | Registry, Data |
 | Reasoning Engine | Inference over the graph, causal-bar enforcement, Why-block synthesis | [brain.reasoning.md](brain.reasoning.md) | Reasoning |
@@ -114,7 +114,7 @@ Failure at any stage stops forward flow (principle 5); the ledger entry for the 
 
 ## 5. Storage tiers & continuity
 
-Mapped to [adr/ADR-0007](adr/ADR-0007-rto-rpo-tiers.md):
+Mapped to [adr/ADR-0007](adr/ADR-0007-rto-rpo-tier-model.md):
 
 | Tier | Components | RTO / RPO | Rationale |
 |---|---|---|---|
@@ -155,6 +155,7 @@ Registered in [brain.metrics.md](brain.metrics.md) §4.2–4.3; the architecture
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial architecture: 5 principles, 4-layer model, 12-component matrix, end-to-end data flow, ADR-0007 tier mapping, security boundaries, extension points |
 | 1.0.1 | 2026-08-10 | Brain core-doc sweep | Refreshed against real repo state: §3's component matrix pointed brain.reasoning.md, brain.learning.md, brain.memory.md, brain.api.md, brain.workflows.md, and §6's brain.security.md all at "(pending)" — all six now exist as complete, active documents, corrected to real links. §2's Layer Model diagram's hardcoded "21 platforms" DKP-publisher count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer to brain.platforms.md §2 so it can't drift again |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | Fixed three broken ADR links found while cross-checking brain.governance.md's citation of the same ADRs: ADR-0006 was linked as `adr/ADR-0006-audit-ledger.md` (real file: `-design.md`), ADR-0007 as `adr/ADR-0007-rto-rpo-tiers.md` (real file: `-tier-model.md`), in both §Related-documents and inline citations |
 
 ## Open Questions
 
