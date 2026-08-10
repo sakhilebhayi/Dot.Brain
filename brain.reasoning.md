@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Reasoning Engine Design & Inference Rules
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief AI Engineer, Reasoning Agent]
 reviewing-agent: Architecture Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -112,7 +112,7 @@ The audit reconstruction of this chain from the ledger takes minutes, not forens
 
 ## 8. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md); the reasoning view: `graph.causal_edge_survival_12m ≥ 85%` (I3 bar calibration), `explainability.human_comprehension_score ≥ 4/5` (§5 quality), `governance.unexplained_recommendations_shipped = 0` (hard invariant), `colony.override_rate ≤ 5%` (engine calibration vs. human judgment). Proposed addition pending registration: `reasoning.conclusion_reversal_rate` — issued conclusions later retracted; target ≤ 5%/quarter.
+Registered in [brain.metrics.md](brain.metrics.md); the reasoning view: `graph.causal_edge_survival_12m ≥ 85%` (I3 bar calibration), `explainability.human_comprehension_score ≥ 4/5` (§5 quality), `governance.unexplained_recommendations_shipped = 0` (hard invariant), `colony.override_rate ≤ 5%` (engine calibration vs. human judgment). Also registered (§4.9): `reasoning.conclusion_reversal_rate` — issued conclusions later retracted; target ≤ 5%/quarter.
 
 ---
 
@@ -121,6 +121,7 @@ Registered in [brain.metrics.md](brain.metrics.md); the reasoning view: `graph.c
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial engine spec: conclusion object, 7 permitted + 4 forbidden inference types, chain confidence composition, Why-block synthesis, human interaction points, audited Kolomela chain |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §8 still said `reasoning.conclusion_reversal_rate` was "pending registration" despite the Open Questions section immediately below already recording it as resolved — corrected to match |
 
 ## Open Questions
 
