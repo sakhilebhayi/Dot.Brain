@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Search & Retrieval Architecture
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Testing Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -86,11 +86,12 @@ Registered in [brain.metrics.md](brain.metrics.md): `graph.cross_platform_edge_r
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial architecture: 4 principles, three-mode blended retrieval, scope matrix, retrieval explanations, freshness pipeline, cross-platform discovery worked example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | Open Questions still said the embedding-model-selection ADR was "still open" in brain.semantic.md — that document itself shows it was resolved 2026-08-01 via ADR-0011 (renumbered after an ADR-0010 collision with the roster-extension ADR). Corrected to match |
 
 ## Open Questions
 
 | Question | Owner → Approver |
 |---|---|
 | ~~Register `search.freshness_p95` and `search.relevance_regression_pass_rate` in brain.metrics.md §4.9 (batch now holds 6 pending IDs with security's and events')~~ Registered in [brain.metrics.md](brain.metrics.md) §4.9 (1.2.0) | Architecture Agent → Chief Architect |
-| ~~Embedding model selection and versioning policy — needs brain.semantic.md's ontology decisions first; ADR when chosen~~ Versioning policy resolved by [brain.semantic.md](brain.semantic.md) §4; model *selection* ADR (ADR-0010 candidate) still open there | Knowledge Agent → Chief AI Engineer |
+| ~~Embedding model selection and versioning policy — needs brain.semantic.md's ontology decisions first; ADR when chosen~~ Resolved 2026-08-01: both versioning policy (§4) and model selection are settled in [brain.semantic.md](brain.semantic.md) — the selection ADR renumbered to [adr/ADR-0011-embedding-model-registration.md](adr/ADR-0011-embedding-model-registration.md) after ADR-0010 was taken by the roster-extension ADR | Knowledge Agent → Chief AI Engineer |
 | Per-query compute budgets for graph traversal (depth × degree caps) — tune from real query patterns | Architecture Agent → Chief Architect |
