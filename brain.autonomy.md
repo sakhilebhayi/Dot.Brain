@@ -1,14 +1,14 @@
 ---
 title: Dot.Brain — Autonomy Foundation (Owner Independence Classification & Measurement)
-version: 1.0.0
-status: draft
+version: 1.1.0
+status: active
 owners: [Business Agent]
-last-review: 2026-08-08
+last-review: 2026-08-10
 ---
 
 # brain.autonomy — Autonomy Foundation
 
-Purpose: the shared contract for the ecosystem-wide Owner Independence program spanning Houz of Sax Trust → BluPin → Dot → individual Dot platforms. Defines what "autonomous" means, how it is classified, how it is scored, and the honesty rules that bind every future sub-project built against this contract. This document defines vocabulary and rules; it does not itself classify any real process — that is future, platform-by-platform work.
+Purpose: the shared contract for the ecosystem-wide Owner Independence program spanning Houz of Sax Trust → BluPin → Dot → individual Dot platforms. Defines what "autonomous" means, how it is classified, how it is scored, and the honesty rules that bind every future sub-project built against this contract. This document defines vocabulary and rules; it does not itself classify any real process — that classification is recorded per-platform in each `platforms/<name>.md`'s own "Autonomy Classification" section (§2), complete for all 29 registered platforms as of the 2026-08-08 audit pass, with the identified Level 1/2 gaps subsequently closed platform-by-platform.
 
 > **Related documents:**
 > - [brain.governance.md](brain.governance.md) — the approval-tier framework this document's Level 2/3 escalation borrows its shape from, without inheriting its agent-colony machinery.
@@ -94,7 +94,8 @@ Never fake revenue, customers, or engagement; never manufacture testimonials; ne
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-08 | Autonomy Foundation sub-project | Initial contract: organisational boundaries, three-level classification, Autonomy Score formula with unmeasured-category-scores-zero rule, per-entity scoring, interval/gate thresholds, Owner-Free Operating Streak rule, Owner Intervention Log content requirements, anti-fabrication rules. |
+| 1.1.0 | 2026-08-10 | Brain core-doc sweep | Status draft → active: the contract has been the binding basis for a completed, ecosystem-wide classification-and-gap-closing program since 1.0.0 shipped, not merely a proposed vocabulary. Resolved the one Open Question (classification lives inside each `platforms/<name>.md`, confirmed present in all 29/29 registered platform docs). Updated the intro's "future, platform-by-platform work" framing to reflect that the classification pass is complete and the identified gaps have since been closed. |
 
 ## Open Questions
 
-- Should platform-level Level 1/2/3 classification live as a new section inside each existing `platforms/<name>.md`, or as a separate file? (Deferred to the classification-audit sub-project.)
+None open.
