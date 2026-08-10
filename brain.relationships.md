@@ -1,16 +1,16 @@
 ---
 title: Dot.Brain — Cross-Platform Relationship Model
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Knowledge Engineer, Knowledge Agent]
 reviewing-agent: Reasoning Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: monthly
 ---
 
 # Cross-Platform Relationship Model
 
-Purpose: define how knowledge nodes from different platforms are connected inside the Dot.Brain knowledge graph — the edge taxonomy, how edges are created and scored, how they decay and supersede, and how the graph stays coherent as 21+ platforms publish independently.
+Purpose: define how knowledge nodes from different platforms are connected inside the Dot.Brain knowledge graph — the edge taxonomy, how edges are created and scored, how they decay and supersede, and how the graph stays coherent as the ecosystem's platforms ([brain.platforms.md](brain.platforms.md) §2 for the current count) publish independently.
 
 > **Related documents:** [brain.dkp.md](brain.dkp.md) — how nodes arrive · [brain.identity.md](brain.identity.md) — why the graph exists · [brain.platforms.md](brain.platforms.md) — who publishes · [brain.agents.md](brain.agents.md) — the Knowledge Agent curates this model · [schemas/entity.schema.json](schemas/entity.schema.json), [schemas/insight.schema.json](schemas/insight.schema.json) — node payload shapes.
 
@@ -146,6 +146,7 @@ From the [worked DKP example](templates/knowledge-pack.example.md): Dot.Mines pu
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial relationship model: 9-type edge taxonomy, confidence formula, lifecycle, coherence rules, Kolomela worked example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §Purpose's "21+ platforms" hardcoded count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer instead of a number that will just drift again |
 
 ## Open Questions
 
