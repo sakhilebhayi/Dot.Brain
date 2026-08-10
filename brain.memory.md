@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Memory Orchestration
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Chief AI Engineer, Memory Agent]
 reviewing-agent: Architecture Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -90,7 +90,7 @@ The Kolomela cycle-time node ([templates/knowledge-pack.example.md](templates/kn
 
 ## 6. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md) where they exist: `knowledge.provenance_completeness = 100%` (no chain broken by tiering), `governance.decision_trails_complete = 100%` (Cold retrievability proven at each audit), `dkp.ingest_latency_p95 ≤ 15 min` (write path unimpeded). Proposed pending registration: `memory.context_latency_p95` (≤ 50 ms, hot contract), `memory.cold_retrieval_failures` (0 — a failed audit retrieval is an incident, not a metric miss).
+Registered in [brain.metrics.md](brain.metrics.md) where they exist: `knowledge.provenance_completeness = 100%` (no chain broken by tiering), `governance.decision_trails_complete = 100%` (Cold retrievability proven at each audit), `dkp.ingest_latency_p95 ≤ 15 min` (write path unimpeded). Also registered, homed in [platforms/dot-memory.md](platforms/dot-memory.md) §11 rather than the main registry (see Open Questions): `memory.context_latency_p95` (this doc's proposed ≤ 50 ms hot target is per-operation; the SLA contract's p95 ≤ 800 ms is end-to-end context assembly — different units, not a contradiction) and `memory.cold_retrieval_failures` (0 — a failed audit retrieval is an incident, not a metric miss).
 
 ---
 
@@ -100,6 +100,7 @@ Registered in [brain.metrics.md](brain.metrics.md) where they exist: `knowledge.
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial spec: Dot.Memory division of labor, three temperature tiers, five retrieval contracts, five-part forgetting policy, lifecycle worked example |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Straggler-metric OQ struck (homed in platforms/dot-memory.md §11); per-op vs end-to-end latency units clarified |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | §6 still said the two memory metrics were "proposed pending registration" despite the Open Questions section immediately below already recording them as resolved/homed elsewhere — corrected to match |
 
 ## Open Questions
 
