@@ -1,9 +1,9 @@
 ---
 title: Dot.Brain — Market Intelligence (External Research Layer)
-version: 1.0.0
-status: draft
+version: 1.0.1
+status: active
 owners: [Platform Integrator]
-last-review: 2026-08-08
+last-review: 2026-08-10
 ---
 
 # brain.market_intelligence — Market Intelligence (External Research Layer)
@@ -109,6 +109,7 @@ Node.js was chosen as the runtime because it's the one precedent already establi
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-08 | Platform Integrator | Initial shared contract: fact hierarchy, research-memory schema, governance rules, cost-discipline (reuse-before-research), pluggable/honest extraction step, and the rationale for Dot.Brain hosting real code for the first time. Scoped to zero-setup channels (web, RSS, public GitHub) only. |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | Status draft → active: `services/market-research/` is real, built, and manually verified (package.json, memory/robots/fetchWeb/fetchRss/fetchGithub/extract/cli.js, README, test), not a proposal. |
 
 ## Open Questions
 
