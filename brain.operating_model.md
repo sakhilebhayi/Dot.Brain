@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Operating Model
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Intelligence Architect, Governance Agent]
 reviewing-agent: Documentation Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -12,7 +12,7 @@ review-cadence: quarterly
 
 Purpose: how humans and the agent colony actually work together, day to day. Other documents define *what* the system does; this one answers the new team member's questions: who are the humans, what lands on whose desk and when, how do I escalate, and what does "working with a colony" feel like in practice. This fills INDEX's new-contributor reading-order step 4 and consolidates the human role catalog currently scattered across every approver column in the repository.
 
-> **Related documents:** [brain.governance.md](brain.governance.md) — decision rights this document schedules · [brain.agents.md](brain.agents.md) — the 24-agent roster (the other half of the org chart) · [indexes/INDEX.md](indexes/INDEX.md) — reading orders · [MANIFESTO.md](MANIFESTO.md) — the principles everyone here serves.
+> **Related documents:** [brain.governance.md](brain.governance.md) — decision rights this document schedules · [brain.agents.md](brain.agents.md) — the 28-agent roster (the other half of the org chart) · [indexes/INDEX.md](indexes/INDEX.md) — reading orders · [MANIFESTO.md](MANIFESTO.md) — the principles everyone here serves.
 
 ---
 
@@ -34,7 +34,7 @@ Consolidated from the approver columns across all documents — these nine roles
 | **Security Officer** | Confidentiality, keys, classification, external audit access | security, telemetry, community privacy, failures redaction |
 | **Ethics Officer** | The engagement conscience: gate appeals, prohibited-list changes, E4 experiments, erasure co-signs | dopemine, governance §5, ADR-0009 |
 | **SRE Lead** | Operations: drills, paging policy, PIR discipline, resilience targets | resilience, failures, telemetry dashboards |
-| **UX Architect** | How the Brain speaks to people: personas, design, comprehension | personas, design (pending) |
+| **UX Architect** | How the Brain speaks to people: personas, design, comprehension | personas, design |
 
 One person may hold several roles in a small team; the *roles* stay distinct so hand-off is a personnel change, not a redesign.
 
@@ -96,6 +96,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `colony.override_rate ≤ 5%
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial model: one-sentence division of labor, nine-role human catalog consolidated from approver columns, cadence table, escalation paths with skip rules, colony-orientation guide, one-week worked example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | Corrected "24-agent roster" to 28 (brain.agents.md's own ADR-0010 update) and struck "design (pending)" — brain.design.md is a complete, active document |
 
 ## Open Questions
 
