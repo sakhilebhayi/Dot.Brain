@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Business Intelligence & Value Accounting
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Executive Sponsor, Business Agent]
 reviewing-agent: Governance Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -75,7 +75,7 @@ S-2026-001/P-2026-001 hit the Q3 evolution report:
 
 ## 6. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `identity.cross_platform_lesson_reuse` (rising — the volume guard on all value claims) · `analytics.findings_packed_ratio ≥ 80%` · `registry.publish_consume_ratio` (reviewed per platform). Also registered (§4.9, 1.5.0): `business.realized_vs_projected_roi` (≥ 50% of projection on ≥ 60% of accepted proposals — the charter target made registry-official) and `business.davoided_attestation_rate` (100% — every D_avoided rand traces to a signed stand-down attestation).
+Registered in [brain.metrics.md](brain.metrics.md): `identity.cross_platform_lesson_reuse` (rising — the volume guard on all value claims) · `analytics.findings_packed_ratio ≥ 80%`. Also registered (§4.9, 1.5.0): `business.realized_vs_projected_roi` (≥ 50% of projection on ≥ 60% of accepted proposals — the charter target made registry-official) and `business.davoided_attestation_rate` (100% — every D_avoided rand traces to a signed stand-down attestation). `registry.publish_consume_ratio` (§4, reviewed per platform) is used above as a live signal but is **not yet registered** in brain.metrics.md — see Open Questions.
 
 ---
 
@@ -84,11 +84,13 @@ Registered in [brain.metrics.md](brain.metrics.md): `identity.cross_platform_les
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial model: self-applied evidence bar, quarterly ROI formula with platform-priced value, four honesty rules for duplicate-effort-avoided, value-chain detection path, no-metering exchange economics, priced wet-season example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §6 previously claimed `registry.publish_consume_ratio` was "Registered in brain.metrics.md" alongside two metrics that actually are — it isn't; corrected and moved to Open Questions rather than left silently wrong |
 
 ## Open Questions
 
 | Question | Owner → Approver |
 |---|---|
 | ~~Register `business.realized_vs_projected_roi` and `business.davoided_attestation_rate` in brain.metrics.md §4.9 (new batch: 2)~~ Registered in [brain.metrics.md](brain.metrics.md) §4.9 (1.5.0) | Business Agent → Executive Sponsor |
+| Register `registry.publish_consume_ratio` in brain.metrics.md's `registry.*` namespace (§4.7) — §4/§6 above already specify it as per-platform, reviewed quarterly, but it was never actually added to the registry | Business Agent → Executive Sponsor |
 | Loaded-rate source for C_human: finance-system feed or annual flat assumption reviewed by the Executive Sponsor? | Business Agent → Executive Sponsor |
 | Chronic free-rider escalation (§4): define "chronic" numerically, or leave to governance judgment for the first year? | Governance Agent → Executive Sponsor |
