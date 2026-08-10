@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — System Architecture & Component Model
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Security Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -31,7 +31,7 @@ Derived from the [Manifesto](MANIFESTO.md), in precedence order when they confli
 ```mermaid
 graph TB
     subgraph P["Platform Edge (owned by platforms)"]
-        PUB[DKP Publishers<br/>21 platforms]
+        PUB[DKP Publishers<br/>see brain.platforms.md §2 for current count]
         REPOS[Platform repositories<br/>wiki.md — Brain has NO write access]
     end
     subgraph L1["Layer 1 — Ingestion & Validation"]
@@ -78,13 +78,13 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | Audit Ledger | Hash-chained append-only record of every ingest, decision, override, PR | [adr/ADR-0006](adr/ADR-0006-audit-ledger.md) | Governance |
 | Knowledge Graph | Nodes (`dot:node:…`) + edges (`dot:edge:…`), lifecycle & supersession | [brain.relationships.md](brain.relationships.md) | Knowledge |
 | Registries | Platform manifests, metric registry projections | [brain.platforms.md](brain.platforms.md), [brain.metrics.md](brain.metrics.md) | Registry, Data |
-| Reasoning Engine | Inference over the graph, causal-bar enforcement, Why-block synthesis | brain.reasoning.md (pending) | Reasoning |
-| Learning Engine | Outcome ingestion, trust/confidence updates, pattern detection | brain.learning.md (pending) | Learning, Evolution |
-| Memory Orchestrator | Tiering hot/warm/cold with Dot.Memory, retrieval contracts, forgetting policy | brain.memory.md (pending) | Memory |
+| Reasoning Engine | Inference over the graph, causal-bar enforcement, Why-block synthesis | [brain.reasoning.md](brain.reasoning.md) | Reasoning |
+| Learning Engine | Outcome ingestion, trust/confidence updates, pattern detection | [brain.learning.md](brain.learning.md) | Learning, Evolution |
+| Memory Orchestrator | Tiering hot/warm/cold with Dot.Memory, retrieval contracts, forgetting policy | [brain.memory.md](brain.memory.md) | Memory |
 | Confidence & Conflict Service | Confidence math, CONTRADICTS resolution ladder | [brain.dkp.md](brain.dkp.md) §5–6 | Reasoning, Governance (arbiter) |
 | Recommendation Builder | Assemble recommendation payloads: confidence + evidence + triple impact | [schemas/recommendation.schema.json](schemas/recommendation.schema.json) | Reasoning, gated by Dopamine |
-| PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | brain.workflows.md (pending) | Governance-supervised |
-| Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | brain.api.md (pending) | Architecture |
+| PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | [brain.workflows.md](brain.workflows.md) | Governance-supervised |
+| Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
 
@@ -130,7 +130,7 @@ Recovery order is strictly T0 → T3; the graph is authoritative over every proj
 - **Inbound:** only signed DKPs through the Gateway; no direct graph writes from outside. Platform keys registered via manifest ([schemas/platform-manifest.schema.json](schemas/platform-manifest.schema.json)); revocation takes effect at the Gateway within one validation cycle.
 - **Internal:** agents act under least-privilege namespaces ([brain.agents.md](brain.agents.md) §shared-memory); only the Knowledge Agent writes graph structure, only Governance writes trust scores.
 - **Outbound:** the PR Generator holds per-platform scoped tokens capable of *opening PRs only* — no merge, no push to default branches. `identity.boundary_violations = 0, always` ([brain.metrics.md](brain.metrics.md) §4.1) monitors this continuously.
-- Full threat model: brain.security.md (pending); this section defines the boundaries it must defend.
+- Full threat model: [brain.security.md](brain.security.md); this section defines the boundaries it must defend.
 
 ## 7. Extension points
 
@@ -154,6 +154,7 @@ Registered in [brain.metrics.md](brain.metrics.md) §4.2–4.3; the architecture
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial architecture: 5 principles, 4-layer model, 12-component matrix, end-to-end data flow, ADR-0007 tier mapping, security boundaries, extension points |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | Refreshed against real repo state: §3's component matrix pointed brain.reasoning.md, brain.learning.md, brain.memory.md, brain.api.md, brain.workflows.md, and §6's brain.security.md all at "(pending)" — all six now exist as complete, active documents, corrected to real links. §2's Layer Model diagram's hardcoded "21 platforms" DKP-publisher count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer to brain.platforms.md §2 so it can't drift again |
 
 ## Open Questions
 
