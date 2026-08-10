@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Semantic Layer & Ontology
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Chief AI Engineer, Knowledge Agent]
 reviewing-agent: Architecture Agent
@@ -61,7 +61,7 @@ Units are stricter: an unmapped unit fails validation (`DKP_SCHEMA_INVALID`) —
 - **Swap procedure:** full index rebuild (T3, routine per search §6); old and new indexes never serve blended results — the cutover is atomic from the searcher's view.
 - **No cross-version comparison:** similarity scores from different model versions are incommensurable; any stored similarity value carries the model version that produced it, and candidates left pending across a swap are recomputed, not carried.
 
-This resolves search's open question on versioning policy; model *selection* still gets its ADR at first registration.
+This resolves search's open question on versioning policy; model *selection* got its ADR at first registration, [ADR-0011](adr/ADR-0011-embedding-model-registration.md) (renumbered from a provisional "ADR-0010" once that number was taken by the roster-extension ADR).
 
 ## 5. What the semantic layer may and may not do
 
@@ -93,6 +93,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `search.relevance_regression
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial layer spec: similarity-suggests-evidence-asserts rule, three sub-layers, boundary mapping with no-auto-merge rule, embedding versioning policy (resolves search's deferral), allowed/forbidden table, near-miss merge worked example |
 | 1.0.1 | 2026-08-01 | DKP Architect (prompt 02, AI) | Both OQs struck: taxonomy root published (schemas/taxonomy.json), embedding model registered (ADR-0011) |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | §4's own body text still said model selection "still gets its ADR at first registration" — contradicting this same document's 1.0.1 changelog entry and Open Questions, which already record ADR-0011 as resolved. Corrected to match |
 
 ## Open Questions
 
