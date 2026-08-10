@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Future Horizons & Extension Surface
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Knowledge Engineer, Registry Agent]
 reviewing-agent: Knowledge Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: monthly
 ---
 
@@ -60,7 +60,7 @@ March 2027: the monthly check finds Loop C comprehension trending at target but 
 
 ## 5. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `registry.onboarding_days` (the extension surface's live test) · `identity.cross_platform_lesson_reuse` (H4's predictor slope) · `evolution.unregistered_change_findings = 0` (covers silent horizon redating). Also registered (§4.9, 1.5.0): `future.horizon_date_calibration` (share of horizon dates hit within stated tolerance — the roadmap's realized-vs-projected) and `future.replan_misses_logged = 100%` (every slipped date has a ledger entry with a root-cause assumption).
+Registered in [brain.metrics.md](brain.metrics.md): `registry.median_onboarding_time` (the extension surface's live test) · `identity.cross_platform_lesson_reuse` (H4's predictor slope) · `evolution.unregistered_change_findings = 0` (covers silent horizon redating). Also registered (§4.9, 1.5.0): `future.horizon_date_calibration` (share of horizon dates hit within stated tolerance — the roadmap's realized-vs-projected) and `future.replan_misses_logged = 100%` (every slipped date has a ledger entry with a root-cause assumption).
 
 ---
 
@@ -69,6 +69,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `registry.onboarding_days` (
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial roadmap: five dated horizons with sequencing rationale mapped to vision stages, H4 crossover prediction (2029 H1 ±2 quarters), rule-bound re-planning (late/early both findings), extension surface with explicit non-reservations, H2 re-plan worked example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §5 cited `registry.onboarding_days`, which was never a real registered metric — the actual one is `registry.median_onboarding_time` (brain.metrics.md §4.7); corrected |
 
 ## Open Questions
 
