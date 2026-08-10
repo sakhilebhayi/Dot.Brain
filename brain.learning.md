@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Continuous Learning Loops
-version: 1.0.0
+version: 1.0.2
 status: active
 owners: [Chief AI Engineer, Learning Agent]
 reviewing-agent: Data Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -99,7 +99,7 @@ Continuing the chain audited in [brain.reasoning.md](brain.reasoning.md) §7:
 
 ## 6. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `dkp.pr_acceptance_rate ≥ 40% rising` (loops working end-to-end), `colony.override_rate ≤ 5% falling` (calibration), `colony.mean_trust_score ≥ 0.70 stable` (Loop A sanity), `explainability.human_comprehension_score ≥ 4/5` (Loop C), `resilience.lesson_adoption_rate ≥ 50%` (Loop D). Proposed pending registration: `learning.parameter_rollbacks` (target 0 per quarter — rollbacks mean a guardrail caught drift late).
+Registered in [brain.metrics.md](brain.metrics.md): `dkp.pr_acceptance_rate ≥ 40% rising` (loops working end-to-end), `colony.override_rate ≤ 5% falling` (calibration), `colony.mean_trust_score ≥ 0.70 stable` (Loop A sanity), `explainability.human_comprehension_score ≥ 4/5` (Loop C), `resilience.lesson_adoption_rate ≥ 50%` (Loop D). Also registered (§4.9): `learning.parameter_rollbacks` (0 per quarter — rollbacks mean a guardrail caught drift late).
 
 ---
 
@@ -109,6 +109,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `dkp.pr_acceptance_rate ≥ 
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial spec: learning doctrine, four loops, outcome ingestion contract, six drift guardrails, Kolomela rejection-to-acceptance worked example |
 | 1.0.1 | 2026-08-01 | Repository Reviewer batch (prompt 07, AI) | Reviewer edit: aligned rejection code to existing `DKP_REF_MISSING` (no new code needed) |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | §6 said `learning.parameter_rollbacks` was "proposed pending registration" while the Open Questions section directly below already recorded it as resolved/registered — corrected to match. Front-matter `version` also still said 1.0.0 despite the 1.0.1 row above already existing |
 
 ## Open Questions
 
