@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Ingestion → Reasoning → PR Workflows
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Testing Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -123,7 +123,7 @@ The generator itself emits the `recommendation.decided` event pack (it is the on
 
 ## 9. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `dkp.ingest_latency_p95 ≤ 15 min` (W1), `dkp.validation_rejection_rate ≤ 10%` (W1), `governance.ethics_gate_bypasses = 0` (W4), `dkp.pr_decision_rate ≥ 80%` / `dkp.pr_acceptance_rate ≥ 40%` (W5–W6), `identity.boundary_violations = 0` (W5 containment). Proposed pending registration: `workflows.gate_rejection_rate` per gate — persistent near-zero suggests gates are rubber stamps, persistent high suggests upstream miscalibration; both are findings.
+Registered in [brain.metrics.md](brain.metrics.md): `dkp.ingest_latency_p95 ≤ 15 min` (W1), `dkp.validation_rejection_rate ≤ 10%` (W1), `governance.ethics_gate_bypasses = 0` (W4), `dkp.pr_decision_rate ≥ 80%` / `dkp.pr_acceptance_rate ≥ 40%` (W5–W6), `identity.boundary_violations = 0` (W5 containment). Also registered (§4.9): `workflows.gate_rejection_rate` per gate — persistent near-zero suggests gates are rubber stamps, persistent high suggests upstream miscalibration; both are findings.
 
 ---
 
@@ -132,6 +132,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `dkp.ingest_latency_p95 ≤ 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial spec: six-workflow pipeline, three-gate recommendation review, PR Generator contract (scoped tokens, deterministic rendering, expiry, ledger-before-action), failure matrix |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §9 still said `workflows.gate_rejection_rate` was "Proposed pending registration" despite the Open Questions section immediately below already recording it as resolved and registered — corrected to match |
 
 ## Open Questions
 
