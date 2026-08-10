@@ -1,9 +1,9 @@
 ---
 title: Dot.Brain — The Cushion (Business Resilience Visibility)
-version: 1.1.0
-status: draft
+version: 1.1.1
+status: active
 owners: [Platform Integrator]
-last-review: 2026-08-08
+last-review: 2026-08-10
 ---
 
 # brain.cushion — The Cushion (Business Resilience Visibility)
@@ -71,6 +71,7 @@ A "Cushion" card/section on the platform's own dashboard:
 |---|---|---|---|
 | 1.0.0 | 2026-08-08 | Platform Integrator | Initial shared contract: dimension registry (2 real pilots — Dot.Finance reserve_runway, Dot.Billing payment_reliability — 4 named-but-unimplemented), honesty rule, UI pattern, explicit scope boundary against brain.resilience.md's unrelated SRE-continuity meaning. |
 | 1.1.0 | 2026-08-08 | Platform Integrator | Added `fuel_reserve_runway` (Dot.Mines pilot) — a new dimension, the physical-resource analog of `reserve_runway`, proving the registry extends to non-financial resources. |
+| 1.1.1 | 2026-08-10 | Brain core-doc sweep | Status draft → active: all three named pilots (Dot.Finance reserve_runway, Dot.Billing payment_reliability, Dot.Mines fuel_reserve_runway) are real, shipped, tested implementations, not proposals — the contract has been proven three times over, not merely drafted. |
 
 ## Open Questions
 
