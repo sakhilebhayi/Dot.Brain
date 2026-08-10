@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Metric Definitions & Measurement Standard
-version: 1.5.0
+version: 1.5.1
 status: active
 owners: [Executive Sponsor, Data Agent]
 reviewing-agent: Governance Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -229,6 +229,7 @@ The Reasoning Agent wants to ship rain-forecast logistics recommendations to Dot
 | 1.3.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Registered the 10-ID batch in §4.9 (semantic, telemetry, analytics, experiments, evolution ×2 each); five namespaces added in §3. Registry now 59 brain-level metrics |
 | 1.4.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Registered the 8-ID batch in §4.9 (failures, operating, success, patterns ×2 each); four namespaces added in §3. Registry now 67 brain-level metrics |
 | 1.5.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Registered the 6-ID batch in §4.9 (business, design, future ×2 each); three namespaces added in §3. Registry now 73 brain-level metrics — brain.* corpus complete with a clean registry |
+| 1.5.1 | 2026-08-10 | Brain core-doc sweep | The running per-batch metric count reached 73 by 1.5.0's own cumulative arithmetic, but a direct row count of §4 today gives 77 — a 4-metric discrepancy somewhere in the batch history that wasn't re-audited batch-by-batch here (not worth reconstructing without more signal than a bare count difference). Recorded honestly rather than silently corrected: §4 currently contains 77 registered brain-level metric rows, verified by direct count |
 
 ## Open Questions
 
