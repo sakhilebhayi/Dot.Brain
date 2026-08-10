@@ -1,11 +1,11 @@
 ---
 title: Dot.Brain Identity
-version: 1.0.0
+version: 1.0.2
 status: active
 owners: [Executive Sponsor, Governance Agent]
 reviewing-agent: Governance Agent
 human-approver: Executive Sponsor
-last-review: 2026-08-01
+last-review: 2026-08-10
 ---
 
 # brain.identity — What Dot.Brain Is
@@ -31,7 +31,7 @@ Dot.Brain is **not an application**. It has no end-user product surface. Its use
 
 | Audience | Dot.Brain is… |
 |---|---|
-| Executive | The compounding asset that turns 21 platforms' operations into one learning organization |
+| Executive | The compounding asset that turns the ecosystem's platforms ([brain.platforms.md](brain.platforms.md) §2 for the current count) into one learning organization |
 | Platform engineer | A publish/subscribe knowledge peer that validates your packs and sends you evidence-backed PRs |
 | AI agent | The governed graph you read from, reason over, and propose to — never write to directly |
 | Security reviewer | A signed, audited, tenant-isolated knowledge system with human approval gates on impact |
@@ -140,3 +140,4 @@ Identity is working when, measured quarterly ([brain.metrics.md](brain.metrics.m
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial complete identity document |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Reviewer edit: fixed 12 broken `../` relative links (root-level file) |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | §1's "21 platforms" hardcoded count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer instead of a number that will just drift again. Also corrected front-matter `version` (was still 1.0.0 despite the 1.0.1 changelog row above already existing) |
