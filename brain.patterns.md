@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Pattern Catalog
-version: 1.0.1
+version: 1.0.2
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Security Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -83,7 +83,7 @@ S-2026-001 ([brain.success.md](brain.success.md) §5) replicates at Sishen: the 
 
 ## 6. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `learning.lessons_effective ≥ 70%` (applications of promoted knowledge succeeding) · `evolution.unregistered_change_findings = 0` (covers unledgered pattern retirement). Also registered (§4.9, 1.4.0): `patterns.condition_check_compliance = 100%` (applications citing patterns without recorded condition checks) and `patterns.sentinel_coverage = 100%` (active patterns with live sentinels — a pattern nobody is watching is a future incident).
+Registered in [brain.metrics.md](brain.metrics.md): `evolution.unregistered_change_findings = 0` (covers unledgered pattern retirement). Also registered (§4.9, 1.4.0): `patterns.condition_check_compliance = 100%` (applications citing patterns without recorded condition checks) and `patterns.sentinel_coverage = 100%` (active patterns with live sentinels — a pattern nobody is watching is a future incident). `learning.lessons_effective` (applications of promoted knowledge succeeding, ≥ 70%) is used above as a live concept but is **not yet registered** in brain.metrics.md — see Open Questions.
 
 ---
 
@@ -93,11 +93,13 @@ Registered in [brain.metrics.md](brain.metrics.md): `learning.lessons_effective 
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial catalog: success/lesson/pattern boundary table, P-entry format with mandatory applicability conditions and context sentinels, condition-checked application discipline, three retirement mechanisms under evolution ledger rules, P-2026-001 example |
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | P-2026-001 condition-family review queue recorded (two candidates, one non-transfer) — clears F-07-05 |
+| 1.0.2 | 2026-08-10 | Brain core-doc sweep | §6 claimed `learning.lessons_effective` was "Registered in brain.metrics.md" — it isn't, anywhere. Corrected and moved to Open Questions |
 
 ## Open Questions
 
 | Question | Owner → Approver |
 |---|---|
 | ~~Register `patterns.condition_check_compliance` and `patterns.sentinel_coverage` in brain.metrics.md §4.9 (batch now 8 — registration pass approaching)~~ Registered in [brain.metrics.md](brain.metrics.md) §4.9 (1.4.0) | Architecture Agent → Chief Architect |
+| Register `learning.lessons_effective` in brain.metrics.md (owner: Learning Agent per the `learning.*` namespace) — §6 already specifies it as ≥ 70%, but it was never actually added to the registry | Architecture Agent → Chief AI Engineer |
 | Architectural patterns: does every `architectural`-kind entry require a paired ADR, or only those that changed a frozen-adjacent structure? | Architecture Agent → Chief Architect |
 | `contested` demotion threshold (non-transfer parity) — is 1:1 too aggressive for patterns with many supporting contexts? | Evolution Agent → Chief AI Engineer |
