@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Success Pattern Library
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief AI Engineer, Learning Agent]
 reviewing-agent: Data Agent
-last-review: 2026-08-01
+last-review: 2026-08-10
 review-cadence: quarterly
 ---
 
@@ -71,7 +71,7 @@ One entry, three documents' rigor, zero anecdote.
 
 ## 6. Health metrics
 
-Registered in [brain.metrics.md](brain.metrics.md): `learning.lessons_effective ≥ 70%` (shared with failures — the symmetry is measured symmetrically) · `dkp.recommendation_adoption` (the library's upstream supply). Also registered (§4.9, 1.4.0): `success.entries_with_counterfactual = 100%` (an entry without one is a defect) and `success.replication_rate` (share of single-context entries tested in a second context within 12 months — an untested library is a scrapbook).
+Registered (§4.9, 1.4.0): `success.entries_with_counterfactual = 100%` (an entry without one is a defect) and `success.replication_rate` (share of single-context entries tested in a second context within 12 months — an untested library is a scrapbook). `learning.lessons_effective` (shared with failures — the symmetry would be measured symmetrically) and `dkp.recommendation_adoption` (the library's upstream supply) are used above as live concepts but are **not yet registered** in brain.metrics.md — see Open Questions, alongside `learning.verified_prediction_rate` and `colony.trust_score_calibration` (§2).
 
 ---
 
@@ -80,6 +80,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `learning.lessons_effective 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial library: verified-prediction principle, per-stakeholder success definitions, S-entry format with mandatory counterfactual and replication status, three intake doors, dopemine proxy boundary, refuted-entry retention, S-2026-001 example |
+| 1.0.1 | 2026-08-10 | Brain core-doc sweep | §6 claimed `learning.lessons_effective` and `dkp.recommendation_adoption` were "Registered in brain.metrics.md" — neither is, anywhere. Corrected and consolidated with the pre-existing `learning.verified_prediction_rate`/`colony.trust_score_calibration` gaps into one Open Questions row |
 
 ## Open Questions
 
@@ -87,4 +88,5 @@ Registered in [brain.metrics.md](brain.metrics.md): `learning.lessons_effective 
 |---|---|
 | ~~Register `success.entries_with_counterfactual` and `success.replication_rate` in brain.metrics.md §4.9 (batch now 6 with failures' and operating's)~~ Registered in [brain.metrics.md](brain.metrics.md) §4.9 (1.4.0) | Learning Agent → Chief AI Engineer |
 | `learning.verified_prediction_rate` (§2 colony row) is used but unregistered — separate metric or derivable from existing calibration IDs? | Learning Agent → Data Agent |
+| Register `learning.lessons_effective`, `dkp.recommendation_adoption`, and `colony.trust_score_calibration` (§2, §6) — all three are used above as if registered but none actually are | Learning Agent → Chief AI Engineer |
 | Replication threshold for pattern promotion: is one second context enough, or should high-stakes domains require two? | Learning Agent → Chief AI Engineer |
