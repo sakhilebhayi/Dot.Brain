@@ -1,0 +1,81 @@
+name: Guardian Poll
+
+# The Dot Guardian's 24/7 host: one detect/decide/act cycle every 5
+# minutes against every manifest in platforms/guardian/. See
+# services/guardian/README.md and ADR-0014.
+#
+# Required repository secrets:
+#   DOT_MINES_GUARDIAN_TOKEN  bearer token for the Dot.Mines health endpoint
+#   GUARDIAN_GH_TOKEN         fine-grained PAT the guardian acts with on
+#                             enrolled platform repos (Dot.Mines: issues
+#                             read/write, actions read/write, contents
+#                             read, metadata read). The default
+#                             GITHUB_TOKEN only reaches Dot.Brain itself,
+#                             so acting on other repos needs this.
+#
+# The runner is stateless; the incident store rides actions/cache (newest
+# run wins via a per-run key). Worst case on a cache miss is a duplicate
+# recommendation issue -- annoying, never dangerous.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: guardian-poll
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  poll:
+    name: guardian poll
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Restore guardian state
+        uses: actions/cache/restore@v4
+        with:
+          path: services/guardian/data
+          key: guardian-db-${{ github.run_id }}
+          restore-keys: |
+            guardian-db-
+
+      - name: Poll
+        env:
+          DOT_MINES_GUARDIAN_TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
+          GH_TOKEN: ${{ secrets.GUARDIAN_GH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::GUARDIAN_GH_TOKEN is not set -- skipping the poll. Create a fine-grained PAT (Dot.Mines: issues rw, actions rw, contents r) and add it as a repository secret."
+            exit 0
+          fi
+          if [ -z "$DOT_MINES_GUARDIAN_TOKEN" ]; then
+            echo "::warning::DOT_MINES_GUARDIAN_TOKEN is not set -- skipping the poll."
+            exit 0
+          fi
+          set +e
+          node services/guardian/src/cli.js poll
+          rc=$?
+          set -e
+          if [ "$rc" -eq 1 ]; then
+            echo "::warning::guardian found active incidents (see log above)."
+          elif [ "$rc" -ge 2 ]; then
+            echo "::error::guardian poll crashed with exit $rc."
+            exit "$rc"
+          fi
+
+      - name: Save guardian state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: services/guardian/data
+          key: guardian-db-${{ github.run_id }}

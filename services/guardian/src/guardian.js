@@ -78,9 +78,18 @@ export async function runPoll({
         }), fetchImpl);
       }
 
-      const acted = await act({
-        incident, decision, recall, manifest, store, memoryCfg, fetchImpl, run, env, sleepImpl, now, log,
-      });
+      // Per-incident error boundary: one failed action (gh unavailable, a
+      // push rejected, a network blip) must not abort the rest of the poll
+      // -- the remaining incidents still deserve detection and action.
+      let acted;
+      try {
+        acted = await act({
+          incident, decision, recall, manifest, store, memoryCfg, fetchImpl, run, env, sleepImpl, now, log,
+        });
+      } catch (error) {
+        acted = { error: error.message };
+        log(`[${manifest.platform}] action failed for ${incident.signature}: ${error.message}`);
+      }
       actions.push({ incident_uid: incident.incident_uid, action: decision.action, ...acted });
     }
 
