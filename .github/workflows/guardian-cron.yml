@@ -53,6 +53,12 @@ jobs:
         env:
           DOT_MINES_GUARDIAN_TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
           GH_TOKEN: ${{ secrets.GUARDIAN_GH_TOKEN }}
+          # Long-term operational memory (ops-incident archive + recall).
+          # The URL is public knowledge; the token is a Sanctum service
+          # token for the guardian user on Dot.Memory. The guardian runs
+          # memory-disabled (graceful) if either is missing.
+          DOT_MEMORY_URL: https://memory.infodot.co.za
+          DOT_MEMORY_TOKEN: ${{ secrets.DOT_MEMORY_TOKEN }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
             echo "::warning::GUARDIAN_GH_TOKEN is not set -- skipping the poll. Create a fine-grained PAT (Dot.Mines: issues rw, actions rw, contents r) and add it as a repository secret."
