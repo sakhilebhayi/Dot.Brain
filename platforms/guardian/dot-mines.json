@@ -1,0 +1,25 @@
+{
+  "platform": "dot-mines",
+  "health_url": "https://mines.infodot.co.za/guardian/health",
+  "token_env": "DOT_MINES_GUARDIAN_TOKEN",
+  "repo": "sakhilebhayi/Dot.Mines",
+  "default_branch": "main",
+  "deploy": {
+    "workflow": "deploy.yml",
+    "confirm_inputs": { "confirm": "deploy" }
+  },
+  "autonomy_level": 2,
+  "environment": "production",
+  "poll_interval_s": 300,
+  "max_fix_attempts": 2,
+  "max_deploys_per_6h": 3,
+  "protected_areas": [
+    "database/migrations/**",
+    "app/Http/Middleware/Authenticate*",
+    "app/Policies/**",
+    "app/Services/Billing/**",
+    "config/fortify.php",
+    "config/sanctum.php"
+  ],
+  "verification": { "polls": 5, "interval_s": 60 }
+}
