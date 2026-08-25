@@ -72,11 +72,12 @@ export async function runPoll({
 
       log(`[${manifest.platform}] ${incident.signature} -> ${decision.action} (confidence ${decision.confidence}, risk ${decision.risk})`);
 
-      if (opened.includes(incident)) {
-        await memory.record(memoryCfg, store, memory.toMemoryRecord(incident, manifest, {
-          record: { decision },
-        }), fetchImpl);
-      }
+      // Upsert on EVERY poll, not only at open: Dot.Memory upserts by
+      // incident_uid, and an incident opened while memory was disabled or
+      // unreachable would otherwise never be archived until it closed.
+      await memory.record(memoryCfg, store, memory.toMemoryRecord(incident, manifest, {
+        record: { decision },
+      }), fetchImpl);
 
       // Per-incident error boundary: one failed action (gh unavailable, a
       // push rejected, a network blip) must not abort the rest of the poll
