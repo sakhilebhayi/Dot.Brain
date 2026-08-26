@@ -1,0 +1,80 @@
+name: Tests
+
+# Until this existed, nothing ran these suites automatically. The guardian
+# alone decides whether to wake someone at 3am and whether to let a machine
+# deploy to production, and its 59 tests were run only when someone
+# remembered to. A change to that logic should not be able to merge on
+# trust.
+#
+# One job per service rather than a loop, so a red check names the service
+# that broke instead of "tests".
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - guardian
+          - intelligence
+          - autonomy-score
+          - market-research
+          - intervention-log
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Every service declares engines >= 22.5 for node:sqlite and the
+      # built-in test runner. Nothing here has dependencies, so there is
+      # deliberately no install step and no cache to go stale.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run ${{ matrix.service }} tests
+        working-directory: services/${{ matrix.service }}
+        run: npm test
+
+  # A service added without tests should not pass silently by having no job.
+  coverage-of-suites:
+    name: every service is covered
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if a service has tests but no job in this matrix
+        run: |
+          set -euo pipefail
+          covered="guardian intelligence autonomy-score market-research intervention-log"
+          missing=""
+          for pkg in services/*/package.json; do
+            name=$(basename "$(dirname "$pkg")")
+            # Only services that actually declare a test script are required.
+            if ! grep -q '"test"' "$pkg"; then
+              continue
+            fi
+            case " $covered " in
+              *" $name "*) ;;
+              *) missing="$missing $name" ;;
+            esac
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::These services have tests but no job in .github/workflows/tests.yml:$missing"
+            exit 1
+          fi
+          echo "All services with tests are covered."
