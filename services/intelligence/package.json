@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/intelligence",
+  "version": "1.0.0",
+  "description": "Dot.Brain's reasoning client for the ecosystem intelligence loop (ADR-0015): asks Dot.Memory what is known about a subject, decides what it means and what should happen, and hands the decision to an executor platform. Brain thinks; it never stores and never acts.",
+  "type": "module",
+  "bin": { "intelligence": "./src/cli.js" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}
