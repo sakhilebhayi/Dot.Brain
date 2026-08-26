@@ -35,6 +35,12 @@ CREATE TABLE IF NOT EXISTS breaker (
   opened_at TEXT,
   reason TEXT
 );
+CREATE TABLE IF NOT EXISTS reachability (
+  platform TEXT PRIMARY KEY,
+  consecutive_failures INTEGER NOT NULL DEFAULT 0,
+  last_kind TEXT,
+  last_seen_at TEXT
+);
 CREATE TABLE IF NOT EXISTS memory_outbox (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   method TEXT NOT NULL,
@@ -229,4 +235,42 @@ export function listEscalations(store, platform) {
   return platform
     ? store.prepare('SELECT * FROM escalations WHERE platform = ? ORDER BY id DESC').all(platform)
     : store.prepare('SELECT * FROM escalations ORDER BY id DESC').all();
+}
+
+/**
+ * Count consecutive failed health fetches for a platform, returning the
+ * streak INCLUDING this poll. A success resets it to zero.
+ *
+ * A single failed poll is not an outage. Without this the guardian paged at
+ * sev1 on the first blip, which on shared hosting behind a WAF meant paging
+ * on other tenants' traffic.
+ */
+export function recordReachability(store, platform, { ok, kind = null, at = new Date() }) {
+  if (ok) {
+    store.prepare(
+      `INSERT INTO reachability (platform, consecutive_failures, last_kind, last_seen_at)
+       VALUES (?, 0, NULL, ?)
+       ON CONFLICT(platform) DO UPDATE SET consecutive_failures = 0, last_kind = NULL, last_seen_at = excluded.last_seen_at`,
+    ).run(platform, at.toISOString());
+    return 0;
+  }
+
+  const current = store.prepare('SELECT consecutive_failures FROM reachability WHERE platform = ?').get(platform);
+  const streak = (current?.consecutive_failures ?? 0) + 1;
+
+  store.prepare(
+    `INSERT INTO reachability (platform, consecutive_failures, last_kind, last_seen_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(platform) DO UPDATE SET
+       consecutive_failures = excluded.consecutive_failures,
+       last_kind = excluded.last_kind,
+       last_seen_at = excluded.last_seen_at`,
+  ).run(platform, streak, kind, at.toISOString());
+
+  return streak;
+}
+
+export function reachabilityFor(store, platform) {
+  return store.prepare('SELECT * FROM reachability WHERE platform = ?').get(platform)
+    ?? { platform, consecutive_failures: 0, last_kind: null, last_seen_at: null };
 }

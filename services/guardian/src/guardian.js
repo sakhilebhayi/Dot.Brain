@@ -12,6 +12,7 @@ import {
   recordVerification,
   setIncidentStatus,
   touchIncident,
+  recordReachability,
 } from './store.js';
 
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
@@ -44,7 +45,18 @@ export async function runPoll({
     await memory.flush(memoryCfg, store, fetchImpl);
 
     const health = await fetchHealth(manifest, fetchImpl, env);
-    const { opened, ongoing, resolved } = reconcile(store, manifest, health, now());
+    // Record the outcome BEFORE reconciling: the streak that gates an
+  // availability incident has to include the poll being reconciled.
+  const failureStreak = recordReachability(store, manifest.platform, {
+    ok: health.reachable,
+    kind: health.reachable ? null : (health.kind ?? 'unreachable'),
+    at: now(),
+  });
+
+  const { opened, ongoing, resolved } = reconcile(store, manifest, health, now(), {
+    failureStreak,
+    availabilityThreshold: manifest.availability_threshold ?? 2,
+  });
     const actions = [];
 
     for (const incident of resolved) {

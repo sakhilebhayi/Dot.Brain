@@ -7,7 +7,15 @@ import {
 } from './store.js';
 import { normalizeChecks } from './health.js';
 
-/** Checks whose critical failure means the platform itself is down (sev1). */
+/**
+ * Checks whose critical failure means the platform itself is down (sev1).
+ *
+ * Membership here is what turns an incident into an unattended 3am page,
+ * so it is limited to the two checks that can only fail when the platform
+ * genuinely cannot serve. The synthetic `access`, `maintenance` and
+ * `contract` checks are deliberately absent: each of them means something
+ * DID answer, which is the opposite of an outage.
+ */
 const INFRASTRUCTURE_CHECKS = ['availability', 'database'];
 
 export function severityFor(checkKey, status) {
@@ -27,8 +35,8 @@ export function severityFor(checkKey, status) {
  *
  * Returns { opened, ongoing, resolved } of incident rows.
  */
-export function reconcile(store, manifest, healthResult, now = new Date()) {
-  const checks = normalizeChecks(healthResult);
+export function reconcile(store, manifest, healthResult, now = new Date(), options = {}) {
+  const checks = normalizeChecks(healthResult, options);
   const opened = [];
   const ongoing = [];
   const resolved = [];
