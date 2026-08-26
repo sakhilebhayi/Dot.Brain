@@ -20,7 +20,7 @@ On 2026-08-25/26 this raised four sev1 "human needed" incidents against Dot.Mine
 "message": "Platform health endpoint unreachable: HTTP 403"
 ```
 
-The platform was never down. A 403 means the request reached the server and was refused, and it did not come from the application: `AuthenticateGuardian` returns 401 for a bad or missing token and 503 when unconfigured, and has no 403 path. The 403 originated at the host's edge (cPanel WAF) transiently blocking the GitHub Actions runner IP — roughly 4 blocks in 1,150 polls, and not reproducible across five user agents.
+The platform was never down. A 403 means the request reached the server and was refused, and it did not come from the application: `AuthenticateGuardian` returns 401 for a bad or missing token and 503 when unconfigured, and has no 403 path. The 403 originated at the host's edge (cPanel/LiteSpeed WAF) transiently blocking the GitHub Actions runner IP, and was not reproducible across five user agents. **4 of 61 polls in that window — 6.6%.**
 
 Two failures compounded: a wrong classification, and no tolerance for a single bad poll.
 
@@ -50,6 +50,8 @@ Threshold defaults to 2 and is overridable per platform via `availability_thresh
 ## Consequences
 
 - All four of the incidents that motivated this would have been suppressed: a lone 403 now yields no incident at the first poll and an `access` sev3 recommendation if it persists.
-- A genuine outage is reported one poll later than before — at a 5-minute cadence, five minutes. That is the price of not crying wolf, and it is worth paying.
+- A genuine outage is reported one poll later than before. **This costs more than it first appears.** The cron is scheduled `*/5` but GitHub throttles scheduled workflows: measured over 25–26 Aug the real interval was 20–40 minutes, so 61 polls ran where the schedule implies ~230. A 2-poll threshold therefore delays a genuine outage by 20–40 minutes, not 5.
+
+  That is accepted for now because the alternative — paging at sev1 on a single blip against a host that blocks 6.6% of polls — is worse. It is not a good long-term answer. Two candidate fixes, neither taken yet: gate on elapsed time rather than poll count, so the threshold stops depending on a cadence we do not control; or run the poll somewhere with a schedule that is actually honoured.
 - Our own deploys stop being able to raise availability incidents.
 - `verify.js` is unchanged: during post-deploy verification any non-reachable result still counts as a failure, because there the question is "can we confirm the fix", not "is the platform down".
