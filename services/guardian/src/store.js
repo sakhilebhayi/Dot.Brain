@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS breaker (
 CREATE TABLE IF NOT EXISTS reachability (
   platform TEXT PRIMARY KEY,
   consecutive_failures INTEGER NOT NULL DEFAULT 0,
+  first_failure_at TEXT,
   last_kind TEXT,
   last_seen_at TEXT
 );
@@ -68,7 +69,38 @@ export function openStore(dbPath) {
   }
   const db = new DatabaseSync(dbPath);
   db.exec(SCHEMA);
+  migrate(db);
   return db;
+}
+
+/**
+ * Additive migrations for databases that already exist.
+ *
+ * The schema above is all CREATE TABLE IF NOT EXISTS, which silently does
+ * nothing to a table that is already there -- so a new column would be
+ * missing on every existing database and every query touching it would
+ * throw. The guardian's state survives between runs on actions/cache, so
+ * "existing database" is the normal case in production, not the exception.
+ *
+ * Only ever adds; nothing here may drop or rewrite. Safe to run on every
+ * open, and on a database that is already current.
+ */
+function migrate(db) {
+  const additions = [
+    ['reachability', 'first_failure_at', 'TEXT'],
+  ];
+
+  for (const [table, column, definition] of additions) {
+    const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+
+    if (columns.length === 0) {
+      continue; // Table not created yet; SCHEMA owns it.
+    }
+
+    if (!columns.some((existing) => existing.name === column)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
+  }
 }
 
 export function newIncidentUid(platform, now = new Date()) {
@@ -238,39 +270,48 @@ export function listEscalations(store, platform) {
 }
 
 /**
- * Count consecutive failed health fetches for a platform, returning the
- * streak INCLUDING this poll. A success resets it to zero.
+ * Record one health-fetch outcome and return the state of the current
+ * failure run: how many polls it spans and how long it has lasted.
  *
- * A single failed poll is not an outage. Without this the guardian paged at
- * sev1 on the first blip, which on shared hosting behind a WAF meant paging
- * on other tenants' traffic.
+ * Duration is what callers gate on, not the count. The poll cadence is not
+ * ours to control -- guardian-cron is scheduled every 5 minutes and GitHub
+ * throttles it to 20-40 -- so "two failures" means anything between 10 and
+ * 80 minutes of outage depending on how busy Actions is that day. Elapsed
+ * time means the same thing whatever the cadence does.
  */
 export function recordReachability(store, platform, { ok, kind = null, at = new Date() }) {
   if (ok) {
     store.prepare(
-      `INSERT INTO reachability (platform, consecutive_failures, last_kind, last_seen_at)
-       VALUES (?, 0, NULL, ?)
-       ON CONFLICT(platform) DO UPDATE SET consecutive_failures = 0, last_kind = NULL, last_seen_at = excluded.last_seen_at`,
+      `INSERT INTO reachability (platform, consecutive_failures, first_failure_at, last_kind, last_seen_at)
+       VALUES (?, 0, NULL, NULL, ?)
+       ON CONFLICT(platform) DO UPDATE SET
+         consecutive_failures = 0, first_failure_at = NULL, last_kind = NULL, last_seen_at = excluded.last_seen_at`,
     ).run(platform, at.toISOString());
-    return 0;
+    return { streak: 0, firstFailureAt: null, elapsedMs: 0 };
   }
 
-  const current = store.prepare('SELECT consecutive_failures FROM reachability WHERE platform = ?').get(platform);
+  const current = store.prepare('SELECT consecutive_failures, first_failure_at FROM reachability WHERE platform = ?').get(platform);
   const streak = (current?.consecutive_failures ?? 0) + 1;
+  const firstFailureAt = current?.first_failure_at ?? at.toISOString();
 
   store.prepare(
-    `INSERT INTO reachability (platform, consecutive_failures, last_kind, last_seen_at)
-     VALUES (?, ?, ?, ?)
+    `INSERT INTO reachability (platform, consecutive_failures, first_failure_at, last_kind, last_seen_at)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(platform) DO UPDATE SET
        consecutive_failures = excluded.consecutive_failures,
+       first_failure_at = excluded.first_failure_at,
        last_kind = excluded.last_kind,
        last_seen_at = excluded.last_seen_at`,
-  ).run(platform, streak, kind, at.toISOString());
+  ).run(platform, streak, firstFailureAt, kind, at.toISOString());
 
-  return streak;
+  return {
+    streak,
+    firstFailureAt,
+    elapsedMs: Math.max(0, at.getTime() - new Date(firstFailureAt).getTime()),
+  };
 }
 
 export function reachabilityFor(store, platform) {
   return store.prepare('SELECT * FROM reachability WHERE platform = ?').get(platform)
-    ?? { platform, consecutive_failures: 0, last_kind: null, last_seen_at: null };
+    ?? { platform, consecutive_failures: 0, first_failure_at: null, last_kind: null, last_seen_at: null };
 }

@@ -63,6 +63,12 @@ export async function fetchHealth(manifest, fetchImpl = fetch, env = process.env
   };
 }
 
+function minutes(ms) {
+  if (!Number.isFinite(ms)) return 'an unknown time';
+  const total = Math.round(ms / 60000);
+  return total < 1 ? 'under a minute' : `${total} minute${total === 1 ? '' : 's'}`;
+}
+
 /** A response arrived, so the question is only what it said. */
 function kindForStatus(status) {
   if (status === 401 || status === 403) return 'access';
@@ -91,26 +97,39 @@ const FAILURE_REPORTING = {
  * Flatten a fetchHealth result into a uniform checks map. A failure becomes
  * a synthetic check so the rest of the pipeline needs no special case.
  *
- * `failureStreak` is how many consecutive polls have now failed, including
- * this one. A single failed poll is not an outage -- it is a blip, and on
- * shared hosting behind a WAF it is a fairly common one -- so the kinds
- * that would page at sev1 are held at `unknown` (which detect.js neither
- * opens nor closes on) until the streak reaches the threshold.
+ * A single failed poll is not an outage -- it is a blip, and on shared
+ * hosting behind a WAF a fairly common one -- so the kinds that would page
+ * at sev1 are held at `unknown` (which detect.js neither opens nor closes
+ * on) until the failure has PERSISTED.
+ *
+ * Persistence is measured in elapsed time, not polls. Counting polls sounds
+ * equivalent and is not: guardian-cron is scheduled every 5 minutes and
+ * GitHub throttles it to 20-40, so "two failures" silently meant anywhere
+ * between 10 and 80 minutes of outage depending on how busy Actions was
+ * that day. A duration means the same thing whatever the cadence does.
+ *
+ * Two failures are still required regardless -- one observation cannot
+ * establish that anything lasted.
  */
-export function normalizeChecks(healthResult, { failureStreak = Infinity, availabilityThreshold = 2 } = {}) {
+export function normalizeChecks(healthResult, {
+  failureStreak = Infinity,
+  failureElapsedMs = Infinity,
+  availabilityWindowMs = 600000,
+} = {}) {
   if (!healthResult.reachable) {
     const kind = healthResult.kind ?? 'unreachable';
     const reporting = FAILURE_REPORTING[kind] ?? FAILURE_REPORTING.unreachable;
-    const confirmed = !reporting.gated || failureStreak >= availabilityThreshold;
+    const sustained = failureStreak >= 2 && failureElapsedMs >= availabilityWindowMs;
+    const confirmed = !reporting.gated || sustained;
 
     return {
       [reporting.check]: {
         status: confirmed ? reporting.status : 'unknown',
         message: confirmed
-          ? reporting.describe(healthResult.reason)
-          : `${reporting.describe(healthResult.reason)} Failure ${failureStreak} of ${availabilityThreshold} needed before this is treated as an incident.`,
+          ? `${reporting.describe(healthResult.reason)} Sustained for ${minutes(failureElapsedMs)} across ${failureStreak} checks.`
+          : `${reporting.describe(healthResult.reason)} Failing for ${minutes(failureElapsedMs)}; treated as an incident once it has persisted ${minutes(availabilityWindowMs)}.`,
         metrics: Number.isFinite(failureStreak)
-          ? { failure_kind: kind, failure_streak: failureStreak }
+          ? { failure_kind: kind, failure_streak: failureStreak, failure_elapsed_s: Math.round(failureElapsedMs / 1000) }
           : { failure_kind: kind },
       },
     };

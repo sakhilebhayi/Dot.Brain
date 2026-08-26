@@ -41,17 +41,18 @@ Two failures compounded: a wrong classification, and no tolerance for a single b
 
 **2. A single failed poll is not an incident.**
 
-The kinds that would page at sev1 — plus `maintenance`, because our own deploys emit 503 for a minute or two — are gated behind consecutive failures. Below the threshold the synthetic check reports `unknown`, which `reconcile` neither opens nor closes on. The streak is per platform, stored in the `reachability` table, incremented before reconciliation so it includes the poll being reconciled, and reset by any successful fetch.
+The kinds that would page at sev1 — plus `maintenance`, because our own deploys emit 503 for a minute or two — are gated until the failure has **persisted**. Below the gate the synthetic check reports `unknown`, which `reconcile` neither opens nor closes on. State is per platform in the `reachability` table, recorded before reconciliation so it includes the poll being reconciled, and cleared by any successful fetch.
 
-Threshold defaults to 2 and is overridable per platform via `availability_threshold` in the manifest.
+**Persistence is measured in elapsed time, not polls.** Counting polls sounds equivalent and is not: `guardian-cron` is scheduled `*/5` but GitHub throttles it to 20–40 minutes, so "two failures" silently meant anywhere between 10 and 80 minutes of outage depending on how busy Actions was that day. The gate is a duration, so it means the same thing whatever the cadence does. Two failures are still required regardless, because one observation cannot establish that anything lasted.
+
+Window defaults to 600 seconds and is overridable per platform via `availability_window_s` in the manifest.
 
 `access`, `config` and `contract` are deliberately **not** gated: they are real the first time they happen, and they are already sev3/sev2, so reporting them immediately costs nobody a night's sleep.
 
 ## Consequences
 
 - All four of the incidents that motivated this would have been suppressed: a lone 403 now yields no incident at the first poll and an `access` sev3 recommendation if it persists.
-- A genuine outage is reported one poll later than before. **This costs more than it first appears.** The cron is scheduled `*/5` but GitHub throttles scheduled workflows: measured over 25–26 Aug the real interval was 20–40 minutes, so 61 polls ran where the schedule implies ~230. A 2-poll threshold therefore delays a genuine outage by 20–40 minutes, not 5.
-
-  That is accepted for now because the alternative — paging at sev1 on a single blip against a host that blocks 6.6% of polls — is worse. It is not a good long-term answer. Two candidate fixes, neither taken yet: gate on elapsed time rather than poll count, so the threshold stops depending on a cadence we do not control; or run the poll somewhere with a schedule that is actually honoured.
+- A genuine outage is reported once it has lasted **at least 10 minutes**, plus however long it takes the next poll to notice. That second term is not ours to control — measured over 25–26 Aug the real cron interval was 20–40 minutes against a `*/5` schedule — but the guarantee the gate itself makes no longer moves with it.
+- The `reachability` table gained a `first_failure_at` column. The schema is all `CREATE TABLE IF NOT EXISTS`, which does nothing to a table that already exists, and the guardian's state survives on `actions/cache` — so an existing database is the normal case, not the exception. `openStore` now runs an additive-only migration, covered by tests that build a database in the previous release's exact shape and assert the existing rows survive.
 - Our own deploys stop being able to raise availability incidents.
 - `verify.js` is unchanged: during post-deploy verification any non-reachable result still counts as a failure, because there the question is "can we confirm the fix", not "is the platform down".
