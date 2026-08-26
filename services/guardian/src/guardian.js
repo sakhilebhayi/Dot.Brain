@@ -47,15 +47,16 @@ export async function runPoll({
     const health = await fetchHealth(manifest, fetchImpl, env);
     // Record the outcome BEFORE reconciling: the streak that gates an
   // availability incident has to include the poll being reconciled.
-  const failureStreak = recordReachability(store, manifest.platform, {
+  const reachability = recordReachability(store, manifest.platform, {
     ok: health.reachable,
     kind: health.reachable ? null : (health.kind ?? 'unreachable'),
     at: now(),
   });
 
   const { opened, ongoing, resolved } = reconcile(store, manifest, health, now(), {
-    failureStreak,
-    availabilityThreshold: manifest.availability_threshold ?? 2,
+    failureStreak: reachability.streak,
+    failureElapsedMs: reachability.elapsedMs,
+    availabilityWindowMs: (manifest.availability_window_s ?? 600) * 1000,
   });
     const actions = [];
 
