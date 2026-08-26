@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/intelligence-loop.schema.json",
+  "title": "Dot Ecosystem Intelligence Loop Envelope",
+  "description": "The single record every Dot platform exchanges while running the loop Observe -> Remember -> Understand -> Decide -> Act -> Measure -> Learn. Dot.Memory owns evidence and outcomes, Dot.Brain owns reasoning and decisions, an executor platform performs the action. One envelope carries the whole cycle so any step is explainable from the record alone.",
+  "type": "object",
+  "required": ["loop_id", "stage", "platform", "subject", "source", "occurred_at"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "loop_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable id for one full cycle. Every stage of the same cycle shares it; this is what makes the loop traceable end to end."
+    },
+    "event_id": {
+      "type": "string",
+      "description": "Id of the specific observation/message. Idempotency key -- a replayed event must not create a second record."
+    },
+    "stage": {
+      "enum": ["observation", "context", "decision", "action", "outcome"],
+      "description": "Which step of the loop this envelope carries."
+    },
+    "platform": {
+      "type": "string",
+      "description": "Platform id emitting this envelope (dot-mines, dot-memory, dot-brain, dot-dopemine, ...)."
+    },
+    "tenant": {
+      "type": "object",
+      "description": "Who this concerns. Absent for ecosystem-level records.",
+      "properties": {
+        "team_id": { "type": ["integer", "string"] },
+        "user_id": { "type": ["integer", "string"] }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "required": ["type", "id"],
+      "description": "What the loop is about -- a customer, a machine, an integration, a service. Context is retrieved by subject, which is how the system accumulates history about a thing rather than about a request.",
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "string",
+      "description": "How this came to be known (guardian-health-poll, engagement-telemetry, user-report, ...)."
+    },
+    "signature": {
+      "type": "string",
+      "description": "Stable classifier for 'the same kind of thing happening again'. Recurrence and learned success rates are grouped by it."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dot.Memory record ids the reasoning rested on. Required for an explainable decision: without them a recommendation cannot be audited."
+    },
+    "decision": {
+      "type": "object",
+      "description": "Dot.Brain's output. Never produced by Memory or the executor.",
+      "required": ["recommendation", "confidence", "risk", "autonomy_level"],
+      "properties": {
+        "reasoning_ref": { "type": "string", "description": "Pointer to the stored reasoning/explanation." },
+        "recommendation": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "array", "items": { "type": "string" }, "description": "Human-readable reasons, in the order they were applied." },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "risk": { "type": "number", "minimum": 0, "maximum": 1 },
+        "autonomy_level": {
+          "enum": ["observe", "recommend", "approve", "execute", "autonomous"],
+          "description": "The ladder from spec section 10. High-risk actions must never resolve above 'approve' without a human."
+        },
+        "requires_approval": { "type": "boolean" }
+      }
+    },
+    "action": {
+      "type": "object",
+      "description": "What an executor platform was asked to do, and what became of it.",
+      "required": ["kind", "executor_platform"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "executor_platform": { "type": "string", "minLength": 1 },
+        "mechanic_ref": {
+          "type": "string",
+          "description": "For Dot.Dopemine interventions: the certified mechanic this action deploys. An uncertified mechanic must be refused -- the ethics gate is not bypassable by the loop."
+        },
+        "approval_status": { "enum": ["not_required", "pending", "approved", "rejected"] },
+        "execution_status": { "enum": ["pending", "succeeded", "failed", "refused", "rolled_back"] },
+        "detail": { "type": "object", "description": "Executor-specific payload." }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "description": "What actually happened afterwards. This is what turns the system from storage into learning: without a recorded outcome a decision can never be graded.",
+      "required": ["verdict"],
+      "properties": {
+        "verdict": { "enum": ["improved", "unchanged", "worsened", "inconclusive"] },
+        "measure": { "type": "string", "description": "What was measured (engagement, retention, telemetry_freshness, ...)." },
+        "value_before": { "type": ["number", "string", "null"] },
+        "value_after": { "type": ["number", "string", "null"] },
+        "observed_at": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" }
+      }
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "recorded_at": { "type": "string", "format": "date-time" }
+  }
+}
