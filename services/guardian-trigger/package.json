@@ -1,0 +1,8 @@
+{
+  "name": "@dot-brain/guardian-trigger",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker cron that triggers the guardian poll via workflow_dispatch -- GitHub throttles high-frequency schedule triggers (measured ~2.5h median against */5), workflow_dispatch is honoured to the minute.",
+  "engines": { "node": ">=22.5" },
+  "scripts": { "test": "node --test" }
+}
