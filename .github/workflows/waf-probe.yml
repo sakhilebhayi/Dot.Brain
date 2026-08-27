@@ -1,0 +1,119 @@
+name: WAF probe
+
+# Diagnostic only. Fires N independent Actions runs against the dot-mines health
+# endpoint to measure the edge 403 rate from GitHub runner IPs -- the only source
+# addresses where the block reproduces. Never runs on a schedule; dispatch only.
+#
+# Sample size: the measured block rate was 4/61 runs = 6.6%, and blocking appears
+# to be per-source-IP, so ONE JOB = ONE SAMPLE (extra requests inside a job re-use
+# the same runner IP and do not add statistical weight). Observing zero blocks in
+# N samples rules out an unchanged 6.6% rate at confidence 1-(0.934^N):
+#   N=20 -> 74%   N=44 -> 95%   N=60 -> 98%
+# Default 45 is the smallest sample that clears 95%.
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: 'Independent runner IPs to sample (45 = 95% confidence)'
+        required: false
+        default: '45'
+      requests_per_job:
+        description: 'Requests per runner (same IP; for transient-vs-sticky blocks)'
+        required: false
+        default: '4'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+      - id: build
+        run: |
+          set -euo pipefail
+          n='${{ inputs.samples }}'
+          case "$n" in ''|*[!0-9]*) echo "samples must be an integer" >&2; exit 1;; esac
+          if [ "$n" -lt 1 ] || [ "$n" -gt 100 ]; then
+            echo "samples must be between 1 and 100" >&2; exit 1
+          fi
+          echo "matrix=$(seq 1 "$n" | jq -Rsc 'split("\n")|map(select(length>0))')" >> "$GITHUB_OUTPUT"
+
+  probe:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        sample: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Probe health endpoint
+        env:
+          TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
+          REQUESTS: ${{ inputs.requests_per_job }}
+        run: |
+          set -euo pipefail
+          src=$(curl -s --max-time 10 https://api.ipify.org || echo unknown)
+          out="result-${{ matrix.sample }}.csv"
+          : > "$out"
+          i=0
+          while [ "$i" -lt "$REQUESTS" ]; do
+            i=$((i+1))
+            ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+              -H "Authorization: Bearer ${TOKEN}" \
+              https://mines.infodot.co.za/guardian/health || echo 000)
+            echo "${ts},${src},${code}" >> "$out"
+            [ "$i" -lt "$REQUESTS" ] && sleep 10 || true
+          done
+          echo "sample ${{ matrix.sample }} from ${src}:"
+          cut -d, -f3 "$out" | sort | uniq -c
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ matrix.sample }}
+          path: result-${{ matrix.sample }}.csv
+          retention-days: 7
+
+  report:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: results, pattern: 'probe-*', merge-multiple: true }
+      - run: |
+          set -euo pipefail
+          cat results/*.csv > all.csv
+          total=$(wc -l < all.csv)
+          ips=$(cut -d, -f2 all.csv | sort -u | wc -l)
+          bad=$(awk -F, '$3!="200"' all.csv | wc -l)
+          badips=$(awk -F, '$3!="200"' all.csv | cut -d, -f2 | sort -u | wc -l)
+          {
+            echo "## WAF probe"
+            echo
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Requests | $total |"
+            echo "| Distinct runner IPs | $ips |"
+            echo "| Non-200 responses | $bad |"
+            echo "| Distinct IPs blocked | $badips |"
+            echo
+            echo '### Status codes'
+            echo '```'
+            cut -d, -f3 all.csv | sort | uniq -c
+            echo '```'
+            if [ "$bad" -gt 0 ]; then
+              echo '### Non-200 detail (UTC timestamp, source IP, code) -- send these to the host'
+              echo '```'
+              awk -F, '$3!="200"' all.csv
+              echo '```'
+            else
+              conf=$(awk -v n="$ips" 'BEGIN{printf "%.0f", (1-(0.934^n))*100}')
+              echo "**No blocks observed across $ips distinct runner IPs.**"
+              echo "Rules out an unchanged 6.6% per-run block rate at ~${conf}% confidence."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
