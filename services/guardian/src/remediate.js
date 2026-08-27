@@ -44,6 +44,10 @@ export async function execute({ incident, decision, manifest, store, run, now = 
   incrementAttempts(store, incident.incident_uid);
   setIncidentStatus(store, incident.incident_uid, 'remediating', now);
 
+  if (decision.runbook.kind === 'advisory') {
+    throw new Error('Advisory runbooks carry advice, not an automated action; decide.js must never route one here.');
+  }
+
   if (decision.runbook.kind === 'workflow') {
     const sha = await headSha(run, manifest);
     await triggerDeployWorkflow(run, manifest);

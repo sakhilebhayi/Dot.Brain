@@ -101,3 +101,28 @@ test('an exhausted deploy budget downgrades to recommend', () => {
   assert.equal(decision.action, 'recommend');
   assert.match(decision.reasons.join(' '), /budget/);
 });
+
+test('an advisory runbook is recommended, never auto-executed, even with every autonomy gate open', () => {
+  const decision = evaluate({
+    incident: incident({
+      check_key: 'provider_data_freshness',
+      signature: 'dot-mines:provider_data_freshness:warning',
+      severity: 'sev3',
+    }),
+    manifest: manifest({ autonomy_level: 3 }),
+    recall: { matches: 5, success_rate: 1, resolved: 5, rolled_back: 0 },
+  });
+  assert.equal(decision.action, 'recommend');
+  assert.equal(decision.runbook.kind, 'advisory');
+  assert.match(decision.reasons.join(' '), /advisory/);
+});
+
+test('provider_data_freshness carries advice naming the provider, not a redeploy', () => {
+  const decision = evaluate({
+    incident: incident({ check_key: 'provider_data_freshness', severity: 'sev3' }),
+    manifest: manifest(),
+  });
+  assert.equal(decision.action, 'recommend');
+  assert.notEqual(decision.runbook.key, 'redeploy');
+  assert.match(decision.runbook.description, /provider/i);
+});

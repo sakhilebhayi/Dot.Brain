@@ -44,6 +44,11 @@ export function evaluate({ incident, manifest, recall = { matches: 0 }, breakerO
     return decision('recommend', null, 0, 1, reasons);
   }
 
+  if (runbook.kind === 'advisory') {
+    reasons.push('advisory runbook: no automated action exists; a human follows the advice');
+    return decision('recommend', runbook, 0.5, runbook.risk, reasons);
+  }
+
   let confidence = 0.5;
   reasons.push('base confidence 0.5 (matched runbook)');
 
