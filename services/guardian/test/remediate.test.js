@@ -124,3 +124,21 @@ test('rollback is a no-op when the last remediation shipped no code change', asy
   assert.equal(result.rolledBack, false);
   assert.equal(run.calls.length, 0);
 });
+
+test('execute refuses an advisory runbook outright', async () => {
+  const store = tempStore();
+  const incident = seedIncident(store);
+  const run = fakeRun();
+
+  await assert.rejects(
+    execute({
+      incident,
+      decision: decisionFor({ key: 'contact_provider', kind: 'advisory', risk: 0, description: 'advice only' }),
+      manifest: manifest(),
+      store,
+      run,
+    }),
+    /advice, not an automated action/i,
+  );
+  assert.equal(run.calls.length, 0);
+});

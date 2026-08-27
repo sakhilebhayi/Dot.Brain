@@ -94,7 +94,9 @@ export async function recommend({ store, manifest, incident, decision, recall, r
       '### Approval',
       '',
       decision.runbook
-        ? `To apply: re-run \`${manifest.deploy.workflow}\` on ${manifest.repo}, or close this issue if not appropriate.`
+        ? (decision.runbook.kind === 'advisory'
+          ? `${decision.runbook.description} Close this issue once the provider recovers.`
+          : `To apply: re-run \`${manifest.deploy.workflow}\` on ${manifest.repo}, or close this issue if not appropriate.`)
         : 'Diagnose manually; the guardian has no safe automated action for this check.',
     ],
   });
