@@ -1,0 +1,8 @@
+name = "dot-guardian-trigger"
+main = "src/worker.js"
+compatibility_date = "2026-08-27"
+
+# Every 5 minutes -- the cadence guardian-cron.yml asks GitHub for and
+# does not get. 288 invocations/day, well inside the free plan.
+[triggers]
+crons = ["*/5 * * * *"]
