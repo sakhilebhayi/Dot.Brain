@@ -1,0 +1,19 @@
+{
+  "platform": "blupin",
+  "health_url": "https://memory.infodot.co.za/api/guardian/blupin",
+  "token_env": "DOT_MEMORY_TOKEN",
+  "repo": "sakhilebhayi/BluPinJS-EA",
+  "default_branch": "main",
+  "deploy": {
+    "workflow": "blupin-daily.yml",
+    "confirm_inputs": {}
+  },
+  "autonomy_level": 2,
+  "environment": "production",
+  "poll_interval_s": 300,
+  "protected_areas": [
+    "pine/**",
+    "docs/**",
+    "signals/**"
+  ]
+}
