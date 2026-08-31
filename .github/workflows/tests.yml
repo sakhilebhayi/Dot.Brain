@@ -34,6 +34,7 @@ jobs:
           - market-research
           - intervention-log
           - guardian-trigger
+          - blupin-context
 
     steps:
       - uses: actions/checkout@v4
