@@ -1,0 +1,27 @@
+name: blupin-context
+# Records the day's scheduled high-impact USD news as an intelligence-loop
+# observation on the BluPin trading-signal subject, weekdays at 03:05 UTC
+# (05:05 SAST) — just before the BluPinJS-EA signal run, so the context is
+# in Memory when the day's decision lands.
+on:
+  schedule:
+    - cron: '5 3 * * 1-5'
+  workflow_dispatch:
+concurrency:
+  group: blupin-context
+  cancel-in-progress: false
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record today's news context
+        working-directory: services/blupin-context
+        env:
+          DOT_MEMORY_URL: https://memory.infodot.co.za
+          DOT_MEMORY_TOKEN: ${{ secrets.DOT_MEMORY_TOKEN }}
+        run: node src/cli.js

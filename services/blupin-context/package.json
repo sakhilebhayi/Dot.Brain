@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/blupin-context",
+  "version": "1.0.0",
+  "description": "Context stage for the BluPin trading-signal loop (ADR-0015): records each day's scheduled high-impact USD news events as observations on the same subject as the signal, so Memory's context endpoint can answer 'what was happening around this trade?' and Brain can learn which event classes hurt. Records only; never reasons about the signal itself.",
+  "type": "module",
+  "bin": { "blupin-context": "./src/cli.js" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}

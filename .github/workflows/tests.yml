@@ -34,6 +34,7 @@ jobs:
           - market-research
           - intervention-log
           - guardian-trigger
+          - blupin-context
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +62,7 @@ jobs:
       - name: Fail if a service has tests but no job in this matrix
         run: |
           set -euo pipefail
-          covered="guardian intelligence autonomy-score market-research intervention-log guardian-trigger"
+          covered="guardian intelligence autonomy-score market-research intervention-log guardian-trigger blupin-context"
           missing=""
           for pkg in services/*/package.json; do
             name=$(basename "$(dirname "$pkg")")
