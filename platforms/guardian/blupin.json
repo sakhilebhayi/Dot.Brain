@@ -2,7 +2,7 @@
   "platform": "blupin",
   "health_url": "https://memory.infodot.co.za/api/guardian/blupin",
   "token_env": "DOT_MEMORY_TOKEN",
-  "repo": "sakhilebhayi/BluPinJS-EA",
+  "repo": "sakhilebhayi/Dot.Charts",
   "default_branch": "main",
   "deploy": {
     "workflow": "blupin-daily.yml",
