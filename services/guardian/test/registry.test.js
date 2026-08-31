@@ -54,6 +54,16 @@ test('loadManifests names the offending file on validation failure', () => {
   assert.throws(() => loadManifests(dir), /broken\.json/);
 });
 
+test('the committed blupin manifest is valid and recommend-only', () => {
+  const manifests = loadManifests(new URL('../../../platforms/guardian', import.meta.url).pathname);
+  const blupin = manifests.find((manifest) => manifest.platform === 'blupin');
+  assert.ok(blupin, 'platforms/guardian/blupin.json must exist');
+  assert.equal(blupin.token_env, 'DOT_MEMORY_TOKEN');
+  assert.equal(blupin.repo, 'sakhilebhayi/BluPinJS-EA');
+  assert.equal(blupin.deploy.workflow, 'blupin-daily.yml');
+  assert.ok(blupin.autonomy_level <= 2, 'blupin must stay at recommend-level autonomy - a trading pipeline never self-remediates beyond a re-run recommendation');
+});
+
 test('the committed dot-mines manifest is valid', () => {
   const manifests = loadManifests(new URL('../../../platforms/guardian', import.meta.url).pathname);
   const mines = manifests.find((manifest) => manifest.platform === 'dot-mines');
