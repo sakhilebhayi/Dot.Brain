@@ -10,7 +10,7 @@ review-cadence: quarterly
 
 # API Surface & Contracts
 
-Purpose: define every network surface Dot.Brain exposes — what can be asked of the brain, by whom, in what shape, and with what guarantees. The defining property of this surface: **one write endpoint (DKP ingestion), everything else read-only.** The brain's only other output channel is the PR Generator ([brain.workflows.md](brain.workflows.md) §6), which is not an API — nothing external can command it.
+Purpose: define every network surface Dot.Brain exposes — what can be asked of the brain, by whom, in what shape, and with what guarantees. The defining property of this surface: **one write endpoint (DKP ingestion), everything else read-only.** The brain's other output channels are the PR Generator ([brain.workflows.md](brain.workflows.md) §6, structural changes only) and Notify-routed Insight delivery ([ADR-0017](adr/ADR-0017-outbound-insight-delivery.md), informational only) — neither is directly commandable; the read surface above is the only thing external callers can ask for.
 
 > **Related documents:** [brain.architecture.md](brain.architecture.md) §3 — the Query & Explanation API component · [brain.workflows.md](brain.workflows.md) §6 — the evidence links this API resolves · [brain.memory.md](brain.memory.md) §3 — the retrieval contracts backing every endpoint · [brain.dkp.md](brain.dkp.md) — the ingestion contract · [brain.governance.md](brain.governance.md) — the Why-block standard rendered by explanation endpoints.
 
@@ -34,10 +34,13 @@ graph LR
         WHY["GET /v1/why/*<br/>explanations"]
         EV["GET /v1/evidence/*<br/>PR evidence resolution"]
         PROV["GET /v1/provenance/*<br/>audit traversal"]
+        INS["GET /v1/insights/*<br/>gate-cleared findings"]
     end
     PL --> ING
     PL --> Q
     AG --> Q
+    PL --> INS
+    AG --> INS
     HU --> WHY
     HU --> EV
     AU --> PROV
@@ -54,6 +57,8 @@ There is no `PUT`, no `PATCH`, no `DELETE` anywhere on the surface. Graph mutati
 | `GET /v1/why/{conclusion\|recommendation}` | `retrieve.explain` | Humans (persona-scoped) | Rendered Why block: evidence chain, mechanism, uncertainty statement |
 | `GET /v1/evidence/{ref}` | `retrieve.explain` | PR reviewers | Resolution of an evidence link embedded in a PR body (§4) |
 | `GET /v1/provenance/{id}` | `retrieve.provenance` | Governance role only | Full chain across all temperatures, including Cold (async: `202` + poll URL when Cold retrieval needed) |
+| `GET /v1/insights/{id}` | `recordInsight`/`getInsight` (`services/insight-delivery`) | Platforms, agents | One gate-cleared Insight: statement, domain, evidence, `valid_until`, classification-filtered |
+| `GET /v1/insights/search` | `searchInsights` (`services/insight-delivery`) | Platforms, agents | Insights matching domain/scope/platform filters, most-recent-first |
 
 Guarantees inherited from the retrieval contracts: results are never silently altered (narrowed only, by classification/dormancy); superseded knowledge appears only via explicit supersession-chain traversal; every response carries the graph-state timestamp it was computed against.
 
