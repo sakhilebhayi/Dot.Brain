@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/insight-delivery",
+  "version": "1.0.0",
+  "description": "Outbound Insight delivery for Dot.Brain -- classifies W3 conclusions into Recommendation vs Insight, runs the Ethics/Security gates (Governance skipped by design), records gate-cleared Insights to Dot.Memory for pull queries, and delivers push notifications through Dot.Notify via the ADR-0015 intelligence-loop envelope. See ../../docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md.",
+  "type": "module",
+  "bin": { "insight-delivery": "./src/cli.js" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}
