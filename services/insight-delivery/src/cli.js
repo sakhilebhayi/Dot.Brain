@@ -34,12 +34,20 @@ if (cmd === 'classify') {
     console.error(`ethics gate rejected: ${ethics.reason}`);
     process.exit(1);
   }
+  // In this reference implementation the payload self-declares its own
+  // clearance -- not a real authorization check. A real deployment would
+  // source clearance from the platform manifest, not from the payload
+  // being gated.
   const security = runSecurityGate(insight, insight.targetPlatformClearance ?? ['public']);
   if (!security.passed) {
     console.error(`security gate rejected: ${security.reason}`);
     process.exit(1);
   }
-  const result = await recordInsight(cfg, insight);
+  // insight.schema.json has additionalProperties: false and does not
+  // declare targetMetric/targetPlatformClearance -- they're gating-only
+  // fields, so strip them before the payload is recorded.
+  const { targetMetric, targetPlatformClearance, ...insightToRecord } = insight;
+  const result = await recordInsight(cfg, insightToRecord);
   if (!result.ok) {
     console.error(`record failed: ${result.reason}`);
     process.exit(1);

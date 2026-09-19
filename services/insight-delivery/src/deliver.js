@@ -29,7 +29,7 @@ export async function deliverInsight({
 }) {
   const result = await notifyClient.deliver({ insightId, targetPlatform, scope });
 
-  await recordAction(cfg, {
+  const { ok: recorded } = await recordAction(cfg, {
     loop_id: loopId,
     stage: 'action',
     platform: 'dot-brain',
@@ -44,7 +44,7 @@ export async function deliverInsight({
     occurred_at: now().toISOString(),
   }, fetchImpl);
 
-  return { loop_id: loopId, delivered: result.status === 'succeeded', execution_status: result.status };
+  return { loop_id: loopId, delivered: result.status === 'succeeded', execution_status: result.status, recorded };
 }
 
 /**
@@ -57,7 +57,10 @@ export async function recordDeliveryOutcome(cfg, { loopId, insightId, verdict, o
   return recordOutcome(cfg, {
     loop_id: loopId,
     stage: 'outcome',
+    platform: 'dot-brain',
     subject: { type: 'insight', id: insightId },
+    source: 'notify-delivery-event',
+    occurred_at: observedAt,
     outcome: { verdict, observed_at: observedAt },
   }, fetchImpl);
 }

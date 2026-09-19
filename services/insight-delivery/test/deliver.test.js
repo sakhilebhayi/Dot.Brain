@@ -30,6 +30,7 @@ test('deliverInsight always emits an action envelope with executor_platform dot-
   assert.equal(result.loop_id, 'loop-x');
   assert.equal(result.delivered, true);
   assert.equal(result.execution_status, 'succeeded');
+  assert.equal(result.recorded, true);
 
   const action = w.writes.find((wr) => wr.url.endsWith('/actions'));
   assert.ok(action, 'the action envelope must be recorded');
@@ -40,6 +41,26 @@ test('deliverInsight always emits an action envelope with executor_platform dot-
   assert.equal(action.body.action.detail.insight_id, 'ins-1');
   assert.equal(action.body.action.detail.target_platform, 'dot-hr');
   assert.equal(action.body.action.detail.scope, 'global');
+});
+
+test('deliverInsight action envelope matches intelligence-loop.schema.json -- has all six required fields', async () => {
+  const w = world();
+  const notifyClient = { deliver: async () => ({ status: 'succeeded' }) };
+
+  await deliverInsight({
+    insightId: 'ins-schema',
+    targetPlatform: 'dot-hr',
+    cfg: CFG,
+    notifyClient,
+    fetchImpl: w.fetchImpl,
+    loopId: 'loop-schema',
+  });
+
+  const action = w.writes.find((wr) => wr.url.endsWith('/actions'));
+  const REQUIRED = ['loop_id', 'stage', 'platform', 'subject', 'source', 'occurred_at'];
+  for (const field of REQUIRED) {
+    assert.ok(field in action.body, `action envelope is missing required field "${field}"`);
+  }
 });
 
 test('deliverInsight never lets Brain choose the channel -- notifyClient.deliver receives only insight identity, not channel details', async () => {
@@ -75,4 +96,23 @@ test('recordDeliveryOutcome posts an outcome envelope for the loop', async () =>
   const outcome = w.writes.find((wr) => wr.url.endsWith('/outcomes'));
   assert.equal(outcome.body.loop_id, 'loop-x');
   assert.equal(outcome.body.outcome.verdict, 'improved');
+});
+
+test('recordDeliveryOutcome envelope matches intelligence-loop.schema.json -- has all six required fields', async () => {
+  const w = world();
+  await recordDeliveryOutcome(CFG, {
+    loopId: 'loop-x',
+    insightId: 'ins-1',
+    verdict: 'improved',
+    observedAt: '2026-09-19T00:00:00.000Z',
+  }, w.fetchImpl);
+
+  const outcome = w.writes.find((wr) => wr.url.endsWith('/outcomes'));
+  const REQUIRED = ['loop_id', 'stage', 'platform', 'subject', 'source', 'occurred_at'];
+  for (const field of REQUIRED) {
+    assert.ok(field in outcome.body, `outcome envelope is missing required field "${field}"`);
+  }
+  assert.equal(outcome.body.platform, 'dot-brain');
+  assert.equal(outcome.body.source, 'notify-delivery-event');
+  assert.equal(outcome.body.occurred_at, '2026-09-19T00:00:00.000Z');
 });

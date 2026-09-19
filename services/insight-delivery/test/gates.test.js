@@ -40,3 +40,9 @@ test('an insight with no declared classification defaults to public and passes f
   const result = runSecurityGate({}, ['public']);
   assert.equal(result.passed, true);
 });
+
+test('gates.js exposes no governance function -- Governance is never invoked for an Insight candidate by construction', async () => {
+  const exported = await import('../src/gates.js');
+  const exportNames = Object.keys(exported);
+  assert.ok(!exportNames.some((name) => /governance/i.test(name)), `found a governance-named export: ${exportNames.join(', ')}`);
+});
