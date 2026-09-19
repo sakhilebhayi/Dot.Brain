@@ -19,6 +19,7 @@ last-review: 2026-08-07
 - The **knowledge graph** connecting all 21 Dot platforms.
 - The **ingestion point** for Knowledge Packs (DKPs) published by platforms.
 - The **reasoning and recommendation engine** that proposes improvements back to platforms — always via Pull Requests.
+- The **Insight Delivery** path — gate-cleared, non-structural findings served on demand via a pull API and, for platforms that want real-time delivery, pushed through Dot.Notify's existing infrastructure ([ADR-0017](adr/ADR-0017-outbound-insight-delivery.md)).
 - The **memory orchestrator** (working with Dot.Memory) and the **learning engine** that converts every success, failure, incident, and experiment into verified, reusable knowledge.
 - **Auditable by design**: every insight carries a confidence score (0.00–1.00) and a provenance chain.
 

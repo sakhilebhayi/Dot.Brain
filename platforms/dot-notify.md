@@ -53,6 +53,7 @@ The attention-economics insight is Notify's distinctive contribution: only Notif
 | Class-throttling (demote low-precision classes to digest) | `messaging.notification_precision` | 2026 H1, per class |
 | Channel-selection (which channel a class actually gets acted on) | `messaging.action_rate_p50` | per class |
 | Send-window optimization (timing, never frequency-pressure) | `messaging.action_rate_p50` | per cohort |
+| `insight.deliver` action (ADR-0017) | Delivery reach for a gate-cleared Insight, via Notify's existing channel/consent/precision logic | New — 2026-09-19 |
 
 ## 6. Cross-Platform Relationships & Domain-Agent Assignment (registry gap closed)
 
