@@ -63,6 +63,7 @@ graph TB
     LEARN --> GRAPH
     MEM <--> GRAPH
     REASON --> REC --> PRGEN -->|Pull Requests| REPOS
+    REASON --> INSDEL
     REPOS -->|PR outcomes as DKPs| PUB
     GRAPH --> QUERY
     LEDGER -.records everything.-> PRGEN

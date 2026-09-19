@@ -71,7 +71,7 @@ A conclusion advancing to W4 is classified as either a **Recommendation** candid
 
 Payload assembly per [schemas/recommendation.schema.json](schemas/recommendation.schema.json): confidence, evidence chain, Why block, `impact.metrics[]` (each ID resolving against [brain.metrics.md](brain.metrics.md) — unresolvable ID fails the build, the measure-before-feature gate in mechanical form).
 
-Then three serial gates, each a distinct agent, none self-passable:
+Then three serial gates for Recommendation candidates (two for Insight candidates — Governance is skipped), each a distinct agent, none self-passable:
 
 | Gate | Agent | Rejects when |
 |---|---|---|

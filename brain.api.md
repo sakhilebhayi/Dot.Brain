@@ -57,8 +57,8 @@ There is no `PUT`, no `PATCH`, no `DELETE` anywhere on the surface. Graph mutati
 | `GET /v1/why/{conclusion\|recommendation}` | `retrieve.explain` | Humans (persona-scoped) | Rendered Why block: evidence chain, mechanism, uncertainty statement |
 | `GET /v1/evidence/{ref}` | `retrieve.explain` | PR reviewers | Resolution of an evidence link embedded in a PR body (§4) |
 | `GET /v1/provenance/{id}` | `retrieve.provenance` | Governance role only | Full chain across all temperatures, including Cold (async: `202` + poll URL when Cold retrieval needed) |
-| `GET /v1/insights/{id}` | `recordInsight`/`getInsight` (`services/insight-delivery`) | Platforms, agents | One gate-cleared Insight: statement, domain, evidence, `valid_until`, classification-filtered |
-| `GET /v1/insights/search` | `searchInsights` (`services/insight-delivery`) | Platforms, agents | Insights matching domain/scope/platform filters, most-recent-first |
+| `GET /v1/insights/{id}` | `retrieve.context` | Platforms, agents | One gate-cleared Insight: statement, domain, evidence, `valid_until` (staleness handling not yet implemented in the reference client) |
+| `GET /v1/insights/search` | `retrieve.context` | Platforms, agents | Insights matching domain/scope/platform filters, most-recent-first |
 
 Guarantees inherited from the retrieval contracts: results are never silently altered (narrowed only, by classification/dormancy); superseded knowledge appears only via explicit supersession-chain traversal; every response carries the graph-state timestamp it was computed against.
 
