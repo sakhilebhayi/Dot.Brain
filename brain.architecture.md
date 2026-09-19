@@ -51,7 +51,8 @@ graph TB
     end
     subgraph L4["Layer 4 — Delivery"]
         REC[Recommendation Builder]
-        PRGEN[PR Generator<br/>the ONLY outbound path]
+        PRGEN[PR Generator<br/>outbound path 1: structural change]
+        INSDEL[Insight Delivery<br/>outbound path 2: Notify-routed]
         QUERY[Query & Explanation API]
     end
     PUB -->|signed DKPs| GW --> VAL
@@ -84,6 +85,7 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | Confidence & Conflict Service | Confidence math, CONTRADICTS resolution ladder | [brain.dkp.md](brain.dkp.md) §5–6 | Reasoning, Governance (arbiter) |
 | Recommendation Builder | Assemble recommendation payloads: confidence + evidence + triple impact | [schemas/recommendation.schema.json](schemas/recommendation.schema.json) | Reasoning, gated by Dopamine |
 | PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | [brain.workflows.md](brain.workflows.md) | Governance-supervised |
+| Insight Delivery | Classify conclusions, run Ethics/Security gates, record gate-cleared Insights to Dot.Memory, deliver push via Dot.Notify | [docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md](docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md), [ADR-0017](adr/ADR-0017-outbound-insight-delivery.md) | Architecture, reference implementation `services/insight-delivery` |
 | Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
