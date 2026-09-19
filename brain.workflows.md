@@ -65,6 +65,8 @@ Covered by [brain.reasoning.md](brain.reasoning.md); workflow-relevant contract 
 - Inference runs against `retrieve.context` ([brain.memory.md](brain.memory.md) §3) — reasoning never reads storage directly.
 - Conclusions at ≥ 0.80 with a complete Why block advance to W4. Provisional conclusions (0.50–0.79) stay internal. I3 causal promotions and I4 analogy candidates park until their human sign-off lands (async — the pipeline does not block on humans; the conclusion waits, ledger-visible).
 
+A conclusion advancing to W4 is classified as either a **Recommendation** candidate (implies a platform-owned file/config/code change) or an **Insight** candidate (informational only, `schemas/insight.schema.json` shape) — never both. An ambiguous conclusion defaults to Recommendation, the stricter, human-reviewed path. See [services/insight-delivery](services/insight-delivery/README.md) for the reference implementation and `docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md` for the full design.
+
 ## 5. W4 — Recommendation gates
 
 Payload assembly per [schemas/recommendation.schema.json](schemas/recommendation.schema.json): confidence, evidence chain, Why block, `impact.metrics[]` (each ID resolving against [brain.metrics.md](brain.metrics.md) — unresolvable ID fails the build, the measure-before-feature gate in mechanical form).
@@ -76,6 +78,7 @@ Then three serial gates, each a distinct agent, none self-passable:
 | Ethics | Dopamine | Impact optimizes a prohibited engagement metric; manipulative framing; §5 checklist of [brain.governance.md](brain.governance.md) fails |
 | Security | Security | Classification leak (payload exposes restricted knowledge to a platform not cleared for it); provenance chain crosses a privacy boundary |
 | Governance | Governance | Decision-rights violation (e.g., recommendation exceeding what agents may propose without human co-sign); missing/expired human sign-offs from W3 |
+| Governance (Insight candidates only) | — | **Skipped.** An Insight is never applied to a platform, so there is no decision-rights question to adjudicate; only Ethics and Security run. |
 
 A gate rejection returns the payload to its owning agent with the reason ledger-recorded; two rejections of the same payload escalate to a human. Gates *reject*, they never *edit* — no gate agent can quietly reshape a recommendation.
 
