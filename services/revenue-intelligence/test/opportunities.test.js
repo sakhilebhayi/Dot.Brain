@@ -132,6 +132,17 @@ test('a non-string platform (e.g. an object) produces no insights instead of a s
   assert.deepEqual(result, []);
 });
 
+test('a missing classification produces no insights instead of defaulting x-classification to public', () => {
+  const { classification, ...withoutClassification } = BASE;
+  const result = detectOpportunities({ ...withoutClassification, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('an unrecognized classification produces no insights', () => {
+  const result = detectOpportunities({ ...BASE, classification: 'top-secret', signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
 test('a signal with a non-string key is skipped', () => {
   const result = detectOpportunities({ ...BASE, signals: [{ key: { nope: true }, value: 1000, trend: 'down' }] });
   assert.deepEqual(result, []);

@@ -1,4 +1,4 @@
-import { validateSignalsResponse, classificationExceedsCeiling } from './contract.js';
+import { validateSignalsResponse, classificationExceedsCeiling, sanitizeSignal } from './contract.js';
 
 /**
  * @param {object} manifest a validated manifest (registry.js)
@@ -67,6 +67,10 @@ export async function pollPlatform(manifest, { fetchImpl = fetch, env = process.
     platform: manifest.platform,
     generated_at: body.generated_at,
     classification: body.classification,
-    signals: body.signals,
+    // sanitizeSignal drops anything beyond the contract's documented
+    // signal fields -- body.signals itself may carry extra properties
+    // a platform's response happened to include, and those must not
+    // cross into Brain's process unfiltered.
+    signals: body.signals.map(sanitizeSignal),
   };
 }

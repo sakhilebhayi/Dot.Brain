@@ -83,3 +83,30 @@ test('recordDeliveryOutcome posts an outcome envelope with all six intelligence-
   }
   assert.equal(outcome.body.outcome.verdict, 'improved');
 });
+
+test('recordDeliveryOutcome attributes its source to Notify\'s own delivery event, not this service', async () => {
+  const w = world();
+  await recordDeliveryOutcome(CFG, {
+    loopId: 'loop-x',
+    insightId: 'ins-1',
+    verdict: 'improved',
+    observedAt: '2026-09-23T12:00:00.000Z',
+  }, w.fetchImpl);
+
+  const outcome = w.writes.find((wr) => wr.url.endsWith('/outcomes'));
+  assert.equal(outcome.body.source, 'notify-delivery-event');
+});
+
+test('deliverInsight normalizes a rejected notifyClient.deliver() to a failed result instead of throwing', async () => {
+  const w = world();
+  const notifyClient = { deliver: async () => { throw new Error('ECONNREFUSED'); } };
+
+  const result = await deliverInsight({ insightId: 'ins-4', targetPlatform: 'dot-billing', cfg: CFG, notifyClient, fetchImpl: w.fetchImpl });
+
+  assert.equal(result.delivered, false);
+  assert.equal(result.execution_status, 'failed');
+
+  const action = w.writes.find((wr) => wr.url.endsWith('/actions'));
+  assert.ok(action, 'the action envelope must still be recorded on a rejected delivery');
+  assert.equal(action.body.action.execution_status, 'failed');
+});

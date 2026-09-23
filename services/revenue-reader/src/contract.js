@@ -5,6 +5,15 @@
  */
 export const CLASSIFICATIONS = ['public', 'ecosystem', 'restricted', 'sensitive'];
 
+const CONTRACT_ID = 'dot-revenue/v1';
+
+// The full set of fields the dot-revenue/v1 contract documents for a
+// signal entry (design spec §1): key/value required, the rest optional
+// context. sanitizeSignal strips anything beyond this allowlist so a
+// platform can't smuggle extra fields (e.g. raw transaction or PII-level
+// data) across the boundary just by including them in the response body.
+const SIGNAL_FIELDS = ['key', 'value', 'unit', 'period', 'trend', 'confidence'];
+
 /**
  * @param {object} body
  * @returns {{valid: boolean, reason?: string}}
@@ -12,6 +21,9 @@ export const CLASSIFICATIONS = ['public', 'ecosystem', 'restricted', 'sensitive'
 export function validateSignalsResponse(body) {
   if (!body || typeof body !== 'object') {
     return { valid: false, reason: 'response body is not an object' };
+  }
+  if (body.contract !== CONTRACT_ID) {
+    return { valid: false, reason: `contract must be "${CONTRACT_ID}", got ${JSON.stringify(body.contract)}` };
   }
   if (typeof body.generated_at !== 'string' || Number.isNaN(new Date(body.generated_at).getTime())) {
     return { valid: false, reason: 'generated_at must be a valid ISO date-time string' };
@@ -34,6 +46,28 @@ export function validateSignalsResponse(body) {
     }
   }
   return { valid: true };
+}
+
+/**
+ * Strips a raw signal object down to the dot-revenue/v1 contract's
+ * documented fields (design spec §1) -- called only after
+ * validateSignalsResponse has already confirmed `key`/`value` are
+ * present and well-typed. This is the boundary that keeps a platform's
+ * response from carrying anything beyond pre-aggregated business
+ * signals into Brain's process, however many extra fields the raw
+ * payload happened to include.
+ *
+ * @param {object} signal
+ * @returns {object}
+ */
+export function sanitizeSignal(signal) {
+  const sanitized = {};
+  for (const field of SIGNAL_FIELDS) {
+    if (signal[field] !== undefined) {
+      sanitized[field] = signal[field];
+    }
+  }
+  return sanitized;
 }
 
 /**

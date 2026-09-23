@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateSignalsResponse, classificationExceedsCeiling, CLASSIFICATIONS } from '../src/contract.js';
+import { validateSignalsResponse, classificationExceedsCeiling, sanitizeSignal, CLASSIFICATIONS } from '../src/contract.js';
 
 const VALID_BODY = {
   platform: 'dot-billing',
@@ -22,6 +22,19 @@ test('validateSignalsResponse rejects a non-object body', () => {
   const result = validateSignalsResponse(null);
   assert.equal(result.valid, false);
   assert.match(result.reason, /not an object/);
+});
+
+test('validateSignalsResponse rejects a missing contract discriminator', () => {
+  const { contract, ...withoutContract } = VALID_BODY;
+  const result = validateSignalsResponse(withoutContract);
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /contract must be "dot-revenue\/v1"/);
+});
+
+test('validateSignalsResponse rejects a wrong contract discriminator (e.g. a future v2, or an unrelated response)', () => {
+  const result = validateSignalsResponse({ ...VALID_BODY, contract: 'dot-revenue/v2' });
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /contract must be "dot-revenue\/v1"/);
 });
 
 test('validateSignalsResponse rejects a missing generated_at', () => {
@@ -107,4 +120,19 @@ test('classificationExceedsCeiling is false when classification is at or below t
 
 test('classificationExceedsCeiling is true when classification exceeds the ceiling', () => {
   assert.equal(classificationExceedsCeiling('sensitive', 'restricted'), true);
+});
+
+test('sanitizeSignal keeps only the contract-documented fields', () => {
+  const result = sanitizeSignal({ key: 'revenue.mrr', value: 48210.55, unit: 'usd', period: '2026-09', trend: 'up', confidence: 0.95 });
+  assert.deepEqual(result, { key: 'revenue.mrr', value: 48210.55, unit: 'usd', period: '2026-09', trend: 'up', confidence: 0.95 });
+});
+
+test('sanitizeSignal strips fields beyond the contract, e.g. a smuggled raw transaction or PII field', () => {
+  const result = sanitizeSignal({ key: 'revenue.mrr', value: 48210.55, customer_email: 'someone@example.com', raw_transaction_id: 'txn_123' });
+  assert.deepEqual(result, { key: 'revenue.mrr', value: 48210.55 });
+});
+
+test('sanitizeSignal omits optional fields the signal never set, rather than including them as undefined', () => {
+  const result = sanitizeSignal({ key: 'revenue.mrr', value: 48210.55 });
+  assert.deepEqual(Object.keys(result).sort(), ['key', 'value']);
 });

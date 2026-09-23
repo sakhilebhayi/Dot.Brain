@@ -50,6 +50,13 @@ export function validateManifest(raw) {
   }
   requirePositiveNumber(manifest, 'poll_interval_s');
   requirePositiveNumber(manifest, 'timeout_ms');
+  // This capability reads financial data and authenticates with a bearer
+  // token (§3) -- plaintext HTTP would send both over the wire in the
+  // clear. No narrowly-reviewed exception exists yet, so this is a hard
+  // requirement, not a warning.
+  if (!manifest.signals_url.startsWith('https://')) {
+    throw new Error(`signals_url must use https, got ${JSON.stringify(manifest.signals_url)}`);
+  }
   return manifest;
 }
 

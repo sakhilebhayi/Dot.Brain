@@ -94,6 +94,16 @@ test('pollPlatform reports kind classification_ceiling when the response exceeds
   assert.match(result.reason, /exceeds this platform's ceiling/);
 });
 
+test('pollPlatform strips a signal field beyond the contract instead of passing it through', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => ({ ...VALID_BODY, signals: [{ key: 'revenue.mrr', value: 48210.55, customer_email: 'someone@example.com' }] }),
+  });
+  const result = await pollPlatform(MANIFEST, { fetchImpl, env: { DOT_BILLING_REVENUE_TOKEN: 'tok-123' } });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.signals, [{ key: 'revenue.mrr', value: 48210.55 }]);
+});
+
 test('pollPlatform never returns the raw response body, only the extracted fields', async () => {
   const fetchImpl = async () => ({ ok: true, json: async () => ({ ...VALID_BODY, extra_internal_field: 'should not leak' }) });
   const result = await pollPlatform(MANIFEST, { fetchImpl, env: { DOT_BILLING_REVENUE_TOKEN: 'tok-123' } });

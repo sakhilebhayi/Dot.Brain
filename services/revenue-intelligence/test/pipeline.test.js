@@ -65,6 +65,31 @@ test('a candidate rejected by the security gate is never recorded or delivered',
   assert.equal(w.writes.length, 0);
 });
 
+test('a candidate whose recordInsight fails is rejected instead of delivered anyway', async () => {
+  const w = world();
+  let deliverCalled = false;
+  const notifyClient = { deliver: async () => { deliverCalled = true; return { status: 'succeeded' }; } };
+  const failingFetch = async (url) => {
+    if (String(url).endsWith('/insights')) {
+      return { ok: false, status: 500, json: async () => ({}) };
+    }
+    return w.fetchImpl(url, { body: '{}' });
+  };
+
+  const result = await runPipeline({
+    pollResult: POLL_RESULT,
+    cfg: CFG,
+    notifyClient,
+    targetPlatformClearance: ['public', 'restricted'],
+    fetchImpl: failingFetch,
+  });
+
+  assert.equal(result.delivered.length, 0);
+  assert.equal(result.rejected.length, 1);
+  assert.equal(result.rejected[0].gate, 'record');
+  assert.equal(deliverCalled, false, 'delivery must not be attempted for an insight that was never recorded');
+});
+
 test('no candidates means nothing recorded, delivered, or rejected', async () => {
   const w = world();
   const notifyClient = { deliver: async () => { throw new Error('should not be called'); } };

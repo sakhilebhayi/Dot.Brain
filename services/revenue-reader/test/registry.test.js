@@ -91,6 +91,17 @@ test('validateManifest throws on a non-positive-number timeout_ms', () => {
   }
 });
 
+test('validateManifest throws on a non-https signals_url', () => {
+  assert.throws(
+    () => validateManifest({
+      platform: 'dot-billing',
+      signals_url: 'http://billing.dot/revenue/signals',
+      token_env: 'DOT_BILLING_REVENUE_TOKEN',
+    }),
+    /signals_url must use https/,
+  );
+});
+
 test('validateManifest throws on a non-positive-number poll_interval_s', () => {
   assert.throws(
     () => validateManifest({

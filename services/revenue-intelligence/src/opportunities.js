@@ -1,15 +1,20 @@
 /**
  * Opportunity-detection heuristics over a Revenue Reader poll result
  * (design spec §1). Pure and total: an empty, all-non-matching, or
- * malformed input (missing/wrong-typed platform, missing/wrong-typed/
- * unparseable/out-of-range generated_at, a missing or non-array
- * signals, a non-object signal, or a signal with a wrong-typed key/
- * value) returns [], never throws. This is a system boundary in its
- * own right, not just downstream of revenue-reader's contract
- * validation -- cli.js's `detect` command feeds it arbitrary,
- * unvalidated JSON read straight from a file.
+ * malformed input (missing/wrong-typed platform, unrecognized
+ * classification, missing/wrong-typed/unparseable/out-of-range
+ * generated_at, a missing or non-array signals, a non-object signal,
+ * or a signal with a wrong-typed key/value) returns [], never throws.
+ * This is a system boundary in its own right, not just downstream of
+ * revenue-reader's contract validation -- cli.js's `detect` command
+ * feeds it arbitrary, unvalidated JSON read straight from a file.
  */
 export const CHURN_RATE_THRESHOLD = 0.05;
+
+// Duplicated from services/revenue-reader/src/contract.js's CLASSIFICATIONS
+// per this repo's established convention (every service owns its own
+// small clients/constants rather than importing a sibling's).
+const CLASSIFICATIONS = ['public', 'ecosystem', 'restricted', 'sensitive'];
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -25,6 +30,13 @@ export function detectOpportunities(pollResult) {
   const { platform, generated_at, classification, signals } = pollResult;
 
   if (typeof platform !== 'string' || platform === '') {
+    return [];
+  }
+  // Without this, a missing/invalid classification silently became an
+  // omitted x-classification, which runSecurityGate defaults to
+  // 'public' -- letting unclassified (or wrongly-classified) revenue
+  // data flow to delivery as if it were the least sensitive tier.
+  if (!CLASSIFICATIONS.includes(classification)) {
     return [];
   }
   if (typeof generated_at !== 'string') {

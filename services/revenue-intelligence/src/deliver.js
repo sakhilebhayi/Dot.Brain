@@ -33,7 +33,18 @@ export async function deliverInsight({
   now = () => new Date(),
   loopId = `loop-${randomUUID()}`,
 }) {
-  const result = await notifyClient.deliver({ insightId, targetPlatform, audience: AUDIENCE });
+  // A rejected notifyClient.deliver() (as opposed to a resolved
+  // {status: 'failed'}) used to escape uncaught -- aborting runPipeline's
+  // loop over the REST of that poll result's candidates, contrary to the
+  // documented one-bad-candidate-never-blocks-the-others behavior.
+  // Normalizing it here keeps deliverInsight itself total, and still
+  // records the action so the failure is auditable.
+  let result;
+  try {
+    result = await notifyClient.deliver({ insightId, targetPlatform, audience: AUDIENCE });
+  } catch (error) {
+    result = { status: 'failed', detail: { error: error.message } };
+  }
 
   const actionResult = await recordAction(cfg, {
     loop_id: loopId,
@@ -69,7 +80,12 @@ export async function recordDeliveryOutcome(cfg, { loopId, insightId, verdict, o
     stage: 'outcome',
     platform: 'dot-brain',
     subject: { type: 'insight', id: insightId },
-    source: 'revenue-intelligence',
+    // Matches services/insight-delivery's deliver.js exactly: `source`
+    // here names where the OUTCOME data came from (Notify's own event),
+    // not who is recording it -- 'revenue-intelligence' would misattribute
+    // provenance and make a Notify-sourced outcome indistinguishable from
+    // a Brain-originated record to a loop consumer.
+    source: 'notify-delivery-event',
     occurred_at: observedAt,
     outcome: { verdict, observed_at: observedAt },
   }, fetchImpl);
