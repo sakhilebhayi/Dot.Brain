@@ -33,6 +33,7 @@ graph TB
     subgraph P["Platform Edge (owned by platforms)"]
         PUB[DKP Publishers<br/>see brain.platforms.md §2 for current count]
         REPOS[Platform repositories<br/>wiki.md — Brain has NO write access]
+        REVREAD[Revenue Reader<br/>Brain-initiated pull, dot-revenue/v1]
     end
     subgraph L1["Layer 1 — Ingestion & Validation"]
         GW[Ingestion Gateway]
@@ -64,6 +65,7 @@ graph TB
     MEM <--> GRAPH
     REASON --> REC --> PRGEN -->|Pull Requests| REPOS
     REASON --> INSDEL
+    REVREAD -->|transient signals, never persisted| REASON
     REPOS -->|PR outcomes as DKPs| PUB
     GRAPH --> QUERY
     LEDGER -.records everything.-> PRGEN
@@ -87,6 +89,7 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | Recommendation Builder | Assemble recommendation payloads: confidence + evidence + triple impact | [schemas/recommendation.schema.json](schemas/recommendation.schema.json) | Reasoning, gated by Dopamine |
 | PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | [brain.workflows.md](brain.workflows.md) | Governance-supervised |
 | Insight Delivery | Classify conclusions, run Ethics/Security gates, record gate-cleared Insights to Dot.Memory, deliver push via Dot.Notify | [docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md](docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md), [ADR-0017](adr/ADR-0017-outbound-insight-delivery.md) | Architecture, reference implementation `services/insight-delivery` |
+| Revenue Reader | Poll enrolled platforms' dot-revenue/v1 endpoints under a scoped token; validate defensively; classify every failure; never persist a raw payload | [ADR-0018](adr/ADR-0018-cross-platform-read-access.md), [docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md](docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md) | Architecture, reference implementation `services/revenue-reader` |
 | Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
@@ -130,7 +133,7 @@ Recovery order is strictly T0 → T3; the graph is authoritative over every proj
 
 ## 6. Security & trust boundaries
 
-- **Inbound:** only signed DKPs through the Gateway; no direct graph writes from outside. Platform keys registered via manifest ([schemas/platform-manifest.schema.json](schemas/platform-manifest.schema.json)); revocation takes effect at the Gateway within one validation cycle.
+- **Inbound:** only signed DKPs through the Gateway; no direct graph writes from outside. Platform keys registered via manifest ([schemas/platform-manifest.schema.json](schemas/platform-manifest.schema.json)); revocation takes effect at the Gateway within one validation cycle. A second, narrow inbound mechanism exists for pre-aggregated business signals only (never raw records, never persisted): the Revenue Reader's manifest-enrolled, scoped-token pull against a platform's dot-revenue/v1 endpoint. See [ADR-0018](adr/ADR-0018-cross-platform-read-access.md) for the explicit exception this carves and its limits.
 - **Internal:** agents act under least-privilege namespaces ([brain.agents.md](brain.agents.md) §shared-memory); only the Knowledge Agent writes graph structure, only Governance writes trust scores.
 - **Outbound:** the PR Generator holds per-platform scoped tokens capable of *opening PRs only* — no merge, no push to default branches. `identity.boundary_violations = 0, always` ([brain.metrics.md](brain.metrics.md) §4.1) monitors this continuously.
 - Full threat model: [brain.security.md](brain.security.md); this section defines the boundaries it must defend.
