@@ -41,6 +41,18 @@ test('validateManifest throws when given an empty object', () => {
   );
 });
 
+test('validateManifest throws on an unrecognized classification_ceiling', () => {
+  assert.throws(
+    () => validateManifest({
+      platform: 'dot-billing',
+      signals_url: 'https://billing.dot/revenue/signals',
+      token_env: 'DOT_BILLING_REVENUE_TOKEN',
+      classification_ceiling: 'internal',
+    }),
+    /classification_ceiling must be one of/,
+  );
+});
+
 test('loadManifests parses and validates every .json file in a directory', () => {
   const readDirImpl = () => ['dot-billing.json', 'dot-analytics.json', 'notes.txt'];
   const files = {
@@ -79,6 +91,15 @@ test('loadManifests ignores non-.json files in the directory', () => {
 test('loadManifests includes the filename when a manifest is invalid', () => {
   const readDirImpl = () => ['broken.json'];
   const readFileImpl = () => JSON.stringify({ platform: 'dot-broken' });
+  assert.throws(
+    () => loadManifests('dir', readDirImpl, readFileImpl),
+    /broken\.json/,
+  );
+});
+
+test('loadManifests includes the filename when a manifest is not valid JSON', () => {
+  const readDirImpl = () => ['broken.json'];
+  const readFileImpl = () => '{not valid json';
   assert.throws(
     () => loadManifests('dir', readDirImpl, readFileImpl),
     /broken\.json/,

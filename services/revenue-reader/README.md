@@ -48,8 +48,12 @@ default per `src/registry.js`'s `DEFAULTS`.
    else, and nothing is persisted.
 
 A stateful, multi-poll availability tracker (mirroring Guardian's
-`detect.js`/`store.js`) is intentionally not built here — see the design
-spec's Non-goals and Task 3's note in the implementation plan.
+`detect.js`/`store.js`) needs a scheduling loop accumulating poll history
+over time to have anything to track — and no such loop exists yet (the
+design spec's Non-goals scope it out, since no platform is enrolled to
+schedule against). Today, an unreachable or timed-out endpoint is
+reported as a single-poll `kind: 'network'` result, same as any other
+poll failure; availability tracking is deferred until a scheduler exists.
 
 ## Usage
 

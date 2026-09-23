@@ -39,9 +39,11 @@ job, once a platform actually enrolls.
 5. `recordDeliveryOutcome()` — closes the loop from Notify's existing
    delivery event, same as Insight Delivery.
 
-`runPipeline()` ties all five together for one poll result; every
+`runPipeline()` ties the first four together for one poll result; every
 candidate ends up in either `delivered` or `rejected`, nothing silently
-dropped.
+dropped. `recordDeliveryOutcome()` (step 5) is not part of that call --
+it closes the loop later, from Dot.Notify's own separate delivery-outcome
+event, the same way `services/insight-delivery` does it.
 
 ## CLI
 

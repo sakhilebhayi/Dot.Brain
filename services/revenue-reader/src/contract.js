@@ -26,7 +26,7 @@ export function validateSignalsResponse(body) {
     return { valid: false, reason: 'signals must be an array' };
   }
   for (const [index, signal] of body.signals.entries()) {
-    if (!signal || typeof signal !== 'object' || !signal.key || signal.value === undefined) {
+    if (!signal || typeof signal !== 'object' || !signal.key || signal.value === undefined || signal.value === null) {
       return { valid: false, reason: `signals[${index}] is missing key or value` };
     }
   }
@@ -36,8 +36,11 @@ export function validateSignalsResponse(body) {
 /**
  * True when a response's declared classification exceeds the enrolling
  * platform's own classification_ceiling (design spec §4) -- rejected
- * outright and raised as an incident, the one rejection mode Guardian's
- * contract didn't need.
+ * outright as a `classification_ceiling` failure, the one rejection mode
+ * Guardian's contract didn't need. Surfaced to the caller (see
+ * client.js's `pollPlatform`) as a structured result; recording the
+ * breach as a standing incident (ADR-0018 Decision 5) is a deferred
+ * extension needing its own design -- see ADR-0018's Open questions.
  *
  * @param {string} classification
  * @param {string} ceiling

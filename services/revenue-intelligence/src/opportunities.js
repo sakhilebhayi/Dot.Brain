@@ -1,8 +1,12 @@
 /**
  * Opportunity-detection heuristics over a Revenue Reader poll result
  * (design spec §1). Pure and total: an empty, all-non-matching, or
- * malformed (missing/invalid generated_at) input returns [], never
- * throws.
+ * malformed input (missing/wrong-typed/unparseable/out-of-range
+ * generated_at, a missing or non-array signals, a non-object signal)
+ * returns [], never throws. This is a system boundary in its own right,
+ * not just downstream of revenue-reader's contract validation --
+ * cli.js's `detect` command feeds it arbitrary, unvalidated JSON read
+ * straight from a file.
  */
 export const CHURN_RATE_THRESHOLD = 0.05;
 
@@ -13,33 +17,56 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
  * @returns {object[]}
  */
 export function detectOpportunities(pollResult) {
+  if (!pollResult || typeof pollResult !== 'object') {
+    return [];
+  }
+
   const { platform, generated_at, classification, signals } = pollResult;
 
-  // revenue-reader's own contract validation does not require
-  // generated_at (a defensive gap tracked separately) -- detection
-  // stays total regardless: a poll result we can't timestamp produces
-  // no candidates rather than crashing the pipeline.
-  if (Number.isNaN(new Date(generated_at).getTime())) {
+  if (typeof generated_at !== 'string') {
+    return [];
+  }
+  const generatedAtMs = new Date(generated_at).getTime();
+  if (Number.isNaN(generatedAtMs)) {
+    return [];
+  }
+
+  // generated_at can be a syntactically valid, in-range-for-Date.parse
+  // ISO string (e.g. an extended year) that is still too close to
+  // Date's representable limit for +24h to stay valid -- computed once,
+  // up front, so that failure mode is a clean [] rather than a crash
+  // partway through the signals loop.
+  let validUntil;
+  try {
+    validUntil = new Date(generatedAtMs + ONE_DAY_MS).toISOString();
+  } catch {
+    return [];
+  }
+
+  if (!Array.isArray(signals)) {
     return [];
   }
 
   const insights = [];
 
   for (const signal of signals) {
+    if (!signal || typeof signal !== 'object') {
+      continue;
+    }
     if (signal.key === 'revenue.mrr' && signal.trend === 'down') {
       insights.push(buildInsight({
         statement: `MRR is trending down for ${platform}.`,
-        platform, generated_at, classification, signal,
+        platform, generated_at, classification, signal, validUntil,
       }));
     } else if (signal.key === 'revenue.churn_rate' && signal.value > CHURN_RATE_THRESHOLD) {
       insights.push(buildInsight({
         statement: `Churn rate (${signal.value}) exceeds the ${CHURN_RATE_THRESHOLD * 100}% watch threshold for ${platform}.`,
-        platform, generated_at, classification, signal,
+        platform, generated_at, classification, signal, validUntil,
       }));
     } else if (signal.key === 'finance.payout_delay_p50' && signal.trend === 'up') {
       insights.push(buildInsight({
         statement: `Payout delay is trending up for ${platform} -- an operational risk to revenue.`,
-        platform, generated_at, classification, signal,
+        platform, generated_at, classification, signal, validUntil,
       }));
     }
   }
@@ -47,7 +74,7 @@ export function detectOpportunities(pollResult) {
   return insights;
 }
 
-function buildInsight({ statement, platform, generated_at, classification, signal }) {
+function buildInsight({ statement, platform, generated_at, classification, signal, validUntil }) {
   return {
     statement,
     domain: 'revenue',
@@ -70,6 +97,6 @@ function buildInsight({ statement, platform, generated_at, classification, signa
     // sanctioned way to carry it on the payload body itself, which
     // gates.js's runSecurityGate reads.
     'x-classification': classification,
-    valid_until: new Date(new Date(generated_at).getTime() + ONE_DAY_MS).toISOString(),
+    valid_until: validUntil,
   };
 }

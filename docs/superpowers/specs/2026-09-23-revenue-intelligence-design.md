@@ -54,7 +54,7 @@ Each generated insight's `evidence` is a single entry of kind `external` (ADR-00
 
 ## Error handling
 
-- A malformed or empty `signals` array, or a missing/invalid `generated_at`, produces zero candidates, not an error — `detectOpportunities` never throws.
+- A malformed, missing, or non-array `signals` (or a non-object entry within it), or a missing/wrong-typed/unparseable/out-of-range `generated_at`, produces zero candidates, not an error — `detectOpportunities` never throws. This holds regardless of caller: the CLI's `detect` command feeds it arbitrary, unvalidated JSON read from a file, not only revenue-reader's own validated poll results.
 - Gate rejection, Dot.Memory unavailability, and Notify delivery failure all follow the exact same handling already established in `services/insight-delivery` (never thrown, always returned as a structured result the caller can act on).
 
 ## Testing
@@ -74,3 +74,4 @@ Each generated insight's `evidence` is a single entry of kind `external` (ADR-00
 |---|---|---|---|
 | 1.0.0 | 2026-09-23 | Continuation session | Initial design. |
 | 1.0.1 | 2026-09-23 | Post-merge repeat-check | Corrected throughout: delivery targeting is `audience: 'admin'` (a Notify-call parameter), not the Insight's own `scope` field (which is the enrolling platform, per insight.schema.json's actual meaning); `classification` is carried as `x-classification` (the schema is `additionalProperties: false`); evidence `kind` is `external` per ADR-0018 Decision 4, not `metric`. The implementation shipped with these three defects; caught and fixed in the same session before any consumer depended on the wrong shape. |
+| 1.0.2 | 2026-09-23 | Post-merge repeat-check, round 2 | Corrected Error handling: `detectOpportunities`'s "never throws" guarantee did not actually hold for a non-array/missing `signals`, a null entry within it, a `null`/numeric `generated_at`, or a `generated_at` close enough to Date's representable limit that `valid_until`'s `+24h` computation overflowed — all four crashed in practice (a `TypeError` or `RangeError`), reachable via the CLI on an arbitrary input file. Fixed with explicit guards; the guarantee now actually holds. |

@@ -68,6 +68,12 @@ test('validateSignalsResponse rejects a signal missing key or value', () => {
   assert.match(result.reason, /signals\[0\]/);
 });
 
+test('validateSignalsResponse rejects a signal with a null value', () => {
+  const result = validateSignalsResponse({ ...VALID_BODY, signals: [{ key: 'revenue.mrr', value: null }] });
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /signals\[0\]/);
+});
+
 test('validateSignalsResponse accepts multiple well-formed signals', () => {
   const result = validateSignalsResponse({
     ...VALID_BODY,

@@ -85,3 +85,38 @@ test('an invalid generated_at produces no insights instead of throwing', () => {
   const result = detectOpportunities({ ...BASE, generated_at: 'not-a-date', signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
   assert.deepEqual(result, []);
 });
+
+test('a null generated_at produces no insights instead of a 1970 insight', () => {
+  const result = detectOpportunities({ ...BASE, generated_at: null, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a numeric generated_at produces no insights instead of a 1970 insight', () => {
+  const result = detectOpportunities({ ...BASE, generated_at: 1758621600000, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a generated_at too close to Date\'s range limit for +24h produces no insights instead of throwing', () => {
+  const result = detectOpportunities({ ...BASE, generated_at: '+275760-09-13T00:00:00.000Z', signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a missing signals array produces no insights instead of throwing', () => {
+  const { signals, ...withoutSignals } = BASE;
+  const result = detectOpportunities({ ...withoutSignals });
+  assert.deepEqual(result, []);
+});
+
+test('a non-array signals field produces no insights instead of throwing', () => {
+  const result = detectOpportunities({ ...BASE, signals: 'not-an-array' });
+  assert.deepEqual(result, []);
+});
+
+test('a null entry in signals is skipped instead of throwing', () => {
+  const result = detectOpportunities({ ...BASE, signals: [null, { key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.equal(result.length, 1);
+});
+
+test('a null pollResult produces no insights instead of throwing', () => {
+  assert.deepEqual(detectOpportunities(null), []);
+});

@@ -87,9 +87,9 @@ Records: the decision to add a Brain-initiated pull path as an explicit, narrow 
 ## Error handling
 
 - Missing or invalid token: fail closed, no poll attempt, ledger-recorded — identical to Guardian.
-- Malformed response (a non-JSON body, missing/invalid `generated_at`, missing/invalid `classification`, non-array `signals`, a signal missing `key`/`value`): rejected as a contract failure, the body is never partially trusted, mirroring `health.js:54-56`.
-- `classification` exceeds the manifest's `classification_ceiling`: rejected and raised as an incident (§4) — the one rejection mode Guardian's contract didn't need.
-- Endpoint unreachable or timing out: elapsed-time-based availability tracking, not poll-count-based, mirroring Guardian's reasoning for the same choice — cron-based scheduling has enough variance that poll count alone is a poor failure signal (`health.js:105-133`).
+- Malformed response (a non-JSON body, missing/invalid `generated_at`, missing/invalid `classification`, non-array `signals`, a signal missing/null `key`/`value`): rejected as a contract failure, the body is never partially trusted, mirroring `health.js:54-56`.
+- `classification` exceeds the manifest's `classification_ceiling`: rejected outright as a `classification_ceiling` result (§4) — the one rejection mode Guardian's contract didn't need. This ships as a structured result returned to the caller, not a recorded incident; see ADR-0018's Open questions for the deferred escalation mechanism.
+- Endpoint unreachable or timing out: reported as a single-poll `kind: 'network'` result, exactly like any other poll failure. Guardian-style elapsed-time-based availability tracking across multiple polls (`health.js:105-133`) needs a scheduling loop accumulating poll history over time — out of scope here per the Non-goals (no scheduling/orchestration layer exists yet) and deferred until one does.
 
 ## Testing
 
@@ -109,3 +109,4 @@ Records: the decision to add a Brain-initiated pull path as an explicit, narrow 
 |---|---|---|---|
 | 1.0.0 | 2026-09-23 | Brainstorming session | Initial design. |
 | 1.0.1 | 2026-09-23 | Post-merge repeat-check | Corrected §1 and Error handling: `generated_at` is required and validated (was previously shown in the example payload but never stated as a validation rule) — its absence let a downstream consumer (Revenue Intelligence) crash on `new Date(undefined)`. Also documented that a non-JSON response body is a contract failure, not an uncaught exception — the implementation shipped with both gaps; caught and fixed in the same session before any consumer depended on the gap. |
+| 1.0.2 | 2026-09-23 | Post-merge repeat-check, round 2 | Corrected Error handling: a `classification_ceiling` breach is rejected and returned as a structured result, not "raised as an incident" (nothing implements incident recording yet — see ADR-0018's Open questions); and elapsed-time availability tracking across polls is explicitly deferred, since it needs a scheduling loop that doesn't exist (the Non-goals already scope that loop out). Also: a signal with a `null` value is now rejected alongside `undefined`. |
