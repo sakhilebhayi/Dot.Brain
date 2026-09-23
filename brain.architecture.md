@@ -54,6 +54,7 @@ graph TB
         REC[Recommendation Builder]
         PRGEN[PR Generator<br/>outbound path 1: structural change]
         INSDEL[Insight Delivery<br/>outbound path 2: Notify-routed]
+        REVINTEL[Revenue Intelligence<br/>opportunity detection]
         QUERY[Query & Explanation API]
     end
     PUB -->|signed DKPs| GW --> VAL
@@ -66,6 +67,7 @@ graph TB
     REASON --> REC --> PRGEN -->|Pull Requests| REPOS
     REASON --> INSDEL
     REVREAD -->|transient signals, never persisted| REASON
+    REVREAD --> REVINTEL
     REPOS -->|PR outcomes as DKPs| PUB
     GRAPH --> QUERY
     LEDGER -.records everything.-> PRGEN
@@ -90,6 +92,7 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | [brain.workflows.md](brain.workflows.md) | Governance-supervised |
 | Insight Delivery | Classify conclusions, run Ethics/Security gates, record gate-cleared Insights to Dot.Memory, deliver push via Dot.Notify | [docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md](docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md), [ADR-0017](adr/ADR-0017-outbound-insight-delivery.md) | Architecture, reference implementation `services/insight-delivery` |
 | Revenue Reader | Poll enrolled platforms' dot-revenue/v1 endpoints under a scoped token; validate defensively; classify every failure; never persist a raw payload | [ADR-0018](adr/ADR-0018-cross-platform-read-access.md), [docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md](docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md) | Architecture, reference implementation `services/revenue-reader` |
+| Revenue Intelligence | Detect revenue opportunities from Revenue Reader's poll results; gate, record, and deliver as Insights scoped to admin recipients | [docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md](docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md) | Architecture, reference implementation `services/revenue-intelligence` |
 | Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
