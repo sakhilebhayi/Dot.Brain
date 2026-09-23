@@ -120,3 +120,24 @@ test('a null entry in signals is skipped instead of throwing', () => {
 test('a null pollResult produces no insights instead of throwing', () => {
   assert.deepEqual(detectOpportunities(null), []);
 });
+
+test('a missing platform produces no insights instead of a schema-invalid scope', () => {
+  const { platform, ...withoutPlatform } = BASE;
+  const result = detectOpportunities({ ...withoutPlatform, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a non-string platform (e.g. an object) produces no insights instead of a schema-invalid scope', () => {
+  const result = detectOpportunities({ ...BASE, platform: { tenant: 'acme' }, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a signal with a non-string key is skipped', () => {
+  const result = detectOpportunities({ ...BASE, signals: [{ key: { nope: true }, value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('a signal with a non-numeric value is skipped instead of producing a statement like "Churn rate (true)"', () => {
+  const result = detectOpportunities({ ...BASE, signals: [{ key: 'revenue.churn_rate', value: true }] });
+  assert.deepEqual(result, []);
+});

@@ -1,6 +1,6 @@
 ---
 title: ADR-0018 — Cross-Platform Read Access via the dot-revenue/v1 Contract
-version: 1.0.0
+version: 1.0.1
 status: active
 owners: [Chief Architect]
 last-review: 2026-09-23
@@ -55,7 +55,7 @@ Dot Guardian (`ADR-0014`) is the one existing production precedent for a Dot.Bra
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-09-23 | Brainstorming/planning session | Initial decision record. |
-| 1.0.1 | 2026-09-23 | Post-merge repeat-check | Decision 5's "rejected outright as an incident" overstated what shipped: a `classification_ceiling` breach is rejected and returned as a structured `{ok: false, kind: 'classification_ceiling'}` result, not recorded as a standing incident anywhere (Guardian's own incident store is local SQLite state that nothing in this capability writes to). Corrected the wording and moved incident-escalation to Open questions as a deferred extension needing its own design. |
+| 1.0.1 | 2026-09-23 | Post-merge repeat-check | Decision 5's "rejected outright as an incident" overstated what shipped: a `classification_ceiling` breach is rejected and returned as a structured `{ok: false, kind: 'classification_ceiling'}` result, not recorded as a standing incident anywhere (Guardian's own incident store is local SQLite state that nothing in this capability writes to). Corrected the wording and moved incident-escalation to Open questions as a deferred extension needing its own design. (Front-matter version was not bumped alongside this row when it was first written — corrected now.) |
 
 ## Open questions
 

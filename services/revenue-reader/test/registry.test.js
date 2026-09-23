@@ -53,6 +53,56 @@ test('validateManifest throws on an unrecognized classification_ceiling', () => 
   );
 });
 
+test('validateManifest throws when a required key is present but not a string', () => {
+  assert.throws(
+    () => validateManifest({
+      platform: { tenant: 'dot-billing' },
+      signals_url: 'https://billing.dot/revenue/signals',
+      token_env: 'DOT_BILLING_REVENUE_TOKEN',
+    }),
+    /manifest missing required key\(s\): platform/,
+  );
+});
+
+test('validateManifest throws on an unrecognized manifest key', () => {
+  assert.throws(
+    () => validateManifest({
+      platform: 'dot-billing',
+      signals_url: 'https://billing.dot/revenue/signals',
+      token_env: 'DOT_BILLING_REVENUE_TOKEN',
+      Classification_Ceiling: 'sensitive',
+    }),
+    /manifest has unrecognized key\(s\): Classification_Ceiling/,
+  );
+});
+
+test('validateManifest throws on a non-positive-number timeout_ms', () => {
+  for (const timeout_ms of ['abc', -1, 0, null]) {
+    assert.throws(
+      () => validateManifest({
+        platform: 'dot-billing',
+        signals_url: 'https://billing.dot/revenue/signals',
+        token_env: 'DOT_BILLING_REVENUE_TOKEN',
+        timeout_ms,
+      }),
+      /timeout_ms must be a positive number/,
+      `expected ${JSON.stringify(timeout_ms)} to be rejected`,
+    );
+  }
+});
+
+test('validateManifest throws on a non-positive-number poll_interval_s', () => {
+  assert.throws(
+    () => validateManifest({
+      platform: 'dot-billing',
+      signals_url: 'https://billing.dot/revenue/signals',
+      token_env: 'DOT_BILLING_REVENUE_TOKEN',
+      poll_interval_s: -900,
+    }),
+    /poll_interval_s must be a positive number/,
+  );
+});
+
 test('loadManifests parses and validates every .json file in a directory', () => {
   const readDirImpl = () => ['dot-billing.json', 'dot-analytics.json', 'notes.txt'];
   const files = {

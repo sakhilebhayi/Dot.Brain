@@ -1,12 +1,13 @@
 /**
  * Opportunity-detection heuristics over a Revenue Reader poll result
  * (design spec §1). Pure and total: an empty, all-non-matching, or
- * malformed input (missing/wrong-typed/unparseable/out-of-range
- * generated_at, a missing or non-array signals, a non-object signal)
- * returns [], never throws. This is a system boundary in its own right,
- * not just downstream of revenue-reader's contract validation --
- * cli.js's `detect` command feeds it arbitrary, unvalidated JSON read
- * straight from a file.
+ * malformed input (missing/wrong-typed platform, missing/wrong-typed/
+ * unparseable/out-of-range generated_at, a missing or non-array
+ * signals, a non-object signal, or a signal with a wrong-typed key/
+ * value) returns [], never throws. This is a system boundary in its
+ * own right, not just downstream of revenue-reader's contract
+ * validation -- cli.js's `detect` command feeds it arbitrary,
+ * unvalidated JSON read straight from a file.
  */
 export const CHURN_RATE_THRESHOLD = 0.05;
 
@@ -23,6 +24,9 @@ export function detectOpportunities(pollResult) {
 
   const { platform, generated_at, classification, signals } = pollResult;
 
+  if (typeof platform !== 'string' || platform === '') {
+    return [];
+  }
   if (typeof generated_at !== 'string') {
     return [];
   }
@@ -51,6 +55,15 @@ export function detectOpportunities(pollResult) {
 
   for (const signal of signals) {
     if (!signal || typeof signal !== 'object') {
+      continue;
+    }
+    // A wrong-typed key can never match a heuristic's key check below,
+    // so it's already harmless -- but a wrong-typed value (e.g. `true`)
+    // coerces through `signal.value > CHURN_RATE_THRESHOLD` and would
+    // otherwise land in a generated statement (e.g. "Churn rate (true)
+    // exceeds..."), which insight.schema.json documents as "a single
+    // falsifiable assertion" -- not something a non-numeric value is.
+    if (typeof signal.key !== 'string' || typeof signal.value !== 'number' || !Number.isFinite(signal.value)) {
       continue;
     }
     if (signal.key === 'revenue.mrr' && signal.trend === 'down') {

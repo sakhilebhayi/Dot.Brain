@@ -26,7 +26,10 @@ export function validateSignalsResponse(body) {
     return { valid: false, reason: 'signals must be an array' };
   }
   for (const [index, signal] of body.signals.entries()) {
-    if (!signal || typeof signal !== 'object' || !signal.key || signal.value === undefined || signal.value === null) {
+    if (!signal || typeof signal !== 'object' || typeof signal.key !== 'string' || signal.key === '') {
+      return { valid: false, reason: `signals[${index}] is missing key or value` };
+    }
+    if (typeof signal.value !== 'number' || !Number.isFinite(signal.value)) {
       return { valid: false, reason: `signals[${index}] is missing key or value` };
     }
   }

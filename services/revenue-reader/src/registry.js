@@ -13,19 +13,43 @@ export const DEFAULTS = {
   classification_ceiling: 'restricted',
 };
 
+const ALLOWED_KEYS = [...REQUIRED_KEYS, ...Object.keys(DEFAULTS)];
+
+function requirePositiveNumber(manifest, key) {
+  if (typeof manifest[key] !== 'number' || !Number.isFinite(manifest[key]) || manifest[key] <= 0) {
+    throw new Error(`${key} must be a positive number, got ${JSON.stringify(manifest[key])}`);
+  }
+}
+
 /**
  * @param {object} raw
  * @returns {object} the manifest with every DEFAULTS key filled in
  */
 export function validateManifest(raw) {
-  const missing = REQUIRED_KEYS.filter((key) => !raw?.[key]);
+  // Non-string here (a typo'd sibling key, an object, a number) used to
+  // pass this check -- `!raw?.[key]` only screens out falsy values -- and
+  // then flow straight through to a "validated" manifest. platform, in
+  // particular, ends up as an Insight's `scope`, which insight.schema.json
+  // declares a string.
+  const missing = REQUIRED_KEYS.filter((key) => typeof raw?.[key] !== 'string' || raw[key] === '');
   if (missing.length > 0) {
     throw new Error(`manifest missing required key(s): ${missing.join(', ')}`);
   }
+
+  // A miscased or misspelled optional key (e.g. `Classification_Ceiling`)
+  // used to be silently dropped, silently falling back to DEFAULTS --
+  // discarding the operator's actual intent rather than failing loudly.
+  const unknown = Object.keys(raw).filter((key) => !ALLOWED_KEYS.includes(key));
+  if (unknown.length > 0) {
+    throw new Error(`manifest has unrecognized key(s): ${unknown.join(', ')}`);
+  }
+
   const manifest = { ...DEFAULTS, ...raw };
   if (!CLASSIFICATIONS.includes(manifest.classification_ceiling)) {
     throw new Error(`classification_ceiling must be one of ${CLASSIFICATIONS.join(', ')}, got ${JSON.stringify(manifest.classification_ceiling)}`);
   }
+  requirePositiveNumber(manifest, 'poll_interval_s');
+  requirePositiveNumber(manifest, 'timeout_ms');
   return manifest;
 }
 

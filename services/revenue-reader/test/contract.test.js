@@ -74,6 +74,20 @@ test('validateSignalsResponse rejects a signal with a null value', () => {
   assert.match(result.reason, /signals\[0\]/);
 });
 
+test('validateSignalsResponse rejects a signal with a non-numeric value', () => {
+  for (const value of [true, 'usd', [0.9], { a: 1 }]) {
+    const result = validateSignalsResponse({ ...VALID_BODY, signals: [{ key: 'revenue.mrr', value }] });
+    assert.equal(result.valid, false, `expected ${JSON.stringify(value)} to be rejected`);
+    assert.match(result.reason, /signals\[0\]/);
+  }
+});
+
+test('validateSignalsResponse rejects a signal with a non-string key', () => {
+  const result = validateSignalsResponse({ ...VALID_BODY, signals: [{ key: { nope: true }, value: 48210.55 }] });
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /signals\[0\]/);
+});
+
 test('validateSignalsResponse accepts multiple well-formed signals', () => {
   const result = validateSignalsResponse({
     ...VALID_BODY,

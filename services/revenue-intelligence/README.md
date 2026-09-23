@@ -32,6 +32,10 @@ job, once a platform actually enrolls.
    the full raw payload; its `scope` is the enrolling platform (the
    insight.schema.json-defined meaning: where the insight applies).
 2. `runEthicsGate()` / `runSecurityGate()` — same as Insight Delivery's.
+   `runEthicsGate` only rejects an insight that declares a prohibited
+   `targetMetric`; none of the three v1 heuristics ever set one, so it
+   currently always passes -- kept as a safety rail for any future
+   heuristic, not because today's three need it.
 3. `recordInsight()` — gate-cleared insights are recorded to Dot.Memory.
 4. `deliverInsight()` — push, routed through Dot.Notify, always
    addressed to `audience: 'admin'` (a delivery-time parameter, not the
