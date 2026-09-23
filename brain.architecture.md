@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — System Architecture & Component Model
-version: 1.0.2
+version: 1.0.3
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Security Agent
-last-review: 2026-08-10
+last-review: 2026-09-23
 review-cadence: quarterly
 ---
 
@@ -33,6 +33,7 @@ graph TB
     subgraph P["Platform Edge (owned by platforms)"]
         PUB[DKP Publishers<br/>see brain.platforms.md §2 for current count]
         REPOS[Platform repositories<br/>wiki.md — Brain has NO write access]
+        REVEP[dot-revenue/v1 endpoint<br/>platform-owned, opt-in via manifest]
     end
     subgraph L1["Layer 1 — Ingestion & Validation"]
         GW[Ingestion Gateway]
@@ -53,6 +54,8 @@ graph TB
         REC[Recommendation Builder]
         PRGEN[PR Generator<br/>outbound path 1: structural change]
         INSDEL[Insight Delivery<br/>outbound path 2: Notify-routed]
+        REVREAD[Revenue Reader<br/>Brain-owned, Brain-initiated pull, dot-revenue/v1]
+        REVINTEL[Revenue Intelligence<br/>opportunity detection]
         QUERY[Query & Explanation API]
     end
     PUB -->|signed DKPs| GW --> VAL
@@ -64,6 +67,10 @@ graph TB
     MEM <--> GRAPH
     REASON --> REC --> PRGEN -->|Pull Requests| REPOS
     REASON --> INSDEL
+    REVREAD -->|Brain-initiated pull, scoped token, ADR-0018| REVEP
+    REVEP -->|signals, dot-revenue/v1| REVREAD
+    REVREAD -->|transient signals, never persisted| REASON
+    REVREAD --> REVINTEL
     REPOS -->|PR outcomes as DKPs| PUB
     GRAPH --> QUERY
     LEDGER -.records everything.-> PRGEN
@@ -87,6 +94,8 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | Recommendation Builder | Assemble recommendation payloads: confidence + evidence + triple impact | [schemas/recommendation.schema.json](schemas/recommendation.schema.json) | Reasoning, gated by Dopamine |
 | PR Generator | Render recommendation → PR against target platform repo; sole outbound writer | [brain.workflows.md](brain.workflows.md) | Governance-supervised |
 | Insight Delivery | Classify conclusions, run Ethics/Security gates, record gate-cleared Insights to Dot.Memory, deliver push via Dot.Notify | [docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md](docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md), [ADR-0017](adr/ADR-0017-outbound-insight-delivery.md) | Architecture, reference implementation `services/insight-delivery` |
+| Revenue Reader | Poll enrolled platforms' dot-revenue/v1 endpoints under a scoped token; validate defensively; classify every failure; never persist a raw payload | [ADR-0018](adr/ADR-0018-cross-platform-read-access.md), [docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md](docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md) | Architecture, reference implementation `services/revenue-reader` |
+| Revenue Intelligence | Detect revenue opportunities from Revenue Reader's poll results; gate, record, and deliver as Insights addressed to the `admin` audience at delivery time (not the Insight's own `scope`, which is the enrolling platform) | [docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md](docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md) | Architecture, reference implementation `services/revenue-intelligence` |
 | Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
@@ -130,7 +139,7 @@ Recovery order is strictly T0 → T3; the graph is authoritative over every proj
 
 ## 6. Security & trust boundaries
 
-- **Inbound:** only signed DKPs through the Gateway; no direct graph writes from outside. Platform keys registered via manifest ([schemas/platform-manifest.schema.json](schemas/platform-manifest.schema.json)); revocation takes effect at the Gateway within one validation cycle.
+- **Inbound:** only signed DKPs through the Gateway; no direct graph writes from outside. Platform keys registered via manifest ([schemas/platform-manifest.schema.json](schemas/platform-manifest.schema.json)); revocation takes effect at the Gateway within one validation cycle. A second, narrow inbound mechanism exists for pre-aggregated business signals only (never raw records, never persisted): the Revenue Reader's manifest-enrolled, scoped-token pull against a platform's dot-revenue/v1 endpoint. See [ADR-0018](adr/ADR-0018-cross-platform-read-access.md) for the explicit exception this carves and its limits.
 - **Internal:** agents act under least-privilege namespaces ([brain.agents.md](brain.agents.md) §shared-memory); only the Knowledge Agent writes graph structure, only Governance writes trust scores.
 - **Outbound:** the PR Generator holds per-platform scoped tokens capable of *opening PRs only* — no merge, no push to default branches. `identity.boundary_violations = 0, always` ([brain.metrics.md](brain.metrics.md) §4.1) monitors this continuously.
 - Full threat model: [brain.security.md](brain.security.md); this section defines the boundaries it must defend.
@@ -159,6 +168,7 @@ Registered in [brain.metrics.md](brain.metrics.md) §4.2–4.3; the architecture
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial architecture: 5 principles, 4-layer model, 12-component matrix, end-to-end data flow, ADR-0007 tier mapping, security boundaries, extension points |
 | 1.0.1 | 2026-08-10 | Brain core-doc sweep | Refreshed against real repo state: §3's component matrix pointed brain.reasoning.md, brain.learning.md, brain.memory.md, brain.api.md, brain.workflows.md, and §6's brain.security.md all at "(pending)" — all six now exist as complete, active documents, corrected to real links. §2's Layer Model diagram's hardcoded "21 platforms" DKP-publisher count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer to brain.platforms.md §2 so it can't drift again |
 | 1.0.2 | 2026-08-10 | Brain core-doc sweep | Fixed three broken ADR links found while cross-checking brain.governance.md's citation of the same ADRs: ADR-0006 was linked as `adr/ADR-0006-audit-ledger.md` (real file: `-design.md`), ADR-0007 as `adr/ADR-0007-rto-rpo-tiers.md` (real file: `-tier-model.md`), in both §Related-documents and inline citations |
+| 1.0.3 | 2026-09-23 | Post-merge repeat-check | §2: added Revenue Reader's ADR-0018 pull path as an explicit inbound edge (a new `REVEP` node for the platform-owned `dot-revenue/v1` endpoint, with edges to and from `REVREAD`) — the round-2 fix that moved `REVREAD` into Layer 4 left it with no inbound edge at all, silently dropping the very inbound mechanism §6 already documented in prose. §3: reworded the Revenue Intelligence row, which said Insights are "scoped to admin recipients" — conflating the Insight's own `scope` field (the enrolling platform) with the delivery-time `audience` parameter, the same mistake corrected in code and the design spec earlier this session but left standing here. |
 
 ## Open Questions
 
