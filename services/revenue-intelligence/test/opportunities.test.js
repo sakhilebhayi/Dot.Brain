@@ -13,7 +13,7 @@ test('detects MRR decline when trend is down', () => {
   assert.equal(result.length, 1);
   assert.match(result[0].statement, /MRR is trending down for dot-billing/);
   assert.equal(result[0].domain, 'revenue');
-  assert.equal(result[0].scope, 'admin');
+  assert.equal(result[0].scope, 'dot-billing');
   assert.equal(result[0].classification, 'restricted');
 });
 

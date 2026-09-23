@@ -8,9 +8,13 @@ Feeds the same gate → record → Notify-routed-delivery pipeline shape as
 [Insight Delivery](../insight-delivery/README.md) (ADR-0017), duplicated
 here per this repo's established convention -- every service owns its
 own small clients rather than importing a sibling's -- with delivery
-always scoped to `admin` recipients. Notify's own per-recipient
+always addressed to the `admin` audience. Notify's own per-recipient
 consent/role resolution decides who that reaches; no new targeting
-infrastructure exists here.
+infrastructure exists here. `audience` is a delivery-time parameter
+only, kept deliberately distinct from the Insight's own `scope` field
+(`insight.schema.json`: "where the insight applies, site/tenant/global"
+-- set here to the enrolling platform) -- the two are different
+concepts that happen to share a tempting name.
 
 ## No platform is enrolled yet
 
@@ -25,11 +29,13 @@ job, once a platform actually enrolls.
    churn rate (>5%), and a rising payout-delay trend. An insight's
    `classification` always comes from the poll result itself, never
    invented; its `evidence` references only the triggering signal, not
-   the full raw payload.
+   the full raw payload; its `scope` is the enrolling platform (the
+   insight.schema.json-defined meaning: where the insight applies).
 2. `runEthicsGate()` / `runSecurityGate()` — same as Insight Delivery's.
 3. `recordInsight()` — gate-cleared insights are recorded to Dot.Memory.
 4. `deliverInsight()` — push, routed through Dot.Notify, always
-   `scope: 'admin'`.
+   addressed to `audience: 'admin'` (a delivery-time parameter, not the
+   Insight's own `scope`).
 5. `recordDeliveryOutcome()` — closes the loop from Notify's existing
    delivery event, same as Insight Delivery.
 

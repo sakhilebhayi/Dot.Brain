@@ -43,7 +43,12 @@ function buildInsight({ statement, platform, generated_at, classification, signa
     domain: 'revenue',
     method: 'threshold-rule',
     evidence: [{ kind: 'metric', reference: `${platform}:${signal.key}@${generated_at}` }],
-    scope: 'admin',
+    // insight.schema.json defines `scope` as "where the insight applies
+    // (site, tenant, global)" -- the enrolling platform IS the tenant
+    // this insight is scoped to. Who should RECEIVE the insight (admin
+    // recipients) is a separate, delivery-time concern, never stored on
+    // the Insight itself -- see deliver.js's `audience` parameter.
+    scope: platform,
     classification,
     valid_until: new Date(new Date(generated_at).getTime() + ONE_DAY_MS).toISOString(),
   };

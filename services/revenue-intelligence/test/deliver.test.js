@@ -13,7 +13,7 @@ function world() {
   return { fetchImpl, writes };
 }
 
-test('deliverInsight always delivers with scope admin, regardless of caller input', async () => {
+test('deliverInsight always delivers to the admin audience, regardless of caller input', async () => {
   const w = world();
   let receivedArgs;
   const notifyClient = { deliver: async (args) => { receivedArgs = args; return { status: 'succeeded' }; } };
@@ -31,7 +31,7 @@ test('deliverInsight always delivers with scope admin, regardless of caller inpu
   assert.equal(result.delivered, true);
   assert.equal(result.execution_status, 'succeeded');
   assert.equal(result.recorded, true);
-  assert.equal(receivedArgs.scope, 'admin');
+  assert.equal(receivedArgs.audience, 'admin');
 });
 
 test('deliverInsight records an action envelope with all six intelligence-loop required fields', async () => {
@@ -54,7 +54,7 @@ test('deliverInsight records an action envelope with all six intelligence-loop r
   }
   assert.equal(action.body.action.kind, 'insight.deliver');
   assert.equal(action.body.action.executor_platform, 'dot-notify');
-  assert.equal(action.body.action.detail.scope, 'admin');
+  assert.equal(action.body.action.detail.audience, 'admin');
 });
 
 test('deliverInsight reports failed execution status without throwing', async () => {

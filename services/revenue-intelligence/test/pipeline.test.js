@@ -40,10 +40,11 @@ test('a gate-cleared candidate is recorded and delivered', async () => {
   const recordWrite = w.writes.find((wr) => wr.url.endsWith('/insights'));
   assert.ok(recordWrite, 'the insight must be recorded');
   assert.equal(recordWrite.body.domain, 'revenue');
+  assert.equal(recordWrite.body.scope, 'dot-billing');
 
   const actionWrite = w.writes.find((wr) => wr.url.endsWith('/actions'));
   assert.equal(actionWrite.body.action.executor_platform, 'dot-notify');
-  assert.equal(actionWrite.body.action.detail.scope, 'admin');
+  assert.equal(actionWrite.body.action.detail.audience, 'admin');
 });
 
 test('a candidate rejected by the security gate is never recorded or delivered', async () => {

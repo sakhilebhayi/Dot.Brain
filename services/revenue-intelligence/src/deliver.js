@@ -1,20 +1,25 @@
 import { randomUUID } from 'node:crypto';
 import { recordAction, recordOutcome } from './memory-client.js';
 
-const SCOPE = 'admin';
+const AUDIENCE = 'admin';
 
 /**
  * Push delivery of a gate-cleared, revenue-intelligence-generated
  * Insight, routed entirely through Dot.Notify (design spec §2), always
- * scoped to admin recipients -- Notify's own per-recipient consent/role
- * resolution decides who that reaches, the same mechanism every other
- * platform's alerts already use.
+ * addressed to the admin audience -- Notify's own per-recipient
+ * consent/role resolution decides who that reaches, the same mechanism
+ * every other platform's alerts already use. `audience` is a
+ * delivery-time parameter only -- deliberately distinct from the
+ * Insight's own `scope` field (insight.schema.json: "where the insight
+ * applies, site/tenant/global"), which opportunities.js already sets to
+ * the enrolling platform. The two are different concepts that happen to
+ * share a tempting name; conflating them would misuse the schema.
  *
  * @param {object} args
  * @param {string} args.insightId
  * @param {string} args.targetPlatform
  * @param {object} args.cfg
- * @param {{deliver: (a: {insightId: string, targetPlatform: string, scope: string}) => Promise<{status: string, detail?: object}>}} args.notifyClient
+ * @param {{deliver: (a: {insightId: string, targetPlatform: string, audience: string}) => Promise<{status: string, detail?: object}>}} args.notifyClient
  * @param {typeof fetch} [args.fetchImpl]
  * @param {() => Date} [args.now]
  * @param {string} [args.loopId]
@@ -28,7 +33,7 @@ export async function deliverInsight({
   now = () => new Date(),
   loopId = `loop-${randomUUID()}`,
 }) {
-  const result = await notifyClient.deliver({ insightId, targetPlatform, scope: SCOPE });
+  const result = await notifyClient.deliver({ insightId, targetPlatform, audience: AUDIENCE });
 
   const actionResult = await recordAction(cfg, {
     loop_id: loopId,
@@ -39,7 +44,7 @@ export async function deliverInsight({
     action: {
       kind: 'insight.deliver',
       executor_platform: 'dot-notify',
-      detail: { insight_id: insightId, target_platform: targetPlatform, scope: SCOPE },
+      detail: { insight_id: insightId, target_platform: targetPlatform, audience: AUDIENCE },
       execution_status: result.status,
     },
     occurred_at: now().toISOString(),
