@@ -70,6 +70,14 @@ test('pollPlatform reports kind network when fetch itself throws', async () => {
   assert.match(result.reason, /ECONNREFUSED/);
 });
 
+test('pollPlatform reports kind contract when the response body is not valid JSON', async () => {
+  const fetchImpl = async () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token < in JSON'); } });
+  const result = await pollPlatform(MANIFEST, { fetchImpl, env: { DOT_BILLING_REVENUE_TOKEN: 'tok-123' } });
+  assert.equal(result.ok, false);
+  assert.equal(result.kind, 'contract');
+  assert.match(result.reason, /response body is not valid JSON/);
+});
+
 test('pollPlatform reports kind contract on a malformed body', async () => {
   const fetchImpl = async () => ({ ok: true, json: async () => ({ ...VALID_BODY, signals: 'nope' }) });
   const result = await pollPlatform(MANIFEST, { fetchImpl, env: { DOT_BILLING_REVENUE_TOKEN: 'tok-123' } });

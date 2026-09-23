@@ -21,17 +21,17 @@ test('every prohibited metric in the list is individually rejected', () => {
 });
 
 test('a restricted insight passes the security gate for a platform cleared for restricted', () => {
-  const result = runSecurityGate({ classification: 'restricted' }, ['public', 'restricted']);
+  const result = runSecurityGate({ 'x-classification': 'restricted' }, ['public', 'restricted']);
   assert.equal(result.passed, true);
 });
 
 test('a restricted insight fails the security gate for a public-only-cleared platform', () => {
-  const result = runSecurityGate({ classification: 'restricted' }, ['public']);
+  const result = runSecurityGate({ 'x-classification': 'restricted' }, ['public']);
   assert.equal(result.passed, false);
   assert.match(result.reason, /not cleared/);
 });
 
-test('an insight with no declared classification defaults to public and passes for any clearance', () => {
+test('an insight with no declared x-classification defaults to public and passes for any clearance', () => {
   const result = runSecurityGate({}, ['public']);
   assert.equal(result.passed, true);
 });

@@ -14,7 +14,7 @@ test('detects MRR decline when trend is down', () => {
   assert.match(result[0].statement, /MRR is trending down for dot-billing/);
   assert.equal(result[0].domain, 'revenue');
   assert.equal(result[0].scope, 'dot-billing');
-  assert.equal(result[0].classification, 'restricted');
+  assert.equal(result[0]['x-classification'], 'restricted');
 });
 
 test('does not flag MRR when trend is up', () => {
@@ -65,12 +65,23 @@ test('multiple matching signals each produce their own insight', () => {
   assert.equal(result.length, 2);
 });
 
-test('evidence references the triggering signal, platform, and generated_at', () => {
+test('evidence references the triggering signal, platform, and generated_at, with kind external', () => {
   const result = detectOpportunities({ ...BASE, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
-  assert.deepEqual(result[0].evidence, [{ kind: 'metric', reference: 'dot-billing:revenue.mrr@2026-09-23T10:00:00.000Z' }]);
+  assert.deepEqual(result[0].evidence, [{ kind: 'external', reference: 'dot-billing:revenue.mrr@2026-09-23T10:00:00.000Z' }]);
 });
 
 test('valid_until is 24 hours after generated_at', () => {
   const result = detectOpportunities({ ...BASE, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
   assert.equal(result[0].valid_until, '2026-09-24T10:00:00.000Z');
+});
+
+test('a missing generated_at produces no insights instead of throwing', () => {
+  const { generated_at, ...withoutGeneratedAt } = BASE;
+  const result = detectOpportunities({ ...withoutGeneratedAt, signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
+});
+
+test('an invalid generated_at produces no insights instead of throwing', () => {
+  const result = detectOpportunities({ ...BASE, generated_at: 'not-a-date', signals: [{ key: 'revenue.mrr', value: 1000, trend: 'down' }] });
+  assert.deepEqual(result, []);
 });

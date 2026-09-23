@@ -13,6 +13,9 @@ export function validateSignalsResponse(body) {
   if (!body || typeof body !== 'object') {
     return { valid: false, reason: 'response body is not an object' };
   }
+  if (typeof body.generated_at !== 'string' || Number.isNaN(new Date(body.generated_at).getTime())) {
+    return { valid: false, reason: 'generated_at must be a valid ISO date-time string' };
+  }
   if (!CLASSIFICATIONS.includes(body.classification)) {
     return {
       valid: false,

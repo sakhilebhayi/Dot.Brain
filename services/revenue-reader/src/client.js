@@ -41,7 +41,13 @@ export async function pollPlatform(manifest, { fetchImpl = fetch, env = process.
     return { ok: false, platform: manifest.platform, kind: 'network', reason: `HTTP ${response.status}` };
   }
 
-  const body = await response.json();
+  let body;
+  try {
+    body = await response.json();
+  } catch (error) {
+    return { ok: false, platform: manifest.platform, kind: 'contract', reason: `response body is not valid JSON: ${error.message}` };
+  }
+
   const validation = validateSignalsResponse(body);
   if (!validation.valid) {
     return { ok: false, platform: manifest.platform, kind: 'contract', reason: validation.reason };

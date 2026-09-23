@@ -24,6 +24,25 @@ test('validateSignalsResponse rejects a non-object body', () => {
   assert.match(result.reason, /not an object/);
 });
 
+test('validateSignalsResponse rejects a missing generated_at', () => {
+  const { generated_at, ...withoutGeneratedAt } = VALID_BODY;
+  const result = validateSignalsResponse(withoutGeneratedAt);
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /generated_at must be a valid ISO date-time string/);
+});
+
+test('validateSignalsResponse rejects a non-string generated_at', () => {
+  const result = validateSignalsResponse({ ...VALID_BODY, generated_at: 12345 });
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /generated_at must be a valid ISO date-time string/);
+});
+
+test('validateSignalsResponse rejects an unparseable generated_at', () => {
+  const result = validateSignalsResponse({ ...VALID_BODY, generated_at: 'not-a-date' });
+  assert.equal(result.valid, false);
+  assert.match(result.reason, /generated_at must be a valid ISO date-time string/);
+});
+
 test('validateSignalsResponse rejects a missing classification', () => {
   const { classification, ...withoutClassification } = VALID_BODY;
   const result = validateSignalsResponse(withoutClassification);

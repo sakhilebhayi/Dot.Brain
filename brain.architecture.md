@@ -33,7 +33,6 @@ graph TB
     subgraph P["Platform Edge (owned by platforms)"]
         PUB[DKP Publishers<br/>see brain.platforms.md §2 for current count]
         REPOS[Platform repositories<br/>wiki.md — Brain has NO write access]
-        REVREAD[Revenue Reader<br/>Brain-initiated pull, dot-revenue/v1]
     end
     subgraph L1["Layer 1 — Ingestion & Validation"]
         GW[Ingestion Gateway]
@@ -54,6 +53,7 @@ graph TB
         REC[Recommendation Builder]
         PRGEN[PR Generator<br/>outbound path 1: structural change]
         INSDEL[Insight Delivery<br/>outbound path 2: Notify-routed]
+        REVREAD[Revenue Reader<br/>Brain-owned, Brain-initiated pull, dot-revenue/v1]
         REVINTEL[Revenue Intelligence<br/>opportunity detection]
         QUERY[Query & Explanation API]
     end

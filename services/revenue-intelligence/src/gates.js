@@ -27,12 +27,17 @@ export function runEthicsGate(insight) {
 }
 
 /**
- * @param {{classification?: 'public'|'restricted'}} insight
+ * Reads `x-classification` -- insight.schema.json is
+ * additionalProperties:false and does not declare a plain
+ * `classification` field, only the `^x-` extension pattern
+ * (opportunities.js sets `x-classification`, not `classification`).
+ *
+ * @param {{'x-classification'?: 'public'|'restricted'}} insight
  * @param {Array<'public'|'restricted'>} targetPlatformClearance
  * @returns {{passed: boolean, reason?: string}}
  */
 export function runSecurityGate(insight, targetPlatformClearance) {
-  const classification = insight?.classification ?? 'public';
+  const classification = insight?.['x-classification'] ?? 'public';
   if (!targetPlatformClearance.includes(classification)) {
     return { passed: false, reason: `Target platform is not cleared for "${classification}" insights.` };
   }

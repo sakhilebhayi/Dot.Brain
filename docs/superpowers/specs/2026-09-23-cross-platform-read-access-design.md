@@ -48,9 +48,9 @@ A platform serves `GET /revenue/signals` with `Authorization: Bearer <token>`. R
 }
 ```
 
-`classification` is required, one of the four existing tiers (`public|ecosystem|restricted|sensitive`, `brain.security.md:49`), and is the platform's own declaration of how sensitive this specific payload is — Brain does not infer it. Each entry in `signals[]` requires `key` and `value` at minimum; `unit`, `period`, `trend`, `confidence` are optional context.
+`generated_at` and `classification` are both required. `generated_at` must be a valid ISO date-time string — downstream consumers (Revenue Intelligence) derive an Insight's own `valid_until` from it and cannot function without a real timestamp. `classification` is one of the four existing tiers (`public|ecosystem|restricted|sensitive`, `brain.security.md:49`), and is the platform's own declaration of how sensitive this specific payload is — Brain does not infer it. Each entry in `signals[]` requires `key` and `value` at minimum; `unit`, `period`, `trend`, `confidence` are optional context.
 
-Validation is defensive, mirroring `health.js:54-56`: a response is rejected as a contract failure (never partially trusted) if `signals` is not an array, if `classification` is missing or not one of the four known tiers, or if any signal entry lacks `key` or `value`. The contract exposes pre-aggregated business signals a platform itself computes and chooses to reveal — never raw transaction or PII-level records — mirroring Guardian's own principle of exposing operational signals, not internals (`health.js:5,13-14`). This is what keeps a multi-tenant platform in control of what crosses the boundary, satisfying the cross-tenant confidentiality rule ("cross-tenant inference prohibited except explicit sharing policies," `brain.governance.md:101`): the platform's own code decides what a signal aggregates over, not Brain.
+Validation is defensive, mirroring `health.js:54-56`: a response is rejected as a contract failure (never partially trusted) if `generated_at` is missing or does not parse as a valid date, if `signals` is not an array, if `classification` is missing or not one of the four known tiers, or if any signal entry lacks `key` or `value`. The contract exposes pre-aggregated business signals a platform itself computes and chooses to reveal — never raw transaction or PII-level records — mirroring Guardian's own principle of exposing operational signals, not internals (`health.js:5,13-14`). This is what keeps a multi-tenant platform in control of what crosses the boundary, satisfying the cross-tenant confidentiality rule ("cross-tenant inference prohibited except explicit sharing policies," `brain.governance.md:101`): the platform's own code decides what a signal aggregates over, not Brain.
 
 ## 2. Enrollment
 
@@ -87,7 +87,7 @@ Records: the decision to add a Brain-initiated pull path as an explicit, narrow 
 ## Error handling
 
 - Missing or invalid token: fail closed, no poll attempt, ledger-recorded — identical to Guardian.
-- Malformed response (missing/invalid `classification`, non-array `signals`, a signal missing `key`/`value`): rejected as a contract failure, the body is never partially trusted, mirroring `health.js:54-56`.
+- Malformed response (a non-JSON body, missing/invalid `generated_at`, missing/invalid `classification`, non-array `signals`, a signal missing `key`/`value`): rejected as a contract failure, the body is never partially trusted, mirroring `health.js:54-56`.
 - `classification` exceeds the manifest's `classification_ceiling`: rejected and raised as an incident (§4) — the one rejection mode Guardian's contract didn't need.
 - Endpoint unreachable or timing out: elapsed-time-based availability tracking, not poll-count-based, mirroring Guardian's reasoning for the same choice — cron-based scheduling has enough variance that poll count alone is a poor failure signal (`health.js:105-133`).
 
@@ -108,3 +108,4 @@ Records: the decision to add a Brain-initiated pull path as an explicit, narrow 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-09-23 | Brainstorming session | Initial design. |
+| 1.0.1 | 2026-09-23 | Post-merge repeat-check | Corrected §1 and Error handling: `generated_at` is required and validated (was previously shown in the example payload but never stated as a validation rule) — its absence let a downstream consumer (Revenue Intelligence) crash on `new Date(undefined)`. Also documented that a non-JSON response body is a contract failure, not an uncaught exception — the implementation shipped with both gaps; caught and fixed in the same session before any consumer depended on the gap. |
