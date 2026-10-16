@@ -1,0 +1,185 @@
+---
+title: Dot Ecosystem — Live Platform Reliability Audit
+date: 2026-10-16
+status: baseline established; fixes in review; production verification pending owner merges
+author: Reliability pass (Claude, with owner sakhilebhayi)
+scope: every repository under ~/Dot, every *.infodot.co.za host, GitHub Actions evidence, public health endpoints, sanctioned read-only server-evidence workflows
+---
+
+# Dot Ecosystem — Live Platform Reliability Audit (2026-10-16)
+
+Evidence rules used throughout: a platform is **Live** only when its host answers with the real application (a Laravel session cookie and the app's own pages), not because its code exists. Server-side state that could only be seen over SSH is marked **Not Verified**; the host's SSH was not used in this pass (the sanctioned paths are each repo's `server-logs` / `server-inspect` workflows, and Dot.Mines' was run). All times UTC.
+
+## 1. Inventory and verified deployment status
+
+33 repositories live under `~/Dot`; 32 subdomains were probed. 12 hosts serve a real application, 7 serve a static "Coming Soon" page, 12 do not resolve.
+
+### 1.1 Live (real application answering)
+
+| Platform | Host | Deploy path | Health surface | Monitoring from outside the host | Verdict |
+|---|---|---|---|---|---|
+| InfoDot (SSO hub, community) | infodot.co.za | **none** (manual; `PRODUCTION_DEPLOYMENT.md` describes hand steps) | `/` only (`/up` 404) | none | Live, **unmanaged** |
+| Dot.Mines | mines.infodot.co.za | GitHub `deploy.yml` on push to main; `/ready` gate; maintenance mode; crontab block with lock + read-retry | `/ready`, `/up`, `/up/realtime`, `GET /guardian/health` (bearer) | Guardian (5-min, 9 checks), scheduler watchdog (15-min), hourly collector, `server-logs.yml` | Live, managed |
+| Dot.Central | central.infodot.co.za | `deploy.yml` on push; `/up` gate | `/up`, `/up/scheduler` | scheduler watchdog (15-min) | Live, managed |
+| Dot.Memory | memory.infodot.co.za | `deploy.yml` (dispatch, `confirm=deploy`) | `/up`; `/up/scheduler` **in PR #12** | none today; watchdog in PR #12 | Live, managed |
+| Dot.Dopemine | dopemine.infodot.co.za | `deploy.yml` (dispatch) | `/up`; `/up/scheduler` **in PR #6** | none today; watchdog in PR #6 | Live, managed |
+| Dot.Doc | doc.infodot.co.za | `deploy.yml` on push + CI + live smoke check | `/up`; `/up/scheduler` **in PR #24** | none today; watchdog in PR #24 | Live, managed |
+| Dot.Charts | charts.infodot.co.za | `deploy.yml` (dispatch); analytics keepalive via `setup-analytics.yml` | `/up`; `/up/scheduler` **in PR #5** | none today; watchdog in PR #5 | Live, managed |
+| Dot.Agents | agents.infodot.co.za | `deploy.yml` exists but **has never completed** (8/8 runs failed since 2026-09-19, all at the composer audit gate) | `/up`, `/health` → `{"status":"ok"}` | none | Live, **provenance unknown** |
+| Dot.Files | files.infodot.co.za | **none** | `/up` → **HTTP 500** (see D1) | none | Live, **broken health, unmanaged** |
+| Dot.Forms | forms.infodot.co.za | **none** | `/up` 200 | none | Live, unmanaged (queue worker Not Verified) |
+| Dot.Projects | projects.infodot.co.za | **none** | `/up` 200 | none | Live, unmanaged (realtime Not Verified) |
+| Dot.Engage | engage.infodot.co.za | **none** | `/up` 200 (title "Laravel") | none | Live, unmanaged (realtime Not Verified) |
+
+Dot.Brain has no host: it is **live as a service** from GitHub Actions (Guardian poll every 5 min, triggered by a Cloudflare Worker cron; hourly Platform Collector; CI on every PR). BluPin was retired on 2026-10-16 (Dot.Charts #4, Dot.Brain #22, Dot.Memory #11) and is not a platform.
+
+### 1.2 Placeholder (static "Coming Soon" page, no application)
+
+Dot.Emall, Dot.Ehail, Dot.Auction, Dot.Tasks, Dot.Design, Dot.Finance, Dot.Tutor. Classified **Staging/Placeholder**. Their repositories build (Laravel apps with recent commits up to 2026-09-23) but nothing is deployed.
+
+### 1.3 Development only (no DNS record)
+
+Dot.Analytics, Dot.Pulse, Dot.Notify, Dot.Billing, Dot.Plug, Dot.Farms, Dot.HR, Dot.Press, Dot.Sheet, Dot.Assets (HTML prototype). `docs.infodot.co.za` also does not resolve (the live host is `doc.`). Note the shared registry (`InfoDot/config/ecosystem.php`) defaults every platform to `*.infodot.app` and marks all but Charts `active: true`; it does not reflect this inventory.
+
+## 2. Ecosystem dependency and data-flow map
+
+```
+Bell Equipment API ──(15-min cadence)──▶ Dot.Mines (sync, telemetry, alerts)
+                                            │  webhooks POST /webhooks/mines/{id}      (228 delivered / 0 failed, 24 h)
+                                            ├───────────────────────────────▶ Dot.Central (mirror, freshness, shifts, rules)
+                                            │  GET /api (equipment, geofences)     ◀──── sync every few minutes
+                                            │
+                                            │  outbox ─▶ POST /api/intelligence/events ─▶ Dot.Memory  (382 sent / 0 pending / 0 stuck)
+                                            │                                              ▲
+Dot.Central ── outbox (every minute) ──────────────────────────────────────────────────────┤
+                                                                                           │
+GitHub Actions (Dot.Brain)                                                                 │
+  Guardian ── GET /guardian/health (Dot.Mines) ── incidents/recall ────────────────────────┤
+  Platform Collector (hourly) ── GET /guardian/health (Dot.Mines) ── events ───────────────┘
+  Guardian ── GitHub issues (Dot.Mines) ── runbooks (advisory / redeploy; autonomy level 2 = recommend only)
+Cloudflare Worker cron ── workflow_dispatch ──▶ Guardian poll (5-min cadence)
+
+InfoDot ── ecosystem SSO handoff (/auth/ecosystem) ──▶ Memory, Dopemine, Doc, Central, Files, Forms, Engage, Projects
+Dot.Files ◀──▶ Dot.Doc (document rows, handoff, signed inline viewer)
+Dot.Brain reasoning ──▶ Dot.Dopemine POST /api/intelligence/interventions (certified mechanics only)
+
+Shared substrate (single point of failure): ONE cPanel account on ONE LiteSpeed host (198.38.92.233),
+ONE crontab for Mines/Central/Memory/Doc/Charts/Dopemine (9 lines), SQLite files for Central, Memory,
+Dopemine, Doc, Charts; Mines/InfoDot/Files/Forms/Projects/Engage/Agents database engine Not Verified.
+```
+
+Data ownership is clear where it is wired: Dot.Mines owns fleet truth; Dot.Central owns shifts, line-ups, audit; Dot.Memory owns the incident and intelligence record; Dot.Brain owns reasoning and never edits platform files. Cross-platform writes already use durable outboxes (Mines → Memory, Central → Memory) and idempotent keys (`event_id`, `incident_uid`, collector `collect-<platform>-<hour>`).
+
+## 3. Confirmed defects, fixes, and evidence
+
+| ID | Platform | Defect (root cause) | Fix | Evidence |
+|---|---|---|---|---|
+| D1 | Dot.Files | `GET /up` answers **HTTP 500** and the body carries the full exception and stack trace, disclosing server paths (`/home/infodotc/files.infodot.co.za/dotfiles/...`). Root cause: the route cache on the server was compiled in a GitHub Codespace (`/workspaces/Dot.Files/...`) and shipped by hand, so the framework's health view path is wrong on the host. | **Not fixed** — needs `php artisan route:clear && route:cache` on the host (no pipeline, no sanctioned workflow, SSH not used in this pass). | `curl -sD- https://files.infodot.co.za/up` → `HTTP/2 500`, body quotes `FileNotFoundException ... /workspaces/Dot.Files/vendor/...` |
+| D2 | Dot.Agents | Every CI, security and deploy run on main red since 2026-09-19: `composer audit` fails on phpseclib 3.0.55 (CVE-2026-84308), symfony/yaml 8.1.0 (CVE-2026-109413), league/commonmark 2.10.1 (2 advisories). | [Dot.Agents #4](https://github.com/sakhilebhayi/Dot.Agents/pull/4): lock-file update to 3.0.57 / 8.1.9 / 2.10.3. | Local `composer audit` clean; PR CI: Composer Vulnerability Audit **pass**, Dependency Security Audit **pass**, PHPStan/OWASP/secrets pass; PHPUnit jobs were still running at write time. Merge caution recorded in the PR (merge triggers an unverified first automated deploy). |
+| D3 | InfoDot | CI red on every run since 2026-08-07: `composer install` runs `package:discover` before `.env` exists, the broadcaster resolves to `reverb` with null credentials and throws. The PHP 8.3 matrix leg could never install (composer.json `php ^8.4`). | [InfoDot #2](https://github.com/sakhilebhayi/InfoDot/pull/2): create `.env` before install, generate the key after, seed against the SQLite file CI creates, test on 8.4 only. | First commit: `tests (8.4)` **pass** (first green run since August); 8.3 leg failed on the platform requirement and was removed in the second commit. |
+| D4 | Memory, Dopemine, Doc, Charts | No liveness signal for the cron scheduler (or Doc's queue worker). `/up` proves the web tier boots only; the 2026-10-16 shared-crontab wipe would have been invisible on these four. | PRs [Dot.Memory #12](https://github.com/sakhilebhayi/Dot.Memory/pull/12), [Dot.Dopemine #6](https://github.com/sakhilebhayi/Dot.Dopemine/pull/6), [Dot.Charts #5](https://github.com/sakhilebhayi/Dot.Charts/pull/5), [Dot.docs #24](https://github.com/sakhilebhayi/Dot.docs/pull/24): public `/up/scheduler` (same contract as Dot.Central), minute heartbeat, Doc also a 5-minute `QueueHeartbeat` job, and a 15-minute GitHub `Scheduler Watchdog` per repo. | Feature tests pass locally (Memory 2/2, Dopemine 2/2, Charts 2/2, Doc full suite 537 passed / 4 skipped); Pint clean. **Not yet deployed**: merge + dispatch were blocked for this session (production-deploy permission). |
+| D5 | Dot.Charts | `blupin-daily` fired and failed every weekday 2026-10-14..16 (branch protection rejected its journal push) after the engine was retired. | Already removed on main by #4 (merged 20:56 UTC); the Guardian manifest and Memory endpoint were retired by Dot.Brain #22 and Dot.Memory #11. | `git ls-tree origin/main .github/workflows` no longer lists it. |
+| D6 | Dot.Mines | `/up/realtime` → 503 `degraded`: production `BROADCAST_DRIVER=pusher`, nothing listening on 127.0.0.1:8080. Eight `ShouldBroadcast` events have no live channel. | Not fixed. `deploy.yml` documents this as expected on shared hosting (report, don't gate). Whether `pusher` with empty credentials is queueing failing broadcast jobs is **Not Verified** (`failed_jobs` last 24 h = 0 suggests not). | `/up/realtime` body; `server-logs.yml` run 38974448853 "Queue evidence". |
+| D7 | Dot.Memory | Three incidents still `open` in `/api/ops/incidents`: `grd-blupin-20261015040553-037b` (sev2), `grd-blupin-20260831213553-1760` (sev3), `grd-dot-mines-20260827130519-e671` (sev3, 50 days). The BluPin ones belong to a retired platform; the Mines one resolved in August but the record was never patched. | Not changed (owner-only per the existing rule for the BluPin incident). | `GET /api/ops/incidents?status=open` at 22:08 UTC. |
+| D8 | Dot.Mines → Dot.Memory | `memory:flush` failed with exit 1 every minute 18:01–18:11 UTC today (service-token re-provisioning window: Memory "Provision Service Token" ran 17:22 and 18:09). | Self-healed: the outbox held the rows and drained once the token was valid (sent 382, pending 0, stuck 0 at 22:11). No change needed; recorded so the pattern is known. | `server-logs.yml` run 38974448853 "Scheduler evidence" and "Dot.Memory outbox status". |
+
+## 4. Reliability baseline (measured 2026-10-16, 22:00–22:25 UTC)
+
+| Measure | Value | Source |
+|---|---|---|
+| Availability, 12 live hosts | 12/12 answered 200 on every one of 3 samples | curl from this workstation |
+| Home-page response time (3 samples each) | 0.67–1.77 s; Projects slowest (1.5–1.8 s), Files fastest (0.67 s) | curl `%{time_total}` |
+| Dot.Mines guardian health | 9/9 checks healthy (database, cache, queue, scheduler, error_rate, integration_sync, telemetry_ingestion, provider_data_freshness, production_freshness) | `GET /guardian/health` 22:07:54 Z |
+| Dot.Mines queue | 1 ready job (11 s old), 0 failed jobs in 24 h | server-logs run 38974448853 |
+| Dot.Mines → Central webhooks | 228 delivered / 0 failed in 24 h, endpoint `consecutive_failures=0` | same |
+| Dot.Mines → Memory outbox | 382 sent, 0 pending, 0 stuck; last sent 22:11:08 | same |
+| Dot.Central scheduler / queue | heartbeat ages 49 s / 45 s (stale after 180 / 900) | `GET /up/scheduler` |
+| Guardian poll cadence | runs at 21:45, 21:49, 21:50, 21:55, 21:57, 22:00 (Cloudflare trigger live) | Dot.Brain Actions |
+| Platform collector | 5/5 runs green today; records dot-mines only | Dot.Brain Actions |
+| Scheduled-workflow health | Dot.Mines + Dot.Central scheduler watchdogs green all evening | Actions |
+| Backups in code | Dot.Central nightly SQLite copy 02:15 only; Memory, Dopemine, Doc, Charts: **none in code**; host-level backups Not Verified | repo grep |
+
+## 5. Reliability standards applied (and where each already lives)
+
+- **Freshness states.** Live / Delayed / Stale / Unavailable / Unknown map onto what the code already computes: Dot.Central per-equipment `fresh` (≤2× provider cadence), `stale` (≤4×), `missing` (beyond, or never heard, state Unknown); Dot.Mines `provider_data_freshness` names Bell when readings are ≥4× its 15-minute baseline and `production_freshness` reports `unknown` while input starves rather than inventing zeros. The new probes report `ok` / `stale` with the age in seconds and `null` when nothing was ever recorded. Nothing substitutes zero for missing.
+- **Availability.** Every live host must expose `/up` (web tier) and `/up/scheduler` (scheduler, and queue where one exists), and be asked from outside the host every 15 minutes. Satisfied today by Mines and Central; by Memory, Dopemine, Doc, Charts once the four PRs deploy; not by InfoDot, Agents, Files, Forms, Projects, Engage.
+- **Traceability.** Guardian incidents carry health excerpts and runbook decisions; Memory incidents are patched with `record.resolution {cause, fix, lesson}`; outboxes keep attempts and sent timestamps; deploy logs print `== crontab: N line(s) ... M other line(s) preserved` and N+M must equal 9.
+- **Recovery.** Outboxes replay (proved by D8); webhook deliveries retry with per-endpoint failure counts; Guardian runbooks are recommend-only (autonomy level 2) until the scenario suite runs against staging.
+- **Security.** Bearer-authenticated health on Mines; Sanctum service tokens hashed at rest on Memory; no secrets in watchdog workflows (public host names only). Open: D1 path disclosure; Guardian PATs expire ~2026-11-25.
+- **Verification.** Every fix above lists its evidence; anything that could not be observed is Not Verified, not assumed.
+
+## 6. Deployment, rollback, backup and incident procedures (as they exist today)
+
+- **Deploy.** Mines, Central, Doc: push to `main` deploys (CI/quality gate first on Mines and Doc). Memory, Dopemine, Charts: `gh workflow run deploy.yml -f confirm=deploy`. Every pipelined deploy: `artisan down` → pull → migrate → caches → crontab block under `flock` with read-retry → `queue:restart` → `artisan up` → health gate (`/ready` or `/up`). **Run deploys one at a time** and check the crontab line (N+M=9).
+- **Rollback.** Deploys are git-based: revert the commit on `main` and deploy again (push repos) or dispatch again (dispatch repos). A red deploy leaves the site in maintenance mode on purpose: inspect, then re-run. Check `/up/scheduler` after any red deploy.
+- **Backups.** Central: nightly SQLite copy. Memory, Dopemine, Doc, Charts: none in code (risk R2). Agents/InfoDot/Files/Forms/Projects/Engage: Not Verified.
+- **Incident response.** Guardian opens a GitHub issue on Dot.Mines with the decision block and a health excerpt (read to the end); check the latest poll before acting, since warnings self-clear; follow the runbook (`advisory` = contact provider, `redeploy` = re-run deploy); patch the Memory incident with the resolution; close the GitHub issue by hand (Guardian does not).
+
+## 7. Risk register (prioritised)
+
+| # | Risk | Impact | Likelihood | Owner action |
+|---|---|---|---|---|
+| R1 | Dot.Files health endpoint 500 with path disclosure; stale Codespace route cache on the host (D1) | security + availability | certain (observed) | clear/rebuild route cache on the host; give Dot.Files the bootstrap/deploy/server-logs trio |
+| R2 | One host, one account, one crontab, SQLite for five apps, backups only for Central | total data loss on host failure | medium | nightly SQLite backups off-host for Memory, Dopemine, Doc, Charts; confirm cPanel backup policy |
+| R3 | Five live apps with no pipeline or evidence path (InfoDot, Files, Forms, Projects, Engage) | cannot repair, deploy or observe safely | certain | pipelines + `/up/scheduler` for each; decide which stay live |
+| R4 | Dot.Agents: production provenance unknown, deploy never exercised, local checkout diverged from origin | unknown what runs in production; first automated deploy is untested | high | merge #4; run deploy manually with rollback ready, or reconcile the host by hand first |
+| R5 | Guardian and collector see only Dot.Mines | silent failures elsewhere | high until the four watchdog PRs deploy | merge/deploy #12, #6, #5, #24; then enroll Central, Memory, Dopemine, Doc, Charts with `dot-guardian/v1` endpoints |
+| R6 | Reverb realtime not possible on shared hosting: Mines broadcasts, Engage chat, Projects live boards silently non-live | features look live but are not | certain for Mines (observed); Not Verified for Engage/Projects | either a hosted broadcaster (Pusher keys) or remove the live affordances |
+| R7 | Three stale open incidents in Memory (D7) | AI/knowledge layer reasons over wrong state | low | owner patches/closes |
+| R8 | Guardian PATs (`GUARDIAN_GH_TOKEN`, Cloudflare trigger PAT) expire ~2026-11-25 | monitoring stops silently | certain on date | rotate before 2026-11-20 |
+| R9 | Shared registry (`config/ecosystem.php`) marks placeholders active and points at `infodot.app` | error pages and discover surfaces send users to dead hosts | certain | update URLs/active flags from §1 |
+| R10 | `APP_NAME` unset on Charts and Engage production (`/up` title "Laravel"; Doc/Forms mail templates hard-code the name for the same reason) | cosmetic, trust | certain | set `APP_NAME` in each `.env` |
+
+## 8. Proposed service targets (not guarantees)
+
+| Objective | Target | Measured by | Period | Escalation |
+|---|---|---|---|---|
+| Availability per live host | 99.5 % (shared hosting; 99.9 % is not credible) | 15-minute watchdog + Guardian polls | monthly | 2 consecutive failures → owner email (watchdog) / Guardian sev1 after 600 s |
+| Scheduler liveness | heartbeat age ≤ 180 s | `/up/scheduler` | continuous | watchdog failure |
+| Queue liveness (Central, Doc) | queue heartbeat age ≤ 900 s | `/up/scheduler` | continuous | watchdog failure |
+| Mines telemetry freshness | ≤ 2× Bell cadence (30 min); provider stalls are named, never blamed on the pipeline | Guardian `telemetry_ingestion`, `provider_data_freshness` | continuous | warning only |
+| Central equipment freshness | fresh ≤ 2× cadence; stale 2–4×; missing beyond | FreshnessEvaluator | continuous | board shows state |
+| Cross-platform delivery | outbox pending/stuck = 0 within 5 min; webhook failures = 0/24 h | server-logs evidence, Central health page | daily | any stuck row |
+| Incident detection | ≤ 10 min (two Guardian polls) | Guardian | per incident | sev1 escalate |
+| Recovery | red deploy → site back ≤ 30 min | Actions timestamps | per incident | — |
+| Data loss | ≤ 24 h once nightly backups exist for every SQLite app | backup command logs | daily | missing backup |
+
+## 9. Tests and failure-simulation results
+
+- Added: `SchedulerProbeTest` in Memory, Dopemine, Charts (fresh / stale / never-recorded / no-auth) and Doc (plus dead-worker and job-records-time). All pass locally.
+- Existing suites exercised: Dot.docs full suite 537 passed / 4 skipped; Dot.Agents PHPUnit jobs run on PR #4 (results in the PR).
+- Failure scenarios covered by observation today: expired/rotated credential (D8, recovered by outbox replay); provider stall classification (Guardian history); shared-crontab wipe and transient empty `crontab -l` (fixed earlier today, lock + read-retry).
+- **Not run**: controlled staging simulations for database/cache/queue failure, duplicated or out-of-order events, cross-platform desync, resource exhaustion. There is no staging environment; marked Not Verified below.
+
+## 10. Status matrix
+
+Legend: ✅ Passed · ❌ Failed · ◐ Partially implemented · ◌ Not verified
+
+| Platform | Live | Deploy pipeline | Web health | Scheduler/queue probe | Outside watchdog | Guardian enrolled | Backups | Test gate | Security audit |
+|---|---|---|---|---|---|---|---|---|---|
+| Dot.Mines | ✅ | ✅ | ✅ | ✅ (guardian health) | ✅ | ✅ | ◌ | ✅ | ◌ |
+| Dot.Central | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ nightly | ✅ CI | ◌ |
+| Dot.Memory | ✅ | ✅ | ✅ | ◐ PR #12 | ◐ PR #12 | ❌ | ❌ | ◐ no CI | ◌ |
+| Dot.Dopemine | ✅ | ✅ | ✅ | ◐ PR #6 | ◐ PR #6 | ❌ | ❌ | ◐ no CI | ◌ |
+| Dot.Doc | ✅ | ✅ | ✅ | ◐ PR #24 | ◐ PR #24 | ❌ | ❌ | ✅ CI + smoke | ✅ (#22 advisories) |
+| Dot.Charts | ✅ | ✅ | ✅ | ◐ PR #5 | ◐ PR #5 | ❌ | ❌ | ◐ no CI | ◌ |
+| Dot.Agents | ✅ | ❌ never green | ✅ `/health` | ❌ | ❌ | ❌ | ◌ | ◐ PR #4 | ◐ PR #4 |
+| InfoDot | ✅ | ❌ none | ◐ `/` only | ❌ | ❌ | ❌ | ◌ | ◐ PR #2 | ◌ |
+| Dot.Files | ✅ | ❌ none | ❌ 500 + leak | ❌ | ❌ | ❌ | ◌ | ◌ | ❌ (D1) |
+| Dot.Forms | ✅ | ❌ none | ✅ | ❌ | ❌ | ❌ | ◌ | ◌ | ◌ |
+| Dot.Projects | ✅ | ❌ none | ✅ | ❌ | ❌ | ❌ | ◌ | ◌ | ◌ |
+| Dot.Engage | ✅ | ❌ none | ✅ | ❌ | ❌ | ❌ | ◌ | ◌ | ◌ |
+| Dot.Brain (service) | ✅ Actions | ✅ | n/a | ✅ poll cadence | ✅ Cloudflare | self | ✅ cache | ✅ CI | ◌ |
+| Placeholders (7) | static | — | — | — | — | — | — | — | — |
+
+Cross-cutting requirements: ecosystem inventory ✅; dependency map ✅; root-cause register ✅; central reliability view ◐ (Memory `/reliability` covers storage SLAs; Central health page covers Mines; no single page covers all platforms); autonomous recovery ◐ (outbox replay and Guardian runbooks exist; Guardian is recommend-only by design); failure testing ◌; SLOs ◐ (proposed, not agreed).
+
+## 11. Recommended next actions, in order
+
+1. **Merge and deploy the four probe PRs one at a time** (Memory #12 → Dopemine #6 → Charts #5 → Doc #24, the last deploys on merge), reading the crontab line after each; confirm `/up/scheduler` turns 200 within two minutes and the first watchdog run is green.
+2. **Dot.Files**: rebuild the route cache on the host, then give the repo the bootstrap/deploy/server-logs trio (it already has committed `public/build`). Until then the health endpoint discloses paths.
+3. **Dot.Agents**: merge #4; before the first automated deploy, reconcile what is on the host with `origin/main` (the local checkout at `~/Dot/Dot.Agents` also holds two unpushed commits) and run `deploy.yml` with a rollback plan.
+4. **Backups** for Memory, Dopemine, Doc, Charts (port Central's `BackupSqliteDatabase`), ideally copied off-host.
+5. **Guardian enrollment** for Central, Memory, Dopemine, Doc, Charts via `dot-guardian/v1` health documents and collector manifests; then a single ecosystem page (in Dot.Central or Dot.Memory) reading the collector's hourly records once Memory exposes per-check detail (ADR-0019 open question).
+6. Close/patch the three stale Memory incidents; rotate both Guardian PATs before 2026-11-20; fix the shared registry URLs and active flags; set `APP_NAME` on Charts and Engage.
+7. Decide the realtime story for shared hosting (hosted broadcaster or remove live affordances) for Mines, Engage and Projects.
