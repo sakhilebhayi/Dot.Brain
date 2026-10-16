@@ -416,6 +416,20 @@ test('fetchHealth classifies a non-JSON body as contract', async () => {
   assert.match(result.reason, /not JSON/);
 });
 
+for (const name of ['TimeoutError', 'AbortError']) {
+  test(`fetchHealth classifies a body-read ${name} as unreachable, not contract`, async () => {
+    const fetchImpl = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => { throw Object.assign(new Error('The operation was aborted due to timeout'), { name }); },
+    });
+    const result = await fetchHealth(MANIFEST, { fetchImpl, env: ENV });
+    assert.equal(result.reachable, false);
+    assert.equal(result.kind, 'unreachable');
+    assert.match(result.reason, /body read failed/);
+  });
+}
+
 test('fetchHealth classifies a body that is not dot-guardian/v1-shaped as contract', async () => {
   const bad = [
     null,
@@ -458,7 +472,8 @@ export const VALID_STATUSES = ['healthy', 'warning', 'critical', 'unknown'];
  * service is self-contained. The words must keep meaning the same thing in
  * both places.
  *
- *   unreachable    -- nothing answered: DNS, connection refused, timeout
+ *   unreachable    -- nothing answered, or the answer never finished: DNS,
+ *                     connection refused, timeout (including a stalled body)
  *   platform_error -- answered with 5xx: the app is failing
  *   maintenance    -- answered 503: almost always our own deploy
  *   access         -- answered 401/403 (or another refusal): reached and refused
@@ -507,7 +522,14 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
   let doc;
   try {
     doc = await response.json();
-  } catch {
+  } catch (error) {
+    // The timeout signal stays attached to the body: a platform that sends
+    // headers and then stalls rejects here with a TimeoutError/AbortError.
+    // That is "the answer never finished" (unreachable per ADR-0016), not
+    // "answered with the wrong document" (contract).
+    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+      return { reachable: false, kind: 'unreachable', reason: `body read failed: ${error?.message ?? error}` };
+    }
     return { reachable: false, kind: 'contract', reason: 'response body was not JSON' };
   }
 
@@ -533,7 +555,7 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `cd services/platform-collector && node --test test/fetch.test.js`
-Expected: PASS (8 tests)
+Expected: PASS (10 tests)
 
 - [ ] **Step 5: Commit**
 
@@ -1258,7 +1280,7 @@ process.exit(exitCode);
 - [ ] **Step 5: Run the whole suite to verify it passes**
 
 Run: `cd services/platform-collector && npm test`
-Expected: PASS (registry 15 + fetch 8 + record 11 + memory 9 + collect 9 = 52 tests, 0 failures)
+Expected: PASS (registry 15 + fetch 10 + record 11 + memory 9 + collect 9 = 54 tests, 0 failures)
 
 - [ ] **Step 6: Commit**
 
@@ -1462,7 +1484,7 @@ and append it to the `covered=` string on the coverage-check line:
 - [ ] **Step 6: Run the whole suite to verify it passes**
 
 Run: `cd services/platform-collector && npm test`
-Expected: PASS (52 + 6 = 58 tests, 0 failures)
+Expected: PASS (54 + 6 = 60 tests, 0 failures)
 
 - [ ] **Step 7: Commit**
 
@@ -1685,7 +1707,7 @@ At the end of line 73 (the bullet beginning `- Brain-internal keys (agent creden
 
 Run: `grep -c "COLLECT\|HEALTHEP" brain.architecture.md` — Expected: `6` or more matching lines
 Run: `grep -n "^version:\|^last-review:" brain.architecture.md` — Expected: `version: 1.0.4` and `last-review: 2026-10-16`
-Run: `cd services/platform-collector && npm test` — Expected: PASS (58 tests)
+Run: `cd services/platform-collector && npm test` — Expected: PASS (60 tests)
 Run: `for s in revenue-reader revenue-intelligence guardian; do (cd services/$s && npm test 2>&1 | grep -E "^ℹ (pass|fail)"); done` — Expected: only `fail 0` lines (no sibling regressions)
 
 - [ ] **Step 6: Commit**
