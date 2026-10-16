@@ -40,7 +40,7 @@ Ship `services/platform-collector`, following the exact conventions of every sib
 
 | Key | Required | Purpose |
 |---|---|---|
-| `platform` | yes | platform id, e.g. `dot-mines`; unique across all manifests |
+| `platform` | yes | platform id, e.g. `dot-mines`; unique across all manifests; must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$` (it is embedded in `event_id`, `subject_id`, and a markdown table, so it must be plain and bounded) |
 | `health_url` | yes | the platform's `dot-guardian/v1` endpoint; must start with `https://` |
 | `token_env` | yes | env var holding the bearer token for that endpoint |
 | `timeout_ms` | no, default `15000` | per-request timeout; positive number |
@@ -62,7 +62,7 @@ Both tokens already exist as Dot.Brain repository secrets (used by `guardian-cro
 
 For each manifest, `GET <health_url>` with `Authorization: Bearer <token>` and `Accept: application/json`, bounded by `timeout_ms`. The shape check mirrors `services/guardian/src/health.js` (duplicated per this repo's convention, not imported): a response is accepted only if it is JSON, `status` is one of `healthy|warning|critical|unknown`, and `checks` is an object.
 
-Every failure is classified, never thrown, using Guardian's vocabulary so the two services mean the same thing by the same word:
+Every failure is classified, never thrown, using the vocabulary of ADR-0016 (health failure classification) as Guardian implements it, so the two services mean the same thing by the same word:
 
 | `kind` | When |
 |---|---|
@@ -88,10 +88,10 @@ One record per platform per run, `POST {DOT_MEMORY_URL}/api/intelligence/events`
 | `subject_type` / `subject_id` | `platform` / `<platform>` |
 | `subject_label` | `<platform> hourly state` |
 | `occurred_at` | when the fetch completed (ISO-8601) |
-| `signature` | `status:<status>` or `unreachable:<kind>` — makes "how often was X down" a recall query |
+| `signature` | `status:<status>` when a valid document was obtained, otherwise `failure:<kind>` — makes "how often was X down" a recall query |
 | `detail` | see below |
 
-`detail`: `{reachable, status, kind, reason, generated_at, check_count, checks}`, where `kind`/`reason` are null when reachable and `status`/`generated_at`/`checks` are null/empty when not. Each entry of `checks` is `{status, message, metrics}`. To keep a runaway platform from bloating Memory: `message` is truncated to 240 characters, and `metrics` keeps only scalar values (finite numbers, strings truncated to 240, booleans) and at most 32 keys per check.
+`detail`: `{reachable, status, kind, reason, generated_at, check_count, checks}`, where `kind`/`reason` are null when reachable and `status`/`generated_at`/`checks` are null/empty when not. Each entry of `checks` is `{status, message, metrics}`. To keep a runaway platform from bloating Memory: at most 64 checks are kept (`check_count` still reports the true number), `message` is truncated to 240 characters, and `metrics` keeps only scalar values (finite numbers, strings truncated to 240, booleans) and at most 32 keys per check.
 
 Because `event_id` embeds the UTC hour, a duplicate or late run inside the same hour updates the existing row (Memory's documented behavior) rather than adding one. Brain reads the series back through Memory's existing `GET /api/intelligence/context?subject_type=platform&subject_id=<platform>`; no new read surface is built.
 
