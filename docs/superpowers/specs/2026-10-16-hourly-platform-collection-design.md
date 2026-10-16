@@ -4,13 +4,13 @@
 
 The owner wants Dot.Brain "always updated" on the state of the live Dot platforms, collected every hour. Today Brain has almost no recurring live feed:
 
-- **Guardian** (`services/guardian`, ADR-0014) polls the `dot-guardian/v1` health endpoint of enrolled platforms every 5 minutes, but only to detect and remediate incidents. It keeps its own local store (`actions/cache`), not a queryable time series, and only two platforms are enrolled (`dot-mines`, `blupin`).
+- **Guardian** (`services/guardian`, ADR-0014) polls the `dot-guardian/v1` health endpoint of enrolled platforms every 5 minutes, but only to detect and remediate incidents. It keeps its own local store (`actions/cache`), not a queryable time series, and only one platform is enrolled (`dot-mines`; a second, `blupin`, was retired on 2026-10-16 together with the BluPin signal engine).
 - **Revenue Reader** (ADR-0018) has no enrolled platform.
 - The DKP publish/subscribe gateway described in `brain.dkp.md` §8 is not a running service.
 
-"Live" is a smaller set than the 29 rows in `brain.platforms.md` §2, whose Status column tracks DKP integration stage, not deployment. Of the deployed apps, only Dot.Mines serves a machine-readable endpoint (`GET /guardian/health`); BluPin's health is served by Dot.Memory (`GET /api/guardian/blupin`). The other deployed apps (Central, Memory, Doc, Charts, Dopemine) serve nothing machine-readable yet.
+"Live" is a smaller set than the 29 rows in `brain.platforms.md` §2, whose Status column tracks DKP integration stage, not deployment. Of the deployed apps, only Dot.Mines serves a machine-readable endpoint (`GET /guardian/health`). The other deployed apps (Central, Memory, Doc, Charts, Dopemine) serve nothing machine-readable yet.
 
-**Where it runs.** GitHub Actions is where Brain's jobs run (`guardian-cron.yml`, `blupin-context.yml`), but its scheduler is not a dependable clock. Guardian's `*/5` cadence was measured at a median of about 2.5 hours (2026-08-27) and is now driven by an external dispatcher, a Cloudflare Worker calling `workflow_dispatch` (`services/guardian-trigger`). This hourly cron is unmeasured; the one comparable Brain cron that can be read, `blupin-context.yml`'s daily 03:05 UTC, started 18 to 32 minutes late across its last eight runs (run list read on 2026-10-16). `platform-collector.yml` already accepts `workflow_dispatch`, so if the first 48 hours show gaps the fix is one more dispatch from that worker (Open questions). The deployed apps share ONE cPanel crontab, which three simultaneous deploys wiped on 2026-10-16 (F-INFRA-2026-001); Dot.Brain is not hosted there. The collector therefore runs from Dot.Brain's own Actions, not from that crontab.
+**Where it runs.** GitHub Actions is where Brain's jobs run (`guardian-cron.yml`), but its scheduler is not a dependable clock. Guardian's `*/5` cadence was measured at a median of about 2.5 hours (2026-08-27) and is now driven by an external dispatcher, a Cloudflare Worker calling `workflow_dispatch` (`services/guardian-trigger`). This hourly cron is unmeasured; the one comparable Brain cron that could be read, the since-retired `blupin-context.yml`'s weekday 03:05 UTC, started 18 to 32 minutes late across its last eight runs (run list read on 2026-10-16). `platform-collector.yml` already accepts `workflow_dispatch`, so if the first 48 hours show gaps the fix is one more dispatch from that worker (Open questions). The deployed apps share ONE cPanel crontab, which three simultaneous deploys wiped on 2026-10-16 (F-INFRA-2026-001); Dot.Brain is not hosted there. The collector therefore runs from Dot.Brain's own Actions, not from that crontab.
 
 **Why not extend Guardian.** Guardian can deploy and roll back platforms (ADR-0014). Passive collection should not inherit that authority, and Guardian manifests require `repo`, `deploy`, and `autonomy_level` that a collection-only platform has no reason to declare.
 
@@ -21,7 +21,7 @@ Ship `services/platform-collector`, following the exact conventions of every sib
 1. A manifest registry, `platforms/collector/<platform>.json`, for opt-in enrollment.
 2. A collector that, once per run, fetches each enrolled platform's `dot-guardian/v1` health document and records one observation per platform to Dot.Memory.
 3. An hourly GitHub Actions workflow, `.github/workflows/platform-collector.yml`.
-4. Day-one enrollment of `dot-mines` and `blupin` (both already serve data).
+4. Day-one enrollment of `dot-mines` (it already serves data). `blupin` was enrolled alongside it and retired the same day, see the change log.
 5. `ADR-0019`, doc updates (`brain.architecture.md`), CI matrix and coverage-check registration.
 
 ## Non-goals
@@ -47,14 +47,13 @@ Ship `services/platform-collector`, following the exact conventions of every sib
 
 Validation is strict, applying lessons from review of `services/revenue-reader`: required keys must be non-empty strings (not merely truthy); unrecognized keys are rejected rather than silently dropped; `timeout_ms` must be a positive finite number; a malformed JSON file or an invalid manifest fails with its filename; two manifests declaring the same `platform` are rejected (otherwise a second file could silently shadow or duplicate the first). Manifests load in sorted file-name order, so rows, writes and log lines do not depend on the filesystem's directory order.
 
-Day-one manifests:
+Day-one manifest:
 
 | File | `health_url` | `token_env` |
 |---|---|---|
 | `dot-mines.json` | `https://mines.infodot.co.za/guardian/health` | `DOT_MINES_GUARDIAN_TOKEN` |
-| `blupin.json` | `https://memory.infodot.co.za/api/guardian/blupin` | `DOT_MEMORY_TOKEN` |
 
-Both tokens already exist as Dot.Brain repository secrets (used by `guardian-cron.yml`), so no new secret is created and the token-rotation audit in `brain.security.md` gains a consumer, not a new credential. The Memory token now has three consumers (`guardian-cron.yml`, `blupin-context.yml`, the collector), with rotation due about 2026-11-23 under `brain.security.md` §4.
+The Mines token and the Memory token (used for the writes) already exist as Dot.Brain repository secrets (used by `guardian-cron.yml`), so no new secret is created and the token-rotation audit in `brain.security.md` gains a consumer, not a new credential. The Memory token has two consumers (`guardian-cron.yml`, the collector), with rotation due about 2026-11-23 under `brain.security.md` §4.
 
 **Enrollment is three steps, not one**, and this is a real limit: a manifest, a repository secret, and one `env:` line in the workflow that passes that secret to the job. GitHub Actions cannot hand a job "whichever secrets the manifests name" without exposing every secret (`toJSON(secrets)`), which is not acceptable. To keep this honest, a test asserts that every `token_env` named by a committed manifest appears in the workflow file, so an enrolled-but-never-passed token fails CI instead of failing silently at 17 minutes past the hour.
 
@@ -77,13 +76,13 @@ An unset token is recorded as `config`, not skipped: a silent hole in the hourly
 
 ## 3. The observation record
 
-One record per platform per run, `POST {DOT_MEMORY_URL}/api/intelligence/events` with the same envelope `services/blupin-context` already uses and Dot.Memory's `LoopController::record` already validates:
+One record per platform per run, `POST {DOT_MEMORY_URL}/api/intelligence/events` with the envelope Dot.Memory's `LoopController::record` already validates (the same one the other intelligence-loop writers use):
 
 | Field | Value |
 |---|---|
 | `loop_id` | `collect-<platform>-<UTC date>` — groups a platform's 24 daily observations |
 | `event_id` | `collect-<platform>-<UTC yyyymmddhh>` — the idempotency key |
-| `platform` | `dot-brain` (the recorder, as `blupin-context` does) |
+| `platform` | `dot-brain` (the recorder) |
 | `source` | `platform-collector` |
 | `subject_type` / `subject_id` | `platform` / `<platform>` |
 | `subject_label` | `<platform> hourly state` |
@@ -147,7 +146,7 @@ GitHub's cron is best-effort: a run can start late or be skipped under load, and
 ## Open questions
 
 - **Measure the cadence for 48 hours after merge.** Compare each run's start time against minute 17 and count missed hours. If there are gaps, add an hourly `workflow_dispatch` of `platform-collector.yml` to the Cloudflare Worker that already drives Guardian (`services/guardian-trigger`); the workflow already accepts it.
-- **Dot.Memory follow-ups** (separate PRs in that repository): expose an observation's `detail` through a route, since it is write-only today (§3); `BlupinLoopReport` emits `summary` rather than `message` and no `metrics`, so every `blupin` observation stores an empty message and empty metrics (verified); and `context` returns a subject's whole history unbounded, so it needs a limit or window before it is read at hourly volume.
+- **Dot.Memory follow-ups** (separate PRs in that repository): expose an observation's `detail` through a route, since it is write-only today (§3); and `context` returns a subject's whole history unbounded, so it needs a limit or window before it is read at hourly volume.
 - **Freshness watchdog.** Nothing yet notices if the collector itself stops (a disabled schedule, an expired secret). A natural fit is a Guardian check on "age of the latest `platform` observation in Memory ≤ 2 h"; deferred until the collector exists to be watched. Note that GitHub automatically disables scheduled workflows in a public repository after 60 days without repository activity, so a quiet repo can switch this job off without any error.
 - **Public run logs.** This is a public repository, so the run logs and job summary expose each platform's reachability and status every hour. Accepted and noted. Tokens are never printed, and manifest errors never echo a URL.
 - **Retention.** Dot.Memory has no pruning; 24 rows per platform per day grows without bound. Fine at two platforms, worth a policy before ten.
@@ -159,3 +158,4 @@ GitHub's cron is best-effort: a run can start late or be skipped under load, and
 |---|---|---|---|
 | 1.0.0 | 2026-10-16 | Brainstorming session | Initial design. |
 | 1.0.1 | 2026-10-16 | Whole-branch review | Corrected two claims: observation `detail` is not readable through `context` (only the signature series and recurrence are), and GitHub's scheduler is not a dependable clock (Context, §5, Open questions). Synced the spec with the code: `health_url` must be https with a host and no credentials and is never echoed; manifests load sorted; the shape check's divergences from `health.js` and the platform identity check (§2); `generated_at` and key-name bounds, `__proto__` safety, and the no-content-inspection note (§3); retries on 403/408/429, per-platform isolation of unexpected throws, exit codes and best-effort job summary (§4); `persist-credentials: false` (§5); Memory token now has three consumers. New Open questions: cadence measurement, Dot.Memory follow-ups, 60-day auto-disable, public run logs. |
+| 1.0.2 | 2026-10-16 | BluPin retirement | BluPin is the holding company, not a Dot platform, and its signal engine was removed from Dot.Charts. The `blupin` manifest was retired: day-one enrollment is `dot-mines` only, the `blupin-context` job (and with it the examples that cited it) is gone, and the Dot.Memory `BlupinLoopReport` follow-up no longer applies (the report itself is being removed). The Memory token now has two consumers. Earlier change-log rows are left as written. |

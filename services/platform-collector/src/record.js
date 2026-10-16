@@ -33,8 +33,8 @@ function compactMetrics(metrics) {
 
 /**
  * Builds the Dot.Memory `POST /api/intelligence/events` body for one platform
- * (design spec §3) -- the same envelope services/blupin-context uses and
- * Dot.Memory's LoopController already validates. `event_id` embeds the UTC
+ * (design spec §3) -- the envelope Dot.Memory's LoopController already
+ * validates and the other intelligence-loop writers use. `event_id` embeds the UTC
  * hour, so a duplicate or late run inside the same hour updates the existing
  * row instead of adding one.
  *

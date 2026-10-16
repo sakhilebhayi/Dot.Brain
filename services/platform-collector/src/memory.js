@@ -13,9 +13,9 @@ const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const RETRYABLE_CLIENT_STATUSES = [403, 408, 429];
 
 /**
- * Same shape as services/revenue-intelligence/src/memory-client.js and
- * services/blupin-context: DOT_MEMORY_URL + DOT_MEMORY_TOKEN, honest
- * degradation (an unconfigured Memory is reported, never treated as success).
+ * Same shape as services/revenue-intelligence/src/memory-client.js:
+ * DOT_MEMORY_URL + DOT_MEMORY_TOKEN, honest degradation (an unconfigured
+ * Memory is reported, never treated as success).
  */
 export function memoryConfig(env = process.env) {
   const url = env.DOT_MEMORY_URL;
