@@ -35,6 +35,16 @@ export async function runPipeline({ pollResult, cfg, notifyClient, targetPlatfor
 
     const insightId = insight.evidence[0].reference;
     const recordResult = await recordInsight(cfg, insight, fetchImpl);
+    // A record failure used to be ignored and delivery attempted anyway:
+    // Notify would receive an insightId with nothing in Dot.Memory to
+    // resolve it against, and the candidate would end up in `delivered`
+    // despite never having been recorded. Stop here instead, same as any
+    // other gate rejection.
+    if (!recordResult.ok) {
+      rejected.push({ insight, gate: 'record', reason: recordResult.reason });
+      continue;
+    }
+
     const deliverResult = await deliverInsight({
       insightId,
       targetPlatform: pollResult.platform,

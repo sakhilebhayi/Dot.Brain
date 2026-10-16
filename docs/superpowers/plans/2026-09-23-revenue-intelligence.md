@@ -13,7 +13,7 @@
 - `detectOpportunities` never throws on well-formed-but-boring input — an empty or all-non-matching `signals` array returns `[]` (design spec §1, Error handling).
 - A generated insight's `classification` is always inherited from the poll result's own `classification`, never upgraded or invented (design spec §1).
 - A generated insight's `evidence` references only the triggering signal's key, the platform, and `generated_at` — never the full raw signals array (design spec §1).
-- `deliverInsight` always delivers with `scope: 'admin'` — this is not a caller-supplied parameter in this service (design spec §2, distinct from `services/insight-delivery`'s version where `scope` is passed through).
+- `deliverInsight` always delivers with `audience: 'admin'` — this is not a caller-supplied parameter in this service (design spec §2, distinct from `services/insight-delivery`'s version where `scope` is passed through). `audience` is a delivery-time Notify parameter, deliberately distinct from the Insight's own `scope` field (which `opportunities.js` sets to the enrolling platform, per `insight.schema.json`'s actual meaning).
 - No cross-service imports: `gates.js`, `memory-client.js`, and `deliver.js` are this service's own files, matching the shape of `services/insight-delivery`'s files of the same name, not imports of them (design spec §2, Global Constraints of the design: "every service owns its own small clients").
 - No platform enrollment exists yet and none is created by this plan — all tests exercise the pipeline against a plain JavaScript object shaped like a Revenue Reader poll result, never a real poll (design spec Non-goals).
 - No new ADR, no changes to `services/insight-delivery`, `services/revenue-reader`, or their existing files.
@@ -54,7 +54,7 @@ brain.architecture.md    # modified: new component, new diagram node/edge
 **Interfaces:**
 - Produces:
   - `CHURN_RATE_THRESHOLD: number` — `0.05`
-  - `detectOpportunities(pollResult: {platform: string, generated_at: string, classification: string, signals: object[]}) => Array<{statement: string, domain: 'revenue', method: string, evidence: Array<{kind: 'metric', reference: string}>, scope: 'admin', classification: string, valid_until: string}>`
+  - `detectOpportunities(pollResult: {platform: string, generated_at: string, classification: string, signals: object[]}) => Array<{statement: string, domain: 'revenue', method: string, evidence: Array<{kind: 'external', reference: string}>, scope: string, 'x-classification': string, valid_until: string}>` (`scope` is the enrolling platform; `audience: 'admin'` is a separate, delivery-time parameter set in `deliver.js`, not part of the Insight itself; `classification` is carried as `x-classification` since `insight.schema.json` is `additionalProperties: false`)
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -984,13 +984,15 @@ job, once a platform actually enrolls.
 2. `runEthicsGate()` / `runSecurityGate()` — same as Insight Delivery's.
 3. `recordInsight()` — gate-cleared insights are recorded to Dot.Memory.
 4. `deliverInsight()` — push, routed through Dot.Notify, always
-   `scope: 'admin'`.
+   `audience: 'admin'`.
 5. `recordDeliveryOutcome()` — closes the loop from Notify's existing
    delivery event, same as Insight Delivery.
 
-`runPipeline()` ties all five together for one poll result; every
+`runPipeline()` ties the first four together for one poll result; every
 candidate ends up in either `delivered` or `rejected`, nothing silently
-dropped.
+dropped. `recordDeliveryOutcome()` (step 5) is not part of that call --
+it closes the loop later, from Notify's own separate delivery-outcome
+event.
 
 ## CLI
 
