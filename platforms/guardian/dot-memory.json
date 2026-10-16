@@ -1,0 +1,21 @@
+{
+  "platform": "dot-memory",
+  "health_url": "https://memory.infodot.co.za/api/guardian/health",
+  "token_env": "DOT_MEMORY_TOKEN",
+  "repo": "sakhilebhayi/Dot.Memory",
+  "default_branch": "main",
+  "deploy": {
+    "workflow": "deploy.yml",
+    "confirm_inputs": {
+      "confirm": "deploy"
+    }
+  },
+  "autonomy_level": 2,
+  "environment": "production",
+  "poll_interval_s": 300,
+  "protected_areas": [
+    "database/migrations/**",
+    "app/Models/OpsIncident.php",
+    "app/Models/LoopRecord.php"
+  ]
+}

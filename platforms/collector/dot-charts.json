@@ -1,0 +1,5 @@
+{
+  "platform": "dot-charts",
+  "health_url": "https://charts.infodot.co.za/guardian/health",
+  "token_env": "DOT_CHARTS_GUARDIAN_TOKEN"
+}

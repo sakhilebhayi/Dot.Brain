@@ -1,0 +1,5 @@
+{
+  "platform": "dot-dopemine",
+  "health_url": "https://dopemine.infodot.co.za/guardian/health",
+  "token_env": "DOT_DOPEMINE_GUARDIAN_TOKEN"
+}

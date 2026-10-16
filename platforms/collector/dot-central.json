@@ -1,0 +1,5 @@
+{
+  "platform": "dot-central",
+  "health_url": "https://central.infodot.co.za/guardian/health",
+  "token_env": "DOT_CENTRAL_GUARDIAN_TOKEN"
+}
