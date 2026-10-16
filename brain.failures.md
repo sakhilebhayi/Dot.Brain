@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — Failure Knowledge Base
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [SRE Lead, Resilience Agent]
 reviewing-agent: Security Agent
-last-review: 2026-08-01
+last-review: 2026-10-16
 review-cadence: monthly
 ---
 
@@ -81,6 +81,19 @@ The near-miss from [brain.semantic.md](brain.semantic.md) §6 run forward as if 
 4. **Propagation:** lesson pack in 48 h; [brain.semantic.md](brain.semantic.md) §3's no-auto-merge rule is the lesson institutionalized as spec — the catalog entry is *why* that rule exists, permanently citable as `F-KNOW-2026-001`.
 5. **Repeat watch:** any future evidence-pooling-via-merge incident is a repeat and a governance finding, not just an ops issue.
 
+## 5a. Catalog entry — F-INFRA-2026-001 (shared crontab, silent scheduler death)
+
+The first production entry, recorded from the platform side (Dot.Mines wiki 0.4.4, Dot.Central docs §8 "Crontab rules") and the guardian's own issue trail. Two incidents, one failure: every Dot platform deploys to one hosting account with **one crontab**, and that crontab had several writers that did not know about each other.
+
+1. **Timeline.** 2026-08-31 21:58 UTC a sibling platform's analytics-setup pipeline rewrote the account crontab from an empty read and dropped Dot.Mines' `schedule:run` line. No page turned red: queued jobs drained only when a human visited, manufacturer syncs stopped, and the guardian filed freshness recommendations that were read as provider stalls. Detected 2026-10-16 ~18:00 UTC while chasing why a new scheduled command never ran (MTTD ≈ 46 days). Mitigated the same day by a deploy that reinstalls the line. At 18:37 UTC the hardened block was exercised for real: three deploys dispatched at the same second raced on the crontab; two refused and "restored" — one of them restoring the empty crontab it had read mid-write. Every Dot scheduler was dead for seven minutes until the deploys were re-run one at a time (18:43–18:48 UTC). Lock merged 18:52 UTC.
+2. **Root causes.** (a) One shared crontab with per-app writers that overwrote the whole file — design gap. (b) A writer that treated a failed `crontab -l` as "no crontab" and installed empty — process gap. (c) Per-repository CI concurrency groups that never covered a resource shared across repositories — boundary gap. (d) No liveness check on the scheduler itself; every probe that existed measured the web tier — absent telemetry. Four causes, no names.
+3. **Contributing factors.** `cron`'s minimal `PATH` resolves a different PHP binary than the login shell, so even a present line can run the wrong interpreter; scheduler output went to `/dev/null`; the guardian's `telemetry_ingestion` check had been tuned to distrust itself after the provider-feed episode, so a dead scheduler looked like a slow provider.
+4. **What worked.** The verified block's refuse-and-restore held exactly as designed in the race (no partial crontab was ever installed); the guardian's recommendation trail gave the date to within a minute; the platform's own `server-logs` evidence workflow turned a hypothesis into a crontab listing in two minutes.
+5. **Lessons (verified 2026-10-16 by re-running every deploy and reading the crontab back).** L1 — a crontab writer rewrites only lines carrying its own marker, re-reads, and restores on mismatch. L2 — writes to a shared file are serialised with a lock (`flock` on `~/.dot-crontab.lock`), not merely verified. L3 — every platform runs an external scheduler watchdog (GitHub Actions, 15 min) that reads a scheduler heartbeat, not the web tier. L4 — a deploy re-asserts the platform's cron line, which gives the guardian a `redeploy` runbook for `scheduler` ([ADR-0014](adr/ADR-0014-dot-guardian-architecture.md) 1.0.1). Propagated as the same generated block in six repositories (Dot.Mines, Dot.Central, Dot.Memory, Dot.Doc, Dot.Charts, Dot.Dopemine) and as deploy rules in each.
+6. **Repeat watch.** Any crontab write outside the generated block, or any deploy that reports fewer "other lines preserved" than the previous deploy, is a repeat and a governance finding.
+
+Classification `ecosystem` (no control internals exposed; host and account names withheld).
+
 ## 6. Health metrics
 
 Registered in [brain.metrics.md](brain.metrics.md): `resilience.repeat_incident_rate` (declining — **the defining metric**) · `resilience.lessons_verified_within_30d = 100%` · `resilience.lesson_adoption_rate ≥ 50%` · `resilience.mttd_p50` / `resilience.mttr_p50` (declining trends, computed from catalog timelines) · `colony.lesson_propagation_latency ≤ 72 h`. Also registered (§4.9, 1.4.0): `failures.pir_completion_within_5d` (100% — a PIR that waits loses the details that matter) and `failures.entries_with_what_worked` (100% — half-incident reviews are a taxonomy violation).
@@ -92,6 +105,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `resilience.repeat_incident_
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial knowledge base: six-class taxonomy, blameless record format with mandatory what-worked, verified-lesson promotion path (λ=0 earned not automatic), cross-entry pattern reading, F-KNOW-2026-001 worked example |
+| 1.1.0 | 2026-10-16 | Reliability pass (Dot.Mines scheduler outage) | §5a: first production catalog entry F-INFRA-2026-001 (shared crontab, 46-day silent scheduler death and the same-day deploy race), four lessons verified and propagated to six platform repositories |
 
 ## Open Questions
 

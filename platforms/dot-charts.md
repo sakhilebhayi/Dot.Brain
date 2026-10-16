@@ -1,6 +1,6 @@
 ---
 title: Dot.Charts — Platform Knowledge
-version: 1.0.3
+version: 1.1.0
 status: active
 owners: [Charts Platform Lead, Trading Agent, Registry Agent]
 platform-id: dot-charts
@@ -156,6 +156,13 @@ None found. The manifest's `platform.dkp.json` example (`platforms/dot-charts.md
 
 The only real automated *operator* process today (the monthly observation-pack cycle) is legitimately Level 1 because it operates purely on ChartSense's own aggregate backtest data with a hard floor and structural loss-honesty guarantees — it never touches the MNPI gate or user positions. For a first real Level 2 process to exist, the repo would need an actual human-approval queue (a pending/approved/rejected state and endpoint) wired to `RecommendationPackGenerator`'s output, since none exists today — the generator currently writes straight through with no gate. Separately, the outbound half of the "bidirectional" compliance gate described in this file's §7 (signal-disclosure and performance-claim rejection) has no corresponding `Outbound*Gate` class in the real codebase — only `InboundMnpiGate` exists; `DisclosureFormatter` always *adds* disclosure fields but never *rejects* a publication — so that part of §7 is aspirational relative to the current code and should not be relied on as an enforced control until built.
 
+## Verified Infrastructure State (2026-10-16)
+
+Audited against the real repository (`ChartSense`, see the naming OQ below) during the ecosystem reliability pass:
+
+- `.github/workflows` holds `bootstrap.yml`, `deploy.yml` (confirmed dispatch; deploys the Laravel app under `backend/` to the shared Dot host and installs the backend's `schedule:run` crontab line through the generated verified crontab block shared by every Dot deploy (own marker only, absolute PHP binary, read-back verification, restore on mismatch, `flock`-serialised since 2026-10-16 18:52 UTC — see [F-INFRA-2026-001](../brain.failures.md))), `setup-analytics.yml` (a separate analytics keep-alive service whose two crontab lines carry the marker `# charts-analytics-keepalive`; its 2026-08-31 run is the one that installed an empty crontab and started F-INFRA-2026-001, since hardened to the same block), plus `blupin-daily.yml`, `maintenance.yml` and the read-only `server-recon.yml`.
+- The analytics keep-alive lines were absent from the account crontab as of 2026-10-16 and are reinstalled by dispatching `setup-analytics.yml` once (owner action, pending).
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -165,6 +172,7 @@ The only real automated *operator* process today (the monthly observation-pack c
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Both OQs struck (instrument map joint ownership, retail defaults + Loop C comprehension — resolved by dot-finance.md and dot-design.md) |
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Charts's own wiki.md (platform repo) as the platform-owned source of truth |
+| 1.1.0 | 2026-10-16 | Reliability pass | Verified Infrastructure State (2026-10-16): workflows, locked crontab block for the backend and the analytics keep-alive, origin of F-INFRA-2026-001 recorded |
 
 ## Open Questions
 
