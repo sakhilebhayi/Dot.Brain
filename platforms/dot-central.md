@@ -1,6 +1,6 @@
 ---
 title: Dot.Central — Platform Knowledge
-version: 1.2.0
+version: 1.2.1
 status: active
 owners: [Operations Intelligence Lead, Mining Agent, Registry Agent]
 platform-id: dot-central
@@ -161,6 +161,7 @@ Confirmed against the real repository and the live site during the control-room 
 - **Operational lane to Dot.Mines.** Per-team connection (API token + webhook signing secret) syncing operators, operator-machine assignments, machines, metrics and alerts; rules evaluated after every sync and on a five-minute backstop; control-room line-up and shift surfaces built on the synced mirror.
 - **Ecosystem intelligence loop (reader and writer).** Every control-room decision, action and outcome is derived from the audit log and the mirror, mapped into the [ADR-0015](../adr/ADR-0015-three-platform-intelligence-loop.md) vocabulary (`equipment` subjects keyed by the Dot.Mines machine id, `control_room:<id>` scopes), queued in a local outbox and sent with backoff so Memory never blocks an operator. A lazy recall strip under alerts, exceptions and on the equipment page shows what was tried before and what worked; `memory:report-incidents` files credential-invalid connections, failing syncs, a stalled queue and a stuck outbox to Dot.Memory's ops incident store. Dot.Central authenticates with a service token provisioned by Dot.Memory's `provision-service-token.yml`. The two-lane contract in §6 holds: Dot.Brain is still not in the real-time path.
 - **Guardian coverage.** Not enrolled in `platforms/guardian/` — the platform exposes a heartbeat probe, not the `dot-guardian/v1` health contract (open question below).
+- **Webhook receiver hardening (2026-10-16 evening, wiki 0.20.1–0.20.2).** `/webhooks/mines/{connection}` is constrained to the numeric connection id: a mistyped endpoint now answers 404 instead of throwing a 500 that Dot.Mines treats as retryable (it had ~100 deliveries scheduled hours out against a token-like path; [F-PROC-2026-001](../brain.failures.md)). `server-logs.yml` tails the application log rather than the newest file, which was always the per-minute cron log. A failed deploy stops before `artisan up`, so a red deploy leaves the site in maintenance mode until re-run (seen 19:33 UTC, five minutes; F-INFRA-2026-001 addendum).
 
 ## Change Log
 
@@ -172,6 +173,7 @@ Confirmed against the real repository and the live site during the control-room 
 
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.2.0 | 2026-10-16 | Reliability + Dot.Central integration pass | Verified Infrastructure State (2026-10-16): live site, CI-gated deploy, locked crontab block with scheduler + queue lines, watchdog and probes, Dot.Mines operational lane, intelligence-loop reader/writer; Level 1 processes recorded; domain-mismatch OQ resolved |
+| 1.2.1 | 2026-10-16 | Reliability pass (evening) | Webhook receiver answers 404 to malformed endpoints; server-logs tails the app log; maintenance-mode consequence of a failed deploy recorded; F-PROC-2026-001 cross-reference |
 
 ## Open Questions
 

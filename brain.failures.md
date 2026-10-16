@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Failure Knowledge Base
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [SRE Lead, Resilience Agent]
 reviewing-agent: Security Agent
@@ -92,7 +92,20 @@ The first production entry, recorded from the platform side (Dot.Mines wiki 0.4.
 5. **Lessons (verified 2026-10-16 by re-running every deploy and reading the crontab back).** L1 — a crontab writer rewrites only lines carrying its own marker, re-reads, and restores on mismatch. L2 — writes to a shared file are serialised with a lock (`flock` on `~/.dot-crontab.lock`), not merely verified. L3 — every platform runs an external scheduler watchdog (GitHub Actions, 15 min) that reads a scheduler heartbeat, not the web tier. L4 — a deploy re-asserts the platform's cron line, which gives the guardian a `redeploy` runbook for `scheduler` ([ADR-0014](adr/ADR-0014-dot-guardian-architecture.md) 1.0.1). Propagated as the same generated block in six repositories (Dot.Mines, Dot.Central, Dot.Memory, Dot.Doc, Dot.Charts, Dot.Dopemine) and as deploy rules in each.
 6. **Repeat watch.** Any crontab write outside the generated block, or any deploy that reports fewer "other lines preserved" than the previous deploy, is a repeat and a governance finding.
 
+**Addendum (2026-10-16 19:33 UTC).** With the lock merged, the Dot.Central deploy still failed verification: the read-back immediately after the write answered empty while holding the lock (before=7, after=0, mine=2). Nothing was lost — the block restored the previous crontab — but the deploy stopped before the site left maintenance mode, and the scheduler probe served a 503 holding page for five minutes until a re-run. Fifth root cause, retrofitted: (e) `crontab -l` on this host can transiently answer empty, which also explains the 2026-08-31 empty install better than the writer's own logic alone. Lesson L5, verified by the next three deploys: every crontab read retries up to five times, two seconds apart, trusts only a non-empty answer or an explicit "no crontab for", and a persistently empty read refuses to write. Propagated to the same six repositories the same evening. Operating consequence: a red deploy on any Dot platform means that site is in maintenance mode until the deploy is re-run.
+
 Classification `ecosystem` (no control internals exposed; host and account names withheld).
+
+## 5b. Catalog entry — F-PROC-2026-001 (mistyped webhook endpoint, retry storm read as backlog)
+
+1. **Timeline.** 2026-10-16: a Dot.Mines webhook endpoint for Dot.Central was registered with a token-like path segment instead of the numeric connection id printed on Dot.Central's Health page. Dot.Central's receiver typed the route parameter `int`, so every delivery threw before the handler ran: HTTP 500. Dot.Mines' delivery job treats 500 as retryable and dispatched its successor with a growing delay (1 min, 5 min, 30 min, 2 h, five attempts), so ~100 future-dated jobs accumulated on the `webhooks` queue. At 19:00 UTC the guardian's queue check counted them as backlog (`pending_jobs` ≥ 100) and opened an issue proposing a redeploy, and the platform's 15-minute scheduler watchdog went red twice. Diagnosed 19:17 UTC by reading the jobs table by class; resolved 19:39 UTC.
+2. **Root causes.** (a) A configuration value entered by hand with no shape check on either side — process gap. (b) A receiver that crashed on malformed input instead of rejecting it, turning a mistake into a retryable failure — design gap. (c) A backlog metric that counted jobs scheduled for the future as jobs waiting for a worker — inference gap in the health contract. Three causes, no names.
+3. **Contributing factors.** The platform's own diagnostics tailed whichever log file was newest, which on this host is always the per-minute cron log, so the receiver's 500s were invisible from the workflow; the receiving platform logs a 500 but not a 404, so the fix also makes the failure quieter on the right side.
+4. **What worked.** The delivery job's explicit retry design never lost a delivery and never failed a job; the guardian's recommend-only ceiling meant its wrong proposal (redeploy) was not executed; the delivery ledger on the sending side held the response code and error for every attempt.
+5. **Lessons (verified 2026-10-16 by the first delivery to the corrected endpoint and a healthy queue check).** L1 — a receiver validates the shape of its route and rejects with 4xx; 5xx is reserved for the receiver's own faults. L2 — a backlog metric counts only work a worker could take now; scheduled retries are reported separately. L3 — a queue warning with zero failures and a near-zero oldest-ready age means scheduled retries, not a stopped drain: read the jobs table by class before proposing a remediation. L4 — platform diagnostics tail the application log by name.
+6. **Repeat watch.** Any guardian queue recommendation whose health excerpt shows `failed_last_hour: 0` and `oldest_pending_seconds` under a minute is a candidate repeat; the `delayed_jobs` metric now makes the distinction explicit in the excerpt itself.
+
+Classification `ecosystem` (no endpoint paths, tokens or account names recorded).
 
 ## 6. Health metrics
 
@@ -106,6 +119,7 @@ Registered in [brain.metrics.md](brain.metrics.md): `resilience.repeat_incident_
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Brain Document Generator (prompt 03, AI) | Initial knowledge base: six-class taxonomy, blameless record format with mandatory what-worked, verified-lesson promotion path (λ=0 earned not automatic), cross-entry pattern reading, F-KNOW-2026-001 worked example |
 | 1.1.0 | 2026-10-16 | Reliability pass (Dot.Mines scheduler outage) | §5a: first production catalog entry F-INFRA-2026-001 (shared crontab, 46-day silent scheduler death and the same-day deploy race), four lessons verified and propagated to six platform repositories |
+| 1.2.0 | 2026-10-16 | Reliability pass (evening) | §5a addendum: transient empty `crontab -l` (root cause e, lesson L5, maintenance-mode consequence); §5b: F-PROC-2026-001 mistyped webhook endpoint and retry storm read as backlog, four lessons verified |
 
 ## Open Questions
 
