@@ -1,12 +1,12 @@
 ---
 title: Dot.Central — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Operations Intelligence Lead, Mining Agent, Registry Agent]
 platform-id: dot-central
 dkp-version: 1.0.0
 integration-status: publishing
-last-review: 2026-08-01
+last-review: 2026-10-16
 ---
 
 # Dot.Central
@@ -142,11 +142,25 @@ None found. No code path assembles a Context → Evidence → Risk → Recommend
 - **Operator session (shift) management** — `app/Http/Controllers/OperatorSessionController.php`: starting, ending, and deleting shift sessions are manual, human-only writes.
 - **Ecosystem SSO login** — `app/Http/Controllers/Auth/EcosystemAuthController.php`: consumes a single-use Sanctum personal access token scoped to `ecosystem:read`, deletes it, and logs the user in — security-credential handling, Level 3 by definition regardless of how routine it looks.
 - **Team, user, and credential management** — `app/Actions/Jetstream/*.php` (`CreateTeam`, `DeleteTeam`, `AddTeamMember`, `RemoveTeamMember`, `InviteTeamMember`, `UpdateTeamName`, `DeleteUser`) and `app/Actions/Fortify/*.php` (`CreateNewUser`, `ResetUserPassword`, `UpdateUserPassword`, `UpdateUserProfileInformation`), gated by `app/Policies/TeamPolicy.php`'s `ownsTeam` checks — account and credential ownership, non-delegable per §2.
-- **Deployment/CI-CD** — no `.github/workflows/`, no deploy scripts, and no scheduler exist anywhere in the repo (confirmed by direct search); whatever deployment process exists today happens entirely outside this codebase and is therefore fully manual by default, not automated-and-unclassified.
+- **Deployment/CI-CD** (re-audited 2026-10-16) — `ci.yml` (Pint, PHPStan, test suite, Quality Gate) gates `deploy.yml`, which deploys on green `main` or on a confirmed manual dispatch; `bootstrap.yml` is the one-time host setup. Merging stays Level 3; the deploy that follows is Level 1. The 2026-08-08 statement is superseded.
+
+### Level 1 — Autonomous (re-audited 2026-10-16, supersedes "None found")
+
+`routes/console.php` now registers: `sessions:scan-stale` hourly; `mines:sync` every few minutes (one queued job per usable Dot.Mines connection) and `mines:refresh-hours` every 15 min; `rules:evaluate` every 5 min (the backstop for time-based rules); a scheduler heartbeat every minute and a queue heartbeat job every 5 min (read by the public `/up/scheduler` probe); `central:backup-database` nightly; and the Dot.Memory trio `memory:flush` (every minute), `memory:prune` (nightly) and `memory:report-incidents` (every 5 min). All read Dot.Mines or local state and write local rows, notifications or Memory records; none steers a machine or a dispatch.
 
 ### Gap summary
 
 Dot.Central currently has zero code paths that run without a human first opening a browser tab and submitting a form — there is no scheduler entry, no queued job, and no CI/CD pipeline in the repository. The platform's first real Level 1 process would need an actual trigger with no human in the loop: for example, a scheduled Artisan command (registered in `bootstrap/app.php`'s `withSchedule()`) that recomputes alert thresholds or exports a knowledge pack on a timer, running end-to-end without requiring Sakhile Bhayi to initiate or approve it.
+
+## Verified Infrastructure State (2026-10-16)
+
+Confirmed against the real repository and the live site during the control-room build (Dot.Central wiki 0.19.0–0.20.0; platform docs `docs/dot-central/08-deployment-and-recovery.md` and `14-dot-memory-integration.md`). This resolves the 2026-08-01 domain-mismatch question below: the repository was rebuilt in October 2026 as the mining control room this document describes.
+
+- **Live** at `central.infodot.co.za` since 2026-10-16 on the shared Dot host, SQLite by owner decision (WAL, 5 s busy timeout; most operational data is re-read from Dot.Mines, the rest is copied nightly by `central:backup-database`). Public probes `/up` and `/up/scheduler` (JSON scheduler/queue heartbeat ages, 503 when stale beyond 180 s / 900 s).
+- **Delivery.** `ci.yml` → `deploy.yml` on green `main`; assets built on the runner; the same generated verified crontab block as Dot.Mines installs two lines under `# dot-central` (`schedule:run` and a one-minute `queue:work --stop-when-empty --tries=3 --max-time=50`) — serialised by the shared `flock` since 2026-10-16 18:52 UTC. `scheduler-watchdog.yml` (15 min) fails unless `/up/scheduler` returns 200. Recovery and crontab rules: platform doc 08 §8.
+- **Operational lane to Dot.Mines.** Per-team connection (API token + webhook signing secret) syncing operators, operator-machine assignments, machines, metrics and alerts; rules evaluated after every sync and on a five-minute backstop; control-room line-up and shift surfaces built on the synced mirror.
+- **Ecosystem intelligence loop (reader and writer).** Every control-room decision, action and outcome is derived from the audit log and the mirror, mapped into the [ADR-0015](../adr/ADR-0015-three-platform-intelligence-loop.md) vocabulary (`equipment` subjects keyed by the Dot.Mines machine id, `control_room:<id>` scopes), queued in a local outbox and sent with backoff so Memory never blocks an operator. A lazy recall strip under alerts, exceptions and on the equipment page shows what was tried before and what worked; `memory:report-incidents` files credential-invalid connections, failing syncs, a stalled queue and a stuck outbox to Dot.Memory's ops incident store. Dot.Central authenticates with a service token provisioned by Dot.Memory's `provision-service-token.yml`. The two-lane contract in §6 holds: Dot.Brain is still not in the real-time path.
+- **Guardian coverage.** Not enrolled in `platforms/guardian/` — the platform exposes a heartbeat probe, not the `dot-guardian/v1` health contract (open question below).
 
 ## Change Log
 
@@ -157,6 +171,7 @@ Dot.Central currently has zero code paths that run without a human first opening
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Central's own wiki.md (platform repo) as the platform-owned source of truth |
 
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
+| 1.2.0 | 2026-10-16 | Reliability + Dot.Central integration pass | Verified Infrastructure State (2026-10-16): live site, CI-gated deploy, locked crontab block with scheduler + queue lines, watchdog and probes, Dot.Mines operational lane, intelligence-loop reader/writer; Level 1 processes recorded; domain-mismatch OQ resolved |
 
 ## Open Questions
 
@@ -164,4 +179,5 @@ Dot.Central currently has zero code paths that run without a human first opening
 |---|---|
 | Operational-lane 30 s p95 is asserted from current control-room practice — needs measurement once `central.decision_latency_p95` has a quarter of data | Mining Agent → SRE Lead |
 | Should `central.dispatch_override_rate` feed the colony's Loop B directly (structured override reasons), reusing brain.learning.md's taxonomy question? | Learning Agent → Chief AI Engineer |
-| **Domain mismatch (flagged 2026-08-01):** Dot.Central's actual repository implements an AI-agent command center (conversations, agent skills, usage logs) — not the mining-dispatch/control-room platform this document describes. Either this document is describing a future rebuild, or the registry entry is wrong. Needs human reconciliation before this doc's contents are treated as authoritative. See [Dot.Central's wiki.md](https://github.com/sakhilebhayi/Dot.Central/blob/main/wiki.md) for what's actually built. | Registry Agent → Chief Knowledge Engineer |
+| ~~**Domain mismatch (flagged 2026-08-01):** the repository implemented an AI-agent command center, not the control room this document describes.~~ Resolved 2026-10-16: the repository was rebuilt as the mining control room (Dot.Central wiki 0.19.0–0.20.0, live at central.infodot.co.za); the §2–§6 model now has a real implementation behind it, though the event names in §3 remain the Brain's vocabulary, not the platform's wire format. | Registry Agent → Chief Knowledge Engineer |
+| Should Dot.Central be enrolled in the guardian (`platforms/guardian/dot-central.json`)? It would need to serve the `dot-guardian/v1` health contract; today its `/up/scheduler` probe is watched by its own GitHub Actions watchdog only. | SRE Lead → Chief Architect |

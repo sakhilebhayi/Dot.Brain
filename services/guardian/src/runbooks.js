@@ -56,10 +56,14 @@ const RUNBOOKS = {
     risk: 0.5,
     description: 'Revert the most recent deployment: an exception spike right after a deploy is usually the deploy.',
   },
-  // scheduler: cron itself died -- no GitHub-reachable fix, needs the host.
+  scheduler: {
+    key: 'redeploy',
+    kind: 'workflow',
+    risk: 0.2,
+    description: 'Re-run the deploy workflow: since 2026-10-16 every Dot deploy rewrites its own crontab line under a marker, verifies the read-back and restores on mismatch (F-INFRA-2026-001), so a redeploy re-installs a scheduler line the shared crontab has lost. If the scheduler stays dead after a green deploy the host itself is at fault.',
+  },
   // database / cache / availability: infrastructure, not code. All null =>
   // recommend/escalate, never an autonomous action.
-  scheduler: null,
   database: null,
   cache: null,
   availability: null,

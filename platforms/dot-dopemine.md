@@ -1,6 +1,6 @@
 ---
 title: Dot.Dopemine — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Dopemine Platform Lead, Ethics Agent, Registry Agent]
 platform-id: dot-dopemine
@@ -157,12 +157,17 @@ None found. No code path in `app/Actions/Dopemine/` or elsewhere analyses data a
 - **Deploying a certified mechanic to a team** — `app/Actions/Dopemine/DeployMechanic.php` and the `MechanicDeployment::creating()` listener in `app/Models/MechanicDeployment.php` (lines 47-58); invoked via `deployToCurrentTeam()` in `app/Livewire/MechanicCatalog.php` — human-initiated, no admin gate, open to any authenticated team member.
 - **Retiring a deployment** — `app/Actions/Dopemine/RetireMechanicDeployment.php`, invoked via `retire()` in `app/Livewire/MechanicDeployments.php` — human-initiated, no admin gate.
 - **Seeding the initial mechanic catalog and prohibited-metric reference list** — `database/seeders/MechanicCatalogSeeder.php`, run only by a human via `php artisan db:seed`; not invoked by any job, command, or CI step.
-- **Application setup and deployment** — `composer.json` `setup`/`dev` scripts (install, migrate, build, `serve`/`queue:listen`/`pail`) are human-run local operations; with `.github/` entirely absent, any deployment to production is manual end-to-end — there is no pipeline to gate in the first place.
+- **Application setup and deployment** — `composer.json` `setup`/`dev` scripts (install, migrate, build, `serve`/`queue:listen`/`pail`) are human-run local operations; (re-audited 2026-10-16: `.github/workflows` now holds `bootstrap.yml`, `deploy.yml` and `server-logs.yml`; `deploy.yml` deploys `main` on a confirmed dispatch, so the merge is the human step and the deploy follows it — the rest of this bullet describes the 2026-08-08 state) with `.github/` then absent, any deployment to production was manual end-to-end — there was no pipeline to gate in the first place.
 - **Ethics Officer authority** — currently exercised as the generic Jetstream `admin` team role (`app/Providers/JetstreamServiceProvider.php:44-58`), assigned/removed by a human team owner; there is no distinct, code-enforced Ethics Officer permission separate from general team administration.
 
 ### Gap summary
 
 Every real mutation in this codebase already requires a human click, and nothing runs unattended — so the platform has no Level 1 or Level 2 process today, only Level 3. The first real Level 1 candidate would be a scheduled, code-only job (e.g. `app/Console/Commands` + a `Schedule::` entry) that computes read-only observation/reporting output — such as the `engagement.outcome_coupling_rate` metric in §11 — with no mutation and no human step. The first real Level 2 candidate would be that same kind of job extended to detect engagement-up/outcome-flat decoupling and write a flagged "retirement candidate" record surfaced to an admin for approval, in the Context → Evidence → Risk → Recommendation → Proposed Action shape brain.autonomy.md §2 requires — none of which exists yet; today "decoupling" is documentation only (`wiki.md` §3–4.1).
+
+## Verified Infrastructure State (2026-10-16)
+
+- `bootstrap.yml`, `deploy.yml` and `server-logs.yml` exist; live at `dopemine.infodot.co.za` on the shared Dot host. `deploy.yml` installs the platform's `schedule:run` crontab line through the generated verified crontab block shared by every Dot deploy (own marker only, absolute PHP binary, read-back verification, restore on mismatch, `flock`-serialised since 2026-10-16 18:52 UTC — see [F-INFRA-2026-001](../brain.failures.md)). The platform still registers no scheduled commands of its own (Level 1 unchanged), so the line only keeps Laravel's scheduler ticking for when it does.
+- This platform's deploy was one of the two that collided at 18:37 UTC on 2026-10-16 and refused correctly (F-INFRA-2026-001).
 
 ## Change Log
 
@@ -173,6 +178,7 @@ Every real mutation in this codebase already requires a human click, and nothing
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Dopemine's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
+| 1.2.0 | 2026-10-16 | Reliability pass | Verified Infrastructure State (2026-10-16): workflows exist, locked crontab line; Level 3 deployment bullet dated |
 
 ## Open Questions
 

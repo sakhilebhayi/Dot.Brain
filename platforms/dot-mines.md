@@ -1,12 +1,12 @@
 ---
 title: Dot.Mines — Platform Knowledge
-version: 1.1.1
+version: 1.2.0
 status: active
 owners: [Mining Platform Lead, Mining Agent, Registry Agent]
 platform-id: dot-mines
 dkp-version: 1.0.0
 integration-status: publishing
-last-review: 2026-08-10
+last-review: 2026-10-16
 ---
 
 # Dot.Mines
@@ -141,12 +141,21 @@ None found. Checked: `app/Jobs/*` (9 job classes as of 2026-08-10, up from 8 at 
 - **Billing/subscription actions**, `app/Livewire/BillingPortal.php` (`subscribe()`, `manageBilling()`, `cancelSubscription()`, `resumeSubscription()`, `switchBillingCycle()`). Financial commitments; no automated code path calls any of these — a human must click.
 - **Machine/equipment control**: confirmed absent. Searched `app/Services` and `app/Jobs` for any send-command/remote-control pattern (`sendCommand`, `controlMachine`, `dispatchToMachine`, `remoteControl`) — no matches. This platform only reads telemetry and writes alerts/recommendations; it never issues a command back to physical mining equipment, so real machine control stays fully manual by construction.
 - **Destructive data operations**: confirmed absent from automation. Searched `app/Console` and `app/Jobs` for `forceDelete`/`truncate(` — no matches; nothing in the job/command layer permanently deletes data unattended.
-- **Deployment / CI-CD**: `.github/workflows/` contains only `dependabot.yml` and `delete-old-runs.yml` — no auto-deploy workflow exists; `deploy/queue-worker.service` and `deploy/queue-worker.supervisord.conf` are operator-run infrastructure config, not an automated pipeline.
+- **Deployment / CI-CD** (re-audited 2026-10-16): `deploy.yml` runs automatically after "CI - Security & Static Analysis" finishes green on `main` (`workflow_run`) and on a confirmed manual dispatch; a red CI run never deploys. Deploying is therefore Level 1 once a human has merged; the merge itself stays Level 3. The 2026-08-08 statement that no auto-deploy workflow existed is superseded.
 - **Data quality diagnostics**, `app/Console/Commands/DataQualityCheck.php` (`data-quality:check {team?}`). Checks a team's (or every team's) stored production/fuel/machine-telemetry data for missing/impossible/stale/duplicate values. Not scheduled anywhere (absent from `routes/console.php`) — a human runs it by hand, reads the output, and decides what (if anything) to fix. Read-only diagnostic, not itself consequential, but its trigger is entirely manual today.
 
 ### Gap summary
 
 No Level 2 process exists today because nothing in the codebase stages a proposed action for approval before executing it — `AIOptimizationService` stops at generating recommendations, and the dashboard's "implement" button only logs that a human already acted. The platform's first real Level 1 process (the monitoring/alert jobs above) already exists; the first real Level 2 process would require building an actual propose→approve→execute path — e.g. an `AIRecommendation` with a `pending_approval` state whose "implement" action, once an authorized approver confirms it, actually calls a service to make the change (route reassignment, maintenance scheduling) instead of just flipping a status flag after the fact.
+
+## Verified Infrastructure State (2026-10-16)
+
+Confirmed against the real repository and the live host during the Dot.Central integration and reliability pass; source rows: [Dot.Mines wiki](https://github.com/sakhilebhayi/mines/blob/main/wiki.md) 0.4.0–0.4.4.
+
+- **Delivery.** `ci-security.yml` (Pint, PHPStan + Psalm with no baselines, PHPUnit, Composer/NPM audit, Semgrep, gitleaks, one "Quality Gate" job) gates `deploy.yml`, which deploys `main` to the shared host over pinned SSH and then rewrites the account crontab through the generated **verified crontab block**: marker `# dot-mines`, absolute PHP binary (cron's `PATH` resolves a different PHP than the login shell), read-back verification, restore on mismatch, and since 2026-10-16 18:52 UTC an `flock` on `~/.dot-crontab.lock` shared by every Dot deploy. Rules live in `.ai/rules/deploy.md`.
+- **Liveness.** `scheduler-watchdog.yml` (every 15 min) reads `/guardian/health` and fails unless `scheduler` and `queue` are `healthy`; `server-logs.yml` prints the crontab, `schedule:list`, scheduler output and the Dot.Memory outbox (`memory:status`). The scheduler had been dead from 2026-08-31 to 2026-10-16 — catalogued as [F-INFRA-2026-001](../brain.failures.md).
+- **Ecosystem intelligence loop (writer side, item I-33).** Alerts (triggered, acknowledged, resolved with time-to-clear), machines going offline and back, maintenance records and AI-recommendation decisions are mapped to the [ADR-0015](../adr/ADR-0015-three-platform-intelligence-loop.md) envelope (`equipment` subjects keyed by machine id, `mine:<team>` scopes, state-keyed event ids for idempotency), written to a `memory_outbox` table by observers and flushed by the scheduled `memory:flush` (every minute, backoff 1/5/15/60 min, 20 attempts) — a scheduled command rather than a queued job because the platform's queue runs with `--tries=1`. The platform authenticates to Dot.Memory with a service token provisioned by Dot.Memory's `provision-service-token.yml`; the secret is set on the server by `set-memory-token.yml` (validated shape, base64 transport, never echoed). New Level 1 processes: `memory:flush`, `memory:prune`.
+- **Consumer of record.** Dot.Central reads this platform's operators, operator-machine assignments, machines, metrics and alerts (wiki 0.4.0) and is the first external platform on the loop from the reading side (see [dot-central.md](dot-central.md)).
 
 ## Change Log
 
@@ -157,6 +166,7 @@ No Level 2 process exists today because nothing in the codebase stages a propose
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Mines's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.1.1 | 2026-08-10 | Platform Autonomy Classification sub-project | Refreshed against real code post-1.1.0: added `integrations:sync-due` (new 2026-08-10 Level 1 process, `App\Jobs\SyncIntegrationMachinesJob`) to Level 1; added `data-quality:check` (real, unscheduled, previously undocumented) to Level 3; corrected the Level 2 section's job/command counts from 8/6 to 9/8 accordingly. Found via a spot-check of first-pass autonomy audits against live code, not a fresh full re-audit — the Level 2/3 conclusions otherwise stand |
+| 1.2.0 | 2026-10-16 | Reliability + Dot.Central integration pass | Verified Infrastructure State (2026-10-16): CI-gated auto-deploy, verified + locked crontab block, scheduler watchdog, server-logs evidence, intelligence-loop writer side (I-33); Level 3 deployment bullet superseded; scheduler outage catalogued as F-INFRA-2026-001 |
 
 ## Open Questions
 
