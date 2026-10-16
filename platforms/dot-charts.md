@@ -1,12 +1,12 @@
 ---
 title: Dot.Charts — Platform Knowledge
-version: 1.1.0
+version: 1.1.1
 status: active
 owners: [Charts Platform Lead, Trading Agent, Registry Agent]
 platform-id: dot-charts
 dkp-version: 1.0.0
 integration-status: publishing
-last-review: 2026-08-01
+last-review: 2026-10-16
 ---
 
 # Dot.Charts
@@ -160,7 +160,7 @@ The only real automated *operator* process today (the monthly observation-pack c
 
 Audited against the real repository (`ChartSense`, see the naming OQ below) during the ecosystem reliability pass:
 
-- `.github/workflows` holds `bootstrap.yml`, `deploy.yml` (confirmed dispatch; deploys the Laravel app under `backend/` to the shared Dot host and installs the backend's `schedule:run` crontab line through the generated verified crontab block shared by every Dot deploy (own marker only, absolute PHP binary, read-back verification, restore on mismatch, `flock`-serialised since 2026-10-16 18:52 UTC — see [F-INFRA-2026-001](../brain.failures.md))), `setup-analytics.yml` (a separate analytics keep-alive service whose two crontab lines carry the marker `# charts-analytics-keepalive`; its 2026-08-31 run is the one that installed an empty crontab and started F-INFRA-2026-001, since hardened to the same block), plus `blupin-daily.yml`, `maintenance.yml` and the read-only `server-recon.yml`.
+- `.github/workflows` holds `bootstrap.yml`, `deploy.yml` (confirmed dispatch; deploys the Laravel app under `backend/` to the shared Dot host and installs the backend's `schedule:run` crontab line through the generated verified crontab block shared by every Dot deploy (own marker only, absolute PHP binary, read-back verification, restore on mismatch, `flock`-serialised since 2026-10-16 18:52 UTC — see [F-INFRA-2026-001](../brain.failures.md))), `setup-analytics.yml` (a separate analytics keep-alive service whose two crontab lines carry the marker `# charts-analytics-keepalive`; its 2026-08-31 run is the one that installed an empty crontab and started F-INFRA-2026-001, since hardened to the same block), plus `maintenance.yml` and the read-only `server-recon.yml`. (A `blupin-daily.yml` signal-engine workflow, together with the whole `blupin/` tree, was removed on 2026-10-16: BluPin is the holding company, BluPin Incorporated, not part of Dot.Charts.)
 - The analytics keep-alive lines were absent from the account crontab as of 2026-10-16 and are reinstalled by dispatching `setup-analytics.yml` once (owner action, pending).
 
 ## Change Log
@@ -173,6 +173,7 @@ Audited against the real repository (`ChartSense`, see the naming OQ below) duri
 
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Charts's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-10-16 | Reliability pass | Verified Infrastructure State (2026-10-16): workflows, locked crontab block for the backend and the analytics keep-alive, origin of F-INFRA-2026-001 recorded |
+| 1.1.1 | 2026-10-16 | BluPin removal | Dot.Charts PR #4 removed the BluPin signal engine (`blupin/`, `blupin-daily.yml`, the README section); BluPin is the holding company, not part of the platform. Dropped `blupin-daily.yml` from the workflow inventory. The Guardian/collector wiring for the BluPin pipeline lives in this repo (`platforms/guardian/blupin.json`, `platforms/collector/blupin.json`) and is unchanged by this entry. |
 
 ## Open Questions
 
