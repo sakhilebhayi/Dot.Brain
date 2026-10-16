@@ -1,10 +1,10 @@
 ---
 title: Dot.Brain — System Architecture & Component Model
-version: 1.0.3
+version: 1.0.4
 status: active
 owners: [Chief Architect, Architecture Agent]
 reviewing-agent: Security Agent
-last-review: 2026-09-23
+last-review: 2026-10-16
 review-cadence: quarterly
 ---
 
@@ -34,10 +34,12 @@ graph TB
         PUB[DKP Publishers<br/>see brain.platforms.md §2 for current count]
         REPOS[Platform repositories<br/>wiki.md — Brain has NO write access]
         REVEP[dot-revenue/v1 endpoint<br/>platform-owned, opt-in via manifest]
+        HEALTHEP[dot-guardian/v1 endpoint<br/>platform-owned, opt-in via manifest]
     end
     subgraph L1["Layer 1 — Ingestion & Validation"]
         GW[Ingestion Gateway]
         VAL[Validation Pipeline<br/>schema · signature · trust · classification]
+        COLLECT[Platform Collector<br/>hourly pull, records to Dot.Memory]
     end
     subgraph L2["Layer 2 — Knowledge Core (Tier 0/1, ADR-0007)"]
         LEDGER[(Audit Ledger<br/>hash-chained, append-only)]
@@ -69,6 +71,9 @@ graph TB
     REASON --> INSDEL
     REVREAD -->|Brain-initiated pull, scoped token, ADR-0018| REVEP
     REVEP -->|signals, dot-revenue/v1| REVREAD
+    COLLECT -->|hourly pull, scoped token, ADR-0019| HEALTHEP
+    HEALTHEP -->|health + metrics, dot-guardian/v1| COLLECT
+    COLLECT -->|one observation per platform per hour| MEM
     REVREAD -->|transient signals, never persisted| REASON
     REVREAD --> REVINTEL
     REPOS -->|PR outcomes as DKPs| PUB
@@ -96,6 +101,7 @@ The loop closes at the platform edge: PR outcomes return as Knowledge Packs, fee
 | Insight Delivery | Classify conclusions, run Ethics/Security gates, record gate-cleared Insights to Dot.Memory, deliver push via Dot.Notify | [docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md](docs/superpowers/specs/2026-09-19-outbound-insight-delivery-design.md), [ADR-0017](adr/ADR-0017-outbound-insight-delivery.md) | Architecture, reference implementation `services/insight-delivery` |
 | Revenue Reader | Poll enrolled platforms' dot-revenue/v1 endpoints under a scoped token; validate defensively; classify every failure; never persist a raw payload | [ADR-0018](adr/ADR-0018-cross-platform-read-access.md), [docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md](docs/superpowers/specs/2026-09-23-cross-platform-read-access-design.md) | Architecture, reference implementation `services/revenue-reader` |
 | Revenue Intelligence | Detect revenue opportunities from Revenue Reader's poll results; gate, record, and deliver as Insights addressed to the `admin` audience at delivery time (not the Insight's own `scope`, which is the enrolling platform) | [docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md](docs/superpowers/specs/2026-09-23-revenue-intelligence-design.md) | Architecture, reference implementation `services/revenue-intelligence` |
+| Platform Collector | Hourly: fetch each enrolled platform's dot-guardian/v1 health document under a scoped token and record one observation per platform to Dot.Memory; classify every failure; record only — never remediate (that is Guardian) | [ADR-0019](adr/ADR-0019-hourly-platform-collection.md), [docs/superpowers/specs/2026-10-16-hourly-platform-collection-design.md](docs/superpowers/specs/2026-10-16-hourly-platform-collection-design.md) | Architecture, reference implementation `services/platform-collector` |
 | Query & Explanation API | Read-only graph queries and "why" traversals for agents & platforms | [brain.api.md](brain.api.md) | Architecture |
 
 ## 4. Data flow — one pack, end to end
@@ -169,6 +175,7 @@ Registered in [brain.metrics.md](brain.metrics.md) §4.2–4.3; the architecture
 | 1.0.1 | 2026-08-10 | Brain core-doc sweep | Refreshed against real repo state: §3's component matrix pointed brain.reasoning.md, brain.learning.md, brain.memory.md, brain.api.md, brain.workflows.md, and §6's brain.security.md all at "(pending)" — all six now exist as complete, active documents, corrected to real links. §2's Layer Model diagram's hardcoded "21 platforms" DKP-publisher count (stale against brain.platforms.md's now-29-row registry) replaced with a pointer to brain.platforms.md §2 so it can't drift again |
 | 1.0.2 | 2026-08-10 | Brain core-doc sweep | Fixed three broken ADR links found while cross-checking brain.governance.md's citation of the same ADRs: ADR-0006 was linked as `adr/ADR-0006-audit-ledger.md` (real file: `-design.md`), ADR-0007 as `adr/ADR-0007-rto-rpo-tiers.md` (real file: `-tier-model.md`), in both §Related-documents and inline citations |
 | 1.0.3 | 2026-09-23 | Post-merge repeat-check | §2: added Revenue Reader's ADR-0018 pull path as an explicit inbound edge (a new `REVEP` node for the platform-owned `dot-revenue/v1` endpoint, with edges to and from `REVREAD`) — the round-2 fix that moved `REVREAD` into Layer 4 left it with no inbound edge at all, silently dropping the very inbound mechanism §6 already documented in prose. §3: reworded the Revenue Intelligence row, which said Insights are "scoped to admin recipients" — conflating the Insight's own `scope` field (the enrolling platform) with the delivery-time `audience` parameter, the same mistake corrected in code and the design spec earlier this session but left standing here. |
+| 1.0.4 | 2026-10-16 | Hourly platform collection | §2/§3: added the Platform Collector (ADR-0019) — a Layer 1 node with an hourly Brain-initiated pull of platform-owned `dot-guardian/v1` endpoints (new `HEALTHEP` node) and a write to Memory. It reuses the contract and trust model of Guardian (ADR-0014), so §6's inbound statement needs no change. |
 
 ## Open Questions
 
