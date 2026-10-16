@@ -1280,7 +1280,7 @@ process.exit(exitCode);
 - [ ] **Step 5: Run the whole suite to verify it passes**
 
 Run: `cd services/platform-collector && npm test`
-Expected: PASS (registry 15 + fetch 10 + record 11 + memory 9 + collect 9 = 54 tests, 0 failures)
+Expected: PASS (registry 15 + fetch 10 + record 11 + memory 9 + collect 11 = 56 tests, 0 failures)
 
 - [ ] **Step 6: Commit**
 
@@ -1288,6 +1288,8 @@ Expected: PASS (registry 15 + fetch 10 + record 11 + memory 9 + collect 9 = 54 t
 git add services/platform-collector/src/collect.js services/platform-collector/src/cli.js services/platform-collector/test/collect.test.js
 git commit -m "feat(platform-collector): add the collector, summary table, and CLI"
 ```
+
+> **Execution note (review fix, commit 39bf648):** the brief's `cli.js` had no top-level error handling, so a crash exited 1 — contradicting the Global Constraints and spec §4 (exit 2 = crash). During execution `cli.js` was amended to wrap the `collect(...)` call and the printing in a `try/catch` that prints `crash: ...` and exits 2, and to make the `$GITHUB_STEP_SUMMARY` append best-effort (a warning on stderr, exit code unchanged); two tests were added to `collect.test.js` (summary best-effort -> exit 0; a crash, forced by a `--import` preload that makes `Date.prototype.toISOString` throw -> exit 2). The `cli.js` and `collect.test.js` blocks above predate that fix; the repository is authoritative.
 
 ---
 
@@ -1484,7 +1486,7 @@ and append it to the `covered=` string on the coverage-check line:
 - [ ] **Step 6: Run the whole suite to verify it passes**
 
 Run: `cd services/platform-collector && npm test`
-Expected: PASS (54 + 6 = 60 tests, 0 failures)
+Expected: PASS (56 + 6 = 62 tests, 0 failures)
 
 - [ ] **Step 7: Commit**
 
@@ -1707,7 +1709,7 @@ At the end of line 73 (the bullet beginning `- Brain-internal keys (agent creden
 
 Run: `grep -c "COLLECT\|HEALTHEP" brain.architecture.md` — Expected: `6` or more matching lines
 Run: `grep -n "^version:\|^last-review:" brain.architecture.md` — Expected: `version: 1.0.4` and `last-review: 2026-10-16`
-Run: `cd services/platform-collector && npm test` — Expected: PASS (60 tests)
+Run: `cd services/platform-collector && npm test` — Expected: PASS (62 tests)
 Run: `for s in revenue-reader revenue-intelligence guardian; do (cd services/$s && npm test 2>&1 | grep -E "^ℹ (pass|fail)"); done` — Expected: only `fail 0` lines (no sibling regressions)
 
 - [ ] **Step 6: Commit**
