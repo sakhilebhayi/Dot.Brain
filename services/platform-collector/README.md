@@ -37,7 +37,6 @@ follow-up lands (ADR-0019, Open questions).
 | Platform | Endpoint | Token secret |
 |---|---|---|
 | `dot-mines` | `https://mines.infodot.co.za/guardian/health` | `DOT_MINES_GUARDIAN_TOKEN` |
-| `blupin` | `https://memory.infodot.co.za/api/guardian/blupin` | `DOT_MEMORY_TOKEN` |
 
 ## Enrolling another platform
 

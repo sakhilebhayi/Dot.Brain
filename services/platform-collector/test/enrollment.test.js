@@ -12,15 +12,12 @@ const WORKFLOW = readFileSync(`${ROOT}.github/workflows/platform-collector.yml`,
 const TESTS_WORKFLOW = readFileSync(`${ROOT}.github/workflows/tests.yml`, 'utf8');
 const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 
-test('day-one enrollment is dot-mines and blupin, and every committed manifest is valid', () => {
+test('the only enrolled platform is dot-mines, and every committed manifest is valid', () => {
   const manifests = loadManifests(MANIFEST_DIR);
-  assert.deepEqual(manifests.map((m) => m.platform).sort(), ['blupin', 'dot-mines']);
-  const mines = manifests.find((m) => m.platform === 'dot-mines');
+  assert.deepEqual(manifests.map((m) => m.platform), ['dot-mines']);
+  const mines = manifests[0];
   assert.equal(mines.health_url, 'https://mines.infodot.co.za/guardian/health');
   assert.equal(mines.token_env, 'DOT_MINES_GUARDIAN_TOKEN');
-  const blupin = manifests.find((m) => m.platform === 'blupin');
-  assert.equal(blupin.health_url, 'https://memory.infodot.co.za/api/guardian/blupin');
-  assert.equal(blupin.token_env, 'DOT_MEMORY_TOKEN');
 });
 
 test('the workflow passes every enrolled manifest token_env to the job', () => {
@@ -51,7 +48,6 @@ test('a dry run against the committed manifests makes no network call when no to
   });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /dot-mines/);
-  assert.match(result.stdout, /blupin/);
   assert.match(result.stdout, /config/);
 });
 

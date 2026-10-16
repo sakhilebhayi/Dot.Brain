@@ -164,11 +164,11 @@ test('fetchHealth never throws, whatever the fetch rejects with or resolves to',
 });
 
 test('fetchHealth rejects a document that is for a different platform', async () => {
-  const doc = { ...GOOD_DOC, platform: 'blupin' };
+  const doc = { ...GOOD_DOC, platform: 'dot-other' };
   const result = await fetchHealth(MANIFEST, { fetchImpl: async () => ok(doc), env: ENV });
   assert.equal(result.reachable, false);
   assert.equal(result.kind, 'contract');
-  assert.equal(result.reason, 'document is for "blupin", not "dot-mines"');
+  assert.equal(result.reason, 'document is for "dot-other", not "dot-mines"');
 });
 
 test('fetchHealth clips an over-long platform in the mismatch reason', async () => {

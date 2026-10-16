@@ -118,11 +118,11 @@ function fakeFs(files) {
 test('loadManifests parses and validates every .json file and ignores the rest', () => {
   const { readDirImpl, readFileImpl } = fakeFs({
     'dot-mines.json': JSON.stringify(VALID),
-    'blupin.json': JSON.stringify({ ...VALID, platform: 'blupin', token_env: 'DOT_MEMORY_TOKEN' }),
+    'dot-example.json': JSON.stringify({ ...VALID, platform: 'dot-example', token_env: 'DOT_EXAMPLE_GUARDIAN_TOKEN' }),
     'README.md': 'not a manifest',
   });
   const manifests = loadManifests('dir', readDirImpl, readFileImpl);
-  assert.deepEqual(manifests.map((m) => m.platform), ['blupin', 'dot-mines']);
+  assert.deepEqual(manifests.map((m) => m.platform), ['dot-example', 'dot-mines']);
 });
 
 test('loadManifests returns manifests in sorted file order, whatever order the directory lists them', () => {

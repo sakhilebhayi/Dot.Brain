@@ -1,6 +1,6 @@
 ---
 title: Dot.Charts — Platform Knowledge
-version: 1.1.1
+version: 1.1.2
 status: active
 owners: [Charts Platform Lead, Trading Agent, Registry Agent]
 platform-id: dot-charts
@@ -174,6 +174,7 @@ Audited against the real repository (`ChartSense`, see the naming OQ below) duri
 | 1.0.2 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Charts's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-10-16 | Reliability pass | Verified Infrastructure State (2026-10-16): workflows, locked crontab block for the backend and the analytics keep-alive, origin of F-INFRA-2026-001 recorded |
 | 1.1.1 | 2026-10-16 | BluPin removal | Dot.Charts PR #4 removed the BluPin signal engine (`blupin/`, `blupin-daily.yml`, the README section); BluPin is the holding company, not part of the platform. Dropped `blupin-daily.yml` from the workflow inventory. The Guardian/collector wiring for the BluPin pipeline lives in this repo (`platforms/guardian/blupin.json`, `platforms/collector/blupin.json`) and is unchanged by this entry. |
+| 1.1.2 | 2026-10-16 | BluPin retirement | The Brain-side wiring for the removed BluPin engine is retired: `platforms/guardian/blupin.json`, `platforms/collector/blupin.json`, the `blupin-context` job and service, and (in Dot.Memory) the `/api/guardian/blupin` health report. Nothing in Dot.Brain monitors or feeds a BluPin pipeline any more; BluPin remains only as an ecosystem entity (the holding company) in the autonomy program. |
 
 ## Open Questions
 
