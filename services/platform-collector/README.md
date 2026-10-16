@@ -7,8 +7,10 @@ ADR: [ADR-0019](../../adr/ADR-0019-hourly-platform-collection.md)).
 Once an hour, [`.github/workflows/platform-collector.yml`](../../.github/workflows/platform-collector.yml)
 fetches each enrolled platform's `dot-guardian/v1` health document and records
 one observation per platform to Dot.Memory (`POST /api/intelligence/events`),
-so Brain's picture of the live platforms is never stale. It runs from
+so Brain's picture of the live platforms is refreshed hourly. It runs from
 Dot.Brain's own GitHub Actions on purpose — not the shared cPanel crontab.
+GitHub's scheduler is best-effort, so a run can start late or be skipped; the
+cadence is unmeasured (see ADR-0019, Open questions).
 
 It **records only**. It never remediates, opens incidents, or deploys — that is
 [Guardian](../guardian/README.md).
@@ -20,8 +22,15 @@ One record per platform per UTC hour. `event_id` is
 updates the existing row. A platform that is down is recorded as data
 (`signature: failure:<kind>`, kinds per ADR-0016); a reachable one as
 `status:<healthy|warning|critical|unknown>` with a compacted copy of its
-checks and their `metrics`. Read the series back with Dot.Memory's
-`GET /api/intelligence/context?subject_type=platform&subject_id=<platform>`.
+checks and their `metrics`. A document whose `platform` differs from the
+manifest's is recorded as `failure:contract`.
+
+What you can read back today, from Dot.Memory's
+`GET /api/intelligence/context?subject_type=platform&subject_id=<platform>`, is
+the signature series (`status:*` / `failure:*` per hour) and the recurrence
+counts. The per-check detail (checks, metrics, reason, `generated_at`) is stored
+but not exposed by any Dot.Memory route yet, so it is write-only until that
+follow-up lands (ADR-0019, Open questions).
 
 ## Enrolled platforms
 
@@ -39,14 +48,17 @@ checks and their `metrics`. Read the series back with Dot.Memory's
 
    ```json
    {
-     "platform": "dot-central",
-     "health_url": "https://central.infodot.co.za/guardian/health",
-     "token_env": "DOT_CENTRAL_GUARDIAN_TOKEN"
+     "platform": "dot-example",
+     "health_url": "https://example.infodot.co.za/guardian/health",
+     "token_env": "DOT_EXAMPLE_GUARDIAN_TOKEN"
    }
    ```
 
-   `health_url` must be `https://`; `timeout_ms` (default 15000) is optional;
-   unrecognized keys are rejected.
+   `dot-example` is a placeholder, not an enrolled platform. `health_url` must
+   be an `https://` URL with a host and no credentials in it (`user:pass@` is
+   rejected, and a rejected URL is never echoed in the error); `timeout_ms`
+   (default 15000) is optional; unrecognized keys are rejected. Manifests load
+   in sorted file order.
 3. Add the token as a Dot.Brain repository secret, **and** one line to the
    workflow's `env:` block. GitHub Actions cannot pass "whichever secrets the
    manifests name" without exposing every secret, so this step is manual — a
@@ -57,12 +69,19 @@ checks and their `metrics`. Read the series back with Dot.Memory's
 | Code | Meaning |
 |---|---|
 | `0` | every observation was recorded (platforms may themselves be down) |
-| `1` | an observation could not be recorded after retries, or Dot.Memory is not configured |
-| `2` | usage error, invalid or missing manifests, or a crash |
+| `1` | an observation could not be recorded after retries (including a platform's work crashing unexpectedly), or Dot.Memory is not configured for a real run (a `--dry-run` without it exits 0) |
+| `2` | usage error, invalid or missing manifests, or a crash outside the per-platform work |
 
 A platform being down keeps the run green; being unable to record turns it red.
+A write is retried (2 s, then 5 s) only for network errors, 5xx and 403/408/429
+(403 because of edge-WAF noise, ADR-0016); any other 4xx fails immediately. An
+unexpected throw in one platform's work shows as kind `crash` in the table, is
+not recorded, and does not stop the other platforms. Failing to write the job
+summary is a warning, not a failure.
 
 ## Usage
+
+Run these from `services/platform-collector`:
 
 ```bash
 # fetch and print only
