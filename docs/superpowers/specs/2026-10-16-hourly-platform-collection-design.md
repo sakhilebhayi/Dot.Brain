@@ -149,7 +149,7 @@ GitHub's cron is best-effort: a run can start late or be skipped under load, and
 - **Dot.Memory follow-ups** (separate PRs in that repository): expose an observation's `detail` through a route, since it is write-only today (§3); and `context` returns a subject's whole history unbounded, so it needs a limit or window before it is read at hourly volume.
 - **Freshness watchdog.** Nothing yet notices if the collector itself stops (a disabled schedule, an expired secret). A natural fit is a Guardian check on "age of the latest `platform` observation in Memory ≤ 2 h"; deferred until the collector exists to be watched. Note that GitHub automatically disables scheduled workflows in a public repository after 60 days without repository activity, so a quiet repo can switch this job off without any error.
 - **Public run logs.** This is a public repository, so the run logs and job summary expose each platform's reachability and status every hour. Accepted and noted. Tokens are never printed, and manifest errors never echo a URL.
-- **Retention.** Dot.Memory has no pruning; 24 rows per platform per day grows without bound. Fine at two platforms, worth a policy before ten.
+- **Retention.** Dot.Memory has no pruning; 24 rows per platform per day grows without bound. Fine at one or two platforms, worth a policy before ten.
 - **Usage vocabulary.** `metrics` keys are each platform's own (as with Guardian checks). Whether Brain needs a shared cross-platform set of usage metric names is deferred until more than one platform reports usage.
 
 ## Change log

@@ -60,5 +60,5 @@ Dot.Brain should always know the current state of the live platforms. Today it h
 - **Dot.Memory follow-ups**, each its own PR in that repository: expose an observation's `detail` through a route; and `context` returns a subject's whole history unbounded, so it needs a limit or window before it is read at hourly volume.
 - Who watches the collector? Nothing yet notices if the schedule is disabled or a secret expires; a Guardian check on the age of the latest `platform` observation in Memory (≤ 2 h) is the natural fit, once the collector exists to be watched. GitHub also disables scheduled workflows in a public repository automatically after 60 days without repository activity, so a quiet repo can switch this job off with no error.
 - This is a public repository, so the run logs and job summary expose each platform's reachability and status every hour. Accepted and noted: tokens are never printed and manifest errors never echo a URL.
-- Retention: Dot.Memory has no pruning, and 24 rows per platform per day grows without bound. Fine at two platforms, worth a policy before ten.
+- Retention: Dot.Memory has no pruning, and 24 rows per platform per day grows without bound. Fine at one or two platforms, worth a policy before ten.
 - Whether Brain needs a shared cross-platform vocabulary for usage `metrics` keys, deferred until more than one platform reports usage.
