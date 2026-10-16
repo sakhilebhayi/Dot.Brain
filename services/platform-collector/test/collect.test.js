@@ -2,6 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collect, formatTable } from '../src/collect.js';
 
@@ -126,4 +129,39 @@ test('the CLI exits 2 when the manifest directory does not exist', () => {
   const result = run(['collect', '--manifest-dir', '/nonexistent-dir-for-test']);
   assert.equal(result.status, 2);
   assert.match(result.stderr, /manifest error/);
+});
+
+// One valid manifest whose token is deliberately unset, so a dry run records a
+// `config` failure without any network call.
+function oneManifestDir() {
+  const dir = mkdtempSync(path.join(tmpdir(), 'pc-'));
+  writeFileSync(path.join(dir, 'x.json'), JSON.stringify({ platform: 'x', health_url: 'https://x.test/health', token_env: 'X_TOKEN' }));
+  return dir;
+}
+
+test('a failed job-summary write is a warning and does not change the exit code', () => {
+  const dir = oneManifestDir();
+  try {
+    const result = run(['collect', '--manifest-dir', dir, '--dry-run'], { GITHUB_STEP_SUMMARY: '/nonexistent-dir-for-test/summary.md' });
+    assert.equal(result.status, 0);
+    assert.match(result.stderr, /could not write job summary/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a crash exits 2, not 1', () => {
+  const dir = oneManifestDir();
+  try {
+    // Preload that makes Date.prototype.toISOString throw, so buildObservation rejects inside collect().
+    const result = spawnSync(process.execPath, [
+      '--import', 'data:text/javascript,Date.prototype.toISOString=()=>{throw new Error("boom")}',
+      CLI, 'collect', '--manifest-dir', dir, '--dry-run',
+    ], { env: { PATH: process.env.PATH }, encoding: 'utf8' });
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /crash:/);
+    assert.match(result.stderr, /boom/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

@@ -42,21 +42,33 @@ if (!dryRun && !cfg.enabled) {
   process.exit(1);
 }
 
-const { rows, exitCode } = await collect({ manifests, cfg, dryRun });
+let rows;
+let exitCode;
+let table;
+try {
+  ({ rows, exitCode } = await collect({ manifests, cfg, dryRun }));
 
-const table = formatTable(rows);
-console.log(table);
-for (const row of rows) {
-  if (!row.result.reachable) {
-    console.log(`${row.manifest.platform}: ${row.result.kind} -- ${row.result.reason}`);
+  table = formatTable(rows);
+  console.log(table);
+  for (const row of rows) {
+    if (!row.result.reachable) {
+      console.log(`${row.manifest.platform}: ${row.result.kind} -- ${row.result.reason}`);
+    }
+    if (row.recorded === false) {
+      console.error(`${row.manifest.platform}: not recorded -- ${row.reason}`);
+    }
   }
-  if (row.recorded === false) {
-    console.error(`${row.manifest.platform}: not recorded -- ${row.reason}`);
-  }
+} catch (error) {
+  console.error(`crash: ${error?.stack ?? error}`);
+  process.exit(2);
 }
 
 if (process.env.GITHUB_STEP_SUMMARY) {
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Platform collection\n\n${table}\n`);
+  try {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Platform collection\n\n${table}\n`);
+  } catch (error) {
+    console.error(`warning: could not write job summary: ${error.message}`);
+  }
 }
 
 process.exit(exitCode);
