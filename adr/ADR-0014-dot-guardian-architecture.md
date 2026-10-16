@@ -54,6 +54,7 @@ Dot.Mines runs real production workloads (fleet telemetry, Bell and 24 other man
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-08-25 | Chief Architect session | Initial decision record. |
+| 1.0.1 | 2026-10-16 | Reliability pass (Dot.Mines scheduler outage) | `scheduler` gained the `redeploy` runbook: every Dot deploy now re-installs its crontab line through a verified, marker-scoped, lock-serialised write ([F-INFRA-2026-001](../brain.failures.md)), so a lost scheduler line is GitHub-reachable after all. Platforms also run their own 15-minute scheduler watchdogs in GitHub Actions, independent of the guardian. |
 
 ## Open questions
 

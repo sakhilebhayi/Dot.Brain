@@ -39,9 +39,16 @@ test('autonomy level 1 only observes', () => {
 });
 
 test('no runbook means recommend at level 2+', () => {
-  const decision = evaluate({ incident: incident({ check_key: 'scheduler', severity: 'sev2' }), manifest: manifest() });
+  const decision = evaluate({ incident: incident({ check_key: 'cache', severity: 'sev2' }), manifest: manifest() });
   assert.equal(decision.action, 'recommend');
   assert.equal(decision.runbook, null);
+});
+
+test('a dead scheduler maps to the redeploy runbook (deploys re-install the cron line since F-INFRA-2026-001)', () => {
+  const decision = evaluate({ incident: incident({ check_key: 'scheduler', severity: 'sev2' }), manifest: manifest() });
+  assert.equal(decision.action, 'recommend');
+  assert.equal(decision.runbook.key, 'redeploy');
+  assert.equal(decision.runbook.kind, 'workflow');
 });
 
 test('autonomy level 2 recommends even with a matched runbook and strong recall', () => {

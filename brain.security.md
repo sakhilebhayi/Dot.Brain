@@ -46,7 +46,7 @@ graph LR
     AGT -->|contracts only, never raw storage| Z3
 ```
 
-Classification levels (carried on every pack, node, edge; most-restrictive propagation per [brain.relationships.md](brain.relationships.md) §6.5): `public` → `ecosystem` (any registered platform) → `restricted` (named platforms) → `sensitive` (named humans + crypto-shredding envelope, [brain.memory.md](brain.memory.md) §4.5). Person-level data is refused at classification review during ingestion — the strongest privacy control is absence.
+Classification levels (carried on every pack, node, edge; most-restrictive propagation per [brain.relationships.md](brain.relationships.md) §6.5): `public` → `ecosystem` (any registered platform) → `restricted` (named platforms) → `sensitive` (named humans + crypto-shredding envelope, [brain.memory.md](brain.memory.md) §4.5). Person-level data is refused at classification review during ingestion — the strongest privacy control is absence. The Revenue Reader enforces this twice: every dot-revenue/v1 response must declare its own classification, and a response exceeding the enrolling platform's manifest-declared `classification_ceiling` is rejected outright, not merely downgraded ([ADR-0018](adr/ADR-0018-cross-platform-read-access.md)).
 
 ## 3. Threat model
 
@@ -70,7 +70,7 @@ STRIDE-organized; each threat mapped to its standing control and its detection s
 - **One key system ecosystem-wide** ([brain.api.md](brain.api.md) §3): platform Ed25519 keys registered in manifests, used for both publishing and API access.
 - Rotation: annual routine, immediate on suspicion; old key marked `rotated` (packs it signed stay valid — signatures are historical facts), new key active after manifest PR merges.
 - Revocation: effective at Gateway and API within one validation cycle; revoked-key attempts ledger-logged as security events.
-- Brain-internal keys (agent credentials, PR tokens): 90-day rotation, scope-audited quarterly against the [brain.workflows.md](brain.workflows.md) §6 capability list.
+- Brain-internal keys (agent credentials, PR tokens): 90-day rotation, scope-audited quarterly against the [brain.workflows.md](brain.workflows.md) §6 capability list. This list now includes the Revenue Reader's per-platform scoped tokens ([ADR-0018](adr/ADR-0018-cross-platform-read-access.md)) — same rotation and audit cadence, under a distinct token-naming convention from Guardian's health-check tokens so the two are never interchangeable.
 - No shared secrets between platforms, ever; key ceremony records live in the ledger.
 
 ## 5. Security incident loop

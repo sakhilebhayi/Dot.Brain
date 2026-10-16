@@ -1,6 +1,6 @@
 ---
 title: Dot.Docs — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Docs Platform Lead, Registry Agent]
 platform-id: dot-docs
@@ -92,7 +92,7 @@ None found. I checked for anything matching the L2 examples in brain.autonomy.md
 
 ### Level 3 — Human Control
 
-- **No CI/CD pipeline exists.** `find .github -type f` returns nothing and `ls -la .github` fails (directory absent) as of 2026-08-08. Every deploy, dependency-security pass, and formatting pass documented in this file's own "Verified Infrastructure State" section (Pint reformat, `composer audit` fixing 23 advisories, `npm audit` fixing the `ws` and `axios` issues) was run manually by a human-directed session, not by an automated pipeline. This remains true today.
+- **CI/CD** (re-audited 2026-10-16; the 2026-08-08 "no pipeline" finding is superseded) — `ci.yml` (Pint, PHPStan, PHP + JS test suite, dependency audits, Quality gate), `bootstrap.yml` and `deploy.yml` now exist; `deploy.yml` deploys `main` on a confirmed dispatch and installs the platform's `schedule:run` crontab line through the generated verified crontab block shared by every Dot deploy (own marker only, absolute PHP binary, read-back verification, restore on mismatch, `flock`-serialised since 2026-10-16 18:52 UTC — see [F-INFRA-2026-001](../brain.failures.md)). Original finding: `find .github -type f` returned nothing as of 2026-08-08. Every deploy, dependency-security pass, and formatting pass documented in this file's own "Verified Infrastructure State" section (Pint reformat, `composer audit` fixing 23 advisories, `npm audit` fixing the `ws` and `axios` issues) was run manually by a human-directed session, not by an automated pipeline. This remains true today.
 - **Background worker & broadcast-server operation.** `config/queue.php` defaults to `QUEUE_CONNECTION=database` (confirmed in `.env` and `.env.example`), and the queued notifications above depend on a running `php artisan queue:work` process; `routes/channels.php` and `app/Broadcasting/DocumentPresenceChannel.php` depend on a running Reverb broadcast server for the realtime presence/collaboration events described in this file's §3. No `Procfile`, supervisor config, or any process-manager file was found anywhere in the repo (`find . -iname "Procfile*" -o -iname "supervisor*"` returns nothing outside `vendor`/`node_modules`). Keeping these processes alive and monitored is currently a manual operator responsibility.
 - **Credential and environment configuration.** `.env` / `.env.example` hold the OpenAI API key, database credentials, and app secrets directly; there is no automated secret-rotation or credential-issuance process in the codebase. Per brain.autonomy.md §2, security credential ownership is explicitly non-delegable.
 - **Open security reviews already flagged as human-only in this document's own §"Open Questions".** The public `/shared/{uuid}` password/expiry routes (`routes/web.php`) and `Document::cachedContent()`'s caching strategy under concurrent/private access are both recorded above as unreviewed and routed to a human Security/Architecture Agent — that routing is itself the correct Level 3 call, not a gap.
@@ -101,12 +101,18 @@ None found. I checked for anything matching the L2 examples in brain.autonomy.md
 
 Level 2 has no real occupant today because Dot.docs has no workflow that both (a) prepares a materially consequential action automatically and (b) blocks on operator approval before executing it — everything automated here is low-stakes and fires immediately (Level 1), and everything higher-stakes (deploys, dependency patching, credential handling) is entirely manual with no automation attempting it at all (Level 3). The first real Level 1→2 boundary would need something like: outbound webhook *registration* (not delivery) requiring approval before a new third-party endpoint starts receiving document data, or a CI/CD pipeline that runs `composer audit`/`npm audit`/tests automatically and opens a human-approved deploy gate instead of the current fully-manual pass.
 
+## Verified Infrastructure State (2026-10-16)
+
+- `ci.yml` + `bootstrap.yml` + `deploy.yml` in place; live at `doc.infodot.co.za` on the shared Dot host with its `# dot-doc` crontab line maintained by the locked block. The daily digest in §Level 1 therefore has a real cron trigger behind it. The platform's own deploy rules: `.ai/rules/deploy.md`.
+- An old, unmarked duplicate cron line for this platform (output to `/dev/null`) was removed by the 2026-10-16 crontab incident; only the marked line remains.
+
 ## Change Log
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.0.0 | 2026-08-02 | Repository Steward Agent | Initial registration. Platform audited: SSO contract verified, DB_DATABASE misconfiguration fixed, two real IDOR gaps closed (VersionHistory, TemplateGallery), favicon wired into the main app-shell layout (previously missing), README corrected (Laravel 12→13, Anthropic→OpenAI, unshipped Redis/Horizon/Scout/Meilisearch removed). |
+| 1.2.0 | 2026-10-16 | Reliability pass | Verified Infrastructure State (2026-10-16): CI + deploy workflows exist, locked crontab line; Level 3 "no CI/CD" bullet superseded |
 
 ## Open Questions
 

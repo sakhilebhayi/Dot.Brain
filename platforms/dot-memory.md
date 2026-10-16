@@ -1,12 +1,12 @@
 ---
 title: Dot.Memory — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Memory Platform Lead, Memory Agent, Registry Agent]
 platform-id: dot-memory
 dkp-version: 1.0.0
 integration-status: publishing
-last-review: 2026-08-01
+last-review: 2026-10-16
 ---
 
 # Dot.Memory
@@ -152,7 +152,7 @@ None found. Checked every category the classification covers, and none has an im
 - **Queued jobs** — `QUEUE_CONNECTION=database` is configured and a `jobs` table migration exists (`database/migrations/0001_01_01_000002_create_jobs_table.php`), but no `app/Jobs` directory exists. The queue infrastructure is provisioned; no job class has been written to run on it.
 - **Notifications** — a `notifications` table migration exists (`database/migrations/2026_08_01_100001_create_notifications_table.php`), but no `app/Notifications` directory exists. Nothing dispatches a notification.
 - **The §3/§10 event and pack pipeline** described in this same document (`memory.sla.breach`, `memory.tier.migration_completed`, `memory.integrity.check_completed`, `dkp:memory:*` packs) — grepped the full `app/`, `config/`, `routes/`, `database/` trees for these identifiers: zero matches. They are DKP-registry documentation of an intended pipeline, not code that runs it.
-- **CI/CD** — no `.github/workflows` directory (or any other CI config) exists in the repo. There is no pipeline to run autonomously in the first place.
+- **CI/CD** (re-audited 2026-10-16) — `.github/workflows` now holds `bootstrap.yml`, `deploy.yml` (confirmed dispatch; installs the platform's `schedule:run` crontab line through the shared verified, locked block), `provision-guardian-token.yml`, `provision-service-token.yml` and the read-only `server-inspect.yml` / `server-logs.yml`. The 2026-08-08 statement is superseded; see Verified Infrastructure State (2026-10-16).
 
 ### Level 2 — Escalate
 
@@ -160,7 +160,7 @@ None found. A Level 2 process requires code that analyses a situation and prepar
 
 ### Level 3 — Human Control
 
-- **Deployment.** No CI/CD pipeline exists (`.github/workflows` absent) and `composer.json`'s `"setup"` script (`composer.json` scripts block) — `composer install`, `key:generate`, `migrate --force`, `npm install`, `npm run build` — is a manual sequence a human runs by hand. Nothing in the repo triggers a deploy or a migration on its own.
+- **Deployment.** Superseded 2026-10-16 — `deploy.yml` exists (see Level 1); the manual sequence described here is the pre-August state. Original text: No CI/CD pipeline existed (`.github/workflows` absent) and `composer.json`'s `"setup"` script (`composer.json` scripts block) — `composer install`, `key:generate`, `migrate --force`, `npm install`, `npm run build` — is a manual sequence a human runs by hand. Nothing in the repo triggers a deploy or a migration on its own.
 - **Ecosystem auth token issuance.** `app/Http/Controllers/Auth/EcosystemAuthController.php` *consumes* a Sanctum `PersonalAccessToken` carrying the `ecosystem:read` ability (validates it, logs the tokenable user in, deletes the token) — but grepping the full `app/` and `database/` trees turns up no code path that *issues* one of these tokens. Minting an ecosystem-auth token is a manual, out-of-band operator action; the app has no self-service or automated issuance/rotation flow.
 - **Database migrations.** `php artisan migrate --force` runs only as a step in the manual `composer run setup` sequence above — there is no scheduled or CI-triggered migration runner.
 - **Middleware/kernel changes.** `bootstrap/app.php`'s `withMiddleware()` closure is empty (framework defaults only); any change to auth/permission middleware is a direct code edit and deploy, done by a human, not a runtime-configurable or self-adjusting process.
@@ -169,6 +169,13 @@ None found. A Level 2 process requires code that analyses a situation and prepar
 
 Every piece of infrastructure a Level 1 process would need — a `jobs` table, a `notifications` table, `QUEUE_CONNECTION=database` — is already provisioned, but no job, command, or notification class has been written against it. The first real Level 1 candidate is the platform's own documented weekly `memory.integrity.check_completed` durability check (§3): it would need an actual `app/Console/Commands` class, a `Schedule::command()` entry in `routes/console.php` (or a queued job), and a write path into `durability_outcomes` — none of which exist in the codebase today.
 
+## Verified Infrastructure State (2026-10-16)
+
+- **Live** at `memory.infodot.co.za` (since 2026-08-25) on the shared Dot host, SQLite. `deploy.yml` deploys `main` on a confirmed dispatch and installs the `# dot-memory` crontab line through the same generated block as every Dot deploy (verified, `flock`-serialised since 2026-10-16).
+- **Intelligence-loop API in production use** by two writers: Dot.Mines (alerts, machine availability, maintenance, AI-recommendation decisions — item I-33) and Dot.Central (control-room decisions, actions, outcomes, recall and ops incidents). Vocabulary shared across both: `equipment` subjects keyed by the Dot.Mines machine id.
+- **Credentials for integrators.** Jetstream's API feature is on (wiki 0.8.0): a person mints a personal token from Profile → API Tokens. Service accounts are provisioned by `provision-service-token.yml`: the caller passes only the sha256 of a locally held plaintext, the server stores the hash under `<service>@service.dot`, and each run rotates the previous token of that name. This closes the "no issuance path" observation in Level 3 for loop tokens; the `ecosystem:read` SSO token remains out-of-band.
+- **Incident of note.** The 2026-10-16 crontab race ([F-INFRA-2026-001](../brain.failures.md)) briefly removed this platform's scheduler line too; re-installed the same day.
+
 ## Change Log
 
 | Version | Date | Author | Change |
@@ -176,6 +183,7 @@ Every piece of infrastructure a Level 1 process would need — a `jobs` table, a
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial integration package: infrastructure/platform layer separation (stores without reading; telemetry-only publication by construction), retrieval SLA contract closed (four classes with specified degraded modes, SRE-owned, consumer-acknowledged), brain.memory.md straggler metrics homed, Central two-lane layering clarified, 3 domain metrics, worked round-trip |
 | 1.0.1 | 2026-08-01 | Repository Steward Agent | Linked to Dot.Memory's own wiki.md (platform repo) as the platform-owned source of truth |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
+| 1.2.0 | 2026-10-16 | Reliability + Dot.Central integration pass | Verified Infrastructure State (2026-10-16): workflows, locked crontab line, two production loop writers, API tokens + service-token provisioning; stale CI/CD statements superseded |
 
 ## Open Questions
 
