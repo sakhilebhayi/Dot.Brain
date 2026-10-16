@@ -103,3 +103,27 @@ test('fetchHealth reports a missing or non-string generated_at as null', async (
   assert.equal(result.reachable, true);
   assert.equal(result.generated_at, null);
 });
+
+test('fetchHealth classifies a body read that times out as unreachable', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => { throw Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }); },
+  });
+  const result = await fetchHealth(MANIFEST, { fetchImpl, env: ENV });
+  assert.equal(result.reachable, false);
+  assert.equal(result.kind, 'unreachable');
+  assert.match(result.reason, /body read failed/);
+});
+
+test('fetchHealth classifies a body read that is aborted as unreachable', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => { throw Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }); },
+  });
+  const result = await fetchHealth(MANIFEST, { fetchImpl, env: ENV });
+  assert.equal(result.reachable, false);
+  assert.equal(result.kind, 'unreachable');
+  assert.match(result.reason, /body read failed/);
+});

@@ -8,7 +8,7 @@ export const VALID_STATUSES = ['healthy', 'warning', 'critical', 'unknown'];
  * service is self-contained. The words must keep meaning the same thing in
  * both places.
  *
- *   unreachable    -- nothing answered: DNS, connection refused, timeout
+ *   unreachable    -- nothing answered, or the answer never finished: DNS, connection refused, timeout (including a stalled body)
  *   platform_error -- answered with 5xx: the app is failing
  *   maintenance    -- answered 503: almost always our own deploy
  *   access         -- answered 401/403 (or another refusal): reached and refused
@@ -57,7 +57,10 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
   let doc;
   try {
     doc = await response.json();
-  } catch {
+  } catch (error) {
+    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+      return { reachable: false, kind: 'unreachable', reason: `body read failed: ${error?.message ?? error}` };
+    }
     return { reachable: false, kind: 'contract', reason: 'response body was not JSON' };
   }
 
