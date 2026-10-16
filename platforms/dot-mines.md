@@ -1,6 +1,6 @@
 ---
 title: Dot.Mines — Platform Knowledge
-version: 1.2.0
+version: 1.2.1
 status: active
 owners: [Mining Platform Lead, Mining Agent, Registry Agent]
 platform-id: dot-mines
@@ -156,6 +156,7 @@ Confirmed against the real repository and the live host during the Dot.Central i
 - **Liveness.** `scheduler-watchdog.yml` (every 15 min) reads `/guardian/health` and fails unless `scheduler` and `queue` are `healthy`; `server-logs.yml` prints the crontab, `schedule:list`, scheduler output and the Dot.Memory outbox (`memory:status`). The scheduler had been dead from 2026-08-31 to 2026-10-16 — catalogued as [F-INFRA-2026-001](../brain.failures.md).
 - **Ecosystem intelligence loop (writer side, item I-33).** Alerts (triggered, acknowledged, resolved with time-to-clear), machines going offline and back, maintenance records and AI-recommendation decisions are mapped to the [ADR-0015](../adr/ADR-0015-three-platform-intelligence-loop.md) envelope (`equipment` subjects keyed by machine id, `mine:<team>` scopes, state-keyed event ids for idempotency), written to a `memory_outbox` table by observers and flushed by the scheduled `memory:flush` (every minute, backoff 1/5/15/60 min, 20 attempts) — a scheduled command rather than a queued job because the platform's queue runs with `--tries=1`. The platform authenticates to Dot.Memory with a service token provisioned by Dot.Memory's `provision-service-token.yml`; the secret is set on the server by `set-memory-token.yml` (validated shape, base64 transport, never echoed). New Level 1 processes: `memory:flush`, `memory:prune`.
 - **Consumer of record.** Dot.Central reads this platform's operators, operator-machine assignments, machines, metrics and alerts (wiki 0.4.0) and is the first external platform on the loop from the reading side (see [dot-central.md](dot-central.md)).
+- **Guardian queue check and queue evidence (2026-10-16 evening, wiki 0.4.5–0.4.6).** `QueueCheck` counts only jobs runnable now as `pending_jobs` and reports future-dated rows as `delayed_jobs`; explicit retries with a delay (webhook deliveries backing off) no longer read as a stopped drain. `server-logs.yml` gained a read-only "Queue evidence" step (jobs by queue and class with reserved count and availability window, webhook endpoints by host and path only, the day's deliveries by status, response and error, failed jobs by class). Found through guardian issue #346, catalogued as [F-PROC-2026-001](../brain.failures.md). The crontab block's reads now retry (wiki 0.4.6; F-INFRA-2026-001 addendum).
 
 ## Change Log
 
@@ -167,6 +168,7 @@ Confirmed against the real repository and the live host during the Dot.Central i
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.1.1 | 2026-08-10 | Platform Autonomy Classification sub-project | Refreshed against real code post-1.1.0: added `integrations:sync-due` (new 2026-08-10 Level 1 process, `App\Jobs\SyncIntegrationMachinesJob`) to Level 1; added `data-quality:check` (real, unscheduled, previously undocumented) to Level 3; corrected the Level 2 section's job/command counts from 8/6 to 9/8 accordingly. Found via a spot-check of first-pass autonomy audits against live code, not a fresh full re-audit — the Level 2/3 conclusions otherwise stand |
 | 1.2.0 | 2026-10-16 | Reliability + Dot.Central integration pass | Verified Infrastructure State (2026-10-16): CI-gated auto-deploy, verified + locked crontab block, scheduler watchdog, server-logs evidence, intelligence-loop writer side (I-33); Level 3 deployment bullet superseded; scheduler outage catalogued as F-INFRA-2026-001 |
+| 1.2.1 | 2026-10-16 | Reliability pass (evening) | Guardian queue check distinguishes delayed retries from backlog; server-logs queue and webhook evidence; crontab reads retry; F-PROC-2026-001 cross-reference |
 
 ## Open Questions
 
