@@ -20,7 +20,7 @@ Accepted — 2026-10-16
 
 ## Context
 
-Dot.Brain should always know the current state of the live platforms. Today it has almost no recurring feed: Guardian (ADR-0014) polls every 5 minutes but exists to detect and remediate incidents, keeps only a local cache-backed store, and has two platforms enrolled; Revenue Reader (ADR-0018) has none; the DKP publish/subscribe gateway is not a running service. The deployed apps share one cPanel crontab, which three simultaneous deploys wiped on 2026-10-16 (F-INFRA-2026-001); Dot.Brain is not hosted there.
+Dot.Brain should always know the current state of the live platforms. Today it has almost no recurring feed: Guardian (ADR-0014) polls every 5 minutes but exists to detect and remediate incidents: its working state lives in `actions/cache`, it archives only incidents — not a periodic state series — to Dot.Memory, and it has two platforms enrolled; Revenue Reader (ADR-0018) has none; the DKP publish/subscribe gateway is not a running service. The deployed apps share one cPanel crontab, which three simultaneous deploys wiped on 2026-10-16 (F-INFRA-2026-001); Dot.Brain is not hosted there.
 
 ## Decision
 
