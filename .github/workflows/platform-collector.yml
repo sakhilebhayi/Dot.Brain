@@ -1,0 +1,62 @@
+name: Platform Collector
+
+# Hourly: fetch every platform enrolled in platforms/collector/ and record one
+# observation per platform to Dot.Memory, so Brain's picture of the live
+# platforms is refreshed hourly. Runs from Dot.Brain's own Actions deliberately
+# -- NOT the shared cPanel crontab (F-INFRA-2026-001). See
+# services/platform-collector/README.md and ADR-0019.
+#
+# Enrolling a platform = a manifest in platforms/collector/, a repository
+# secret, and one env line below (Actions cannot pass "whatever secrets the
+# manifests name" without exposing every secret). A test in
+# services/platform-collector fails CI if a manifest's token_env is missing
+# from this file.
+#
+# The schedule is a request, not a promise: GitHub's cron is best-effort, so a
+# run can start late or be skipped, and this job's real cadence has not been
+# measured yet (ADR-0019, Open questions). event_ids embed the UTC hour, so a
+# late or duplicate run is harmless; a skipped hour is a gap. workflow_dispatch
+# below lets an external dispatcher drive it if gaps show up.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Fetch and print only; record nothing
+        type: boolean
+        default: false
+
+concurrency:
+  group: platform-collector
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    name: collect platform state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Collect
+        working-directory: services/platform-collector
+        env:
+          DOT_MEMORY_URL: https://memory.infodot.co.za
+          DOT_MEMORY_TOKEN: ${{ secrets.DOT_MEMORY_TOKEN }}
+          DOT_MINES_GUARDIAN_TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=""
+          if [ "$DRY_RUN" = "true" ]; then args="--dry-run"; fi
+          node src/cli.js collect --manifest-dir ../../platforms/collector $args
