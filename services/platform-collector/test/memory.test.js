@@ -96,3 +96,76 @@ test('writeObservation does not retry a 4xx', async () => {
   assert.match(result.reason, /HTTP 422/);
   assert.equal(calls, 1);
 });
+
+test('writeObservation retries the edge-WAF statuses 403, 408 and 429', async () => {
+  for (const status of [403, 408, 429]) {
+    const replies = [reply(status), reply(201)];
+    const slept = [];
+    const result = await writeObservation(CFG, RECORD, {
+      fetchImpl: async () => replies.shift(),
+      sleep: async (ms) => { slept.push(ms); },
+    });
+    assert.deepEqual(result, { ok: true, attempts: 2 }, `HTTP ${status}`);
+    assert.deepEqual(slept, [2000], `HTTP ${status}`);
+  }
+});
+
+test('writeObservation points at ADR-0016 when a 403 persists through every attempt', async () => {
+  let calls = 0;
+  const slept = [];
+  const result = await writeObservation(CFG, RECORD, {
+    fetchImpl: async () => { calls += 1; return reply(403); },
+    sleep: async (ms) => { slept.push(ms); },
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.attempts, 3);
+  assert.equal(calls, 3);
+  assert.deepEqual(slept, [2000, 5000]);
+  assert.match(result.reason, /HTTP 403/);
+  assert.match(result.reason, /ADR-0016/);
+});
+
+test('writeObservation does not mention the WAF when the last failure is not a 403', async () => {
+  const replies = [reply(403), reply(500), reply(502)];
+  const result = await writeObservation(CFG, RECORD, { fetchImpl: async () => replies.shift(), sleep: async () => {} });
+  assert.equal(result.ok, false);
+  assert.match(result.reason, /HTTP 502/);
+  assert.doesNotMatch(result.reason, /ADR-0016/);
+});
+
+test('writeObservation treats 400, 401, 404 and 422 as terminal', async () => {
+  for (const status of [400, 401, 404, 422]) {
+    let calls = 0;
+    const result = await writeObservation(CFG, RECORD, {
+      fetchImpl: async () => { calls += 1; return reply(status); },
+      sleep: async () => { throw new Error('must not sleep'); },
+    });
+    assert.equal(result.ok, false, `HTTP ${status}`);
+    assert.equal(result.attempts, 1, `HTTP ${status}`);
+    assert.match(result.reason, new RegExp(`HTTP ${status}`));
+    assert.equal(calls, 1, `HTTP ${status}`);
+  }
+});
+
+test('writeObservation names the cause of a network error', async () => {
+  const fetchImpl = async () => { throw Object.assign(new Error('fetch failed'), { cause: { code: 'ECONNRESET' } }); };
+  const result = await writeObservation(CFG, RECORD, { fetchImpl, sleep: async () => {} });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'Dot.Memory request failed: fetch failed (ECONNRESET)');
+});
+
+test('writeObservation never throws on a non-Error rejection', async () => {
+  for (const thrown of [null, undefined, 'socket hang up', 42]) {
+    let calls = 0;
+    const result = await writeObservation(CFG, RECORD, {
+      fetchImpl: async () => { calls += 1; throw thrown; },
+      sleep: async () => {},
+    });
+    assert.equal(result.ok, false, String(thrown));
+    assert.equal(typeof result.reason, 'string', String(thrown));
+    assert.match(result.reason, /Dot\.Memory request failed/);
+    assert.equal(calls, 3);
+  }
+  const string = await writeObservation(CFG, RECORD, { fetchImpl: async () => { throw 'socket hang up'; }, sleep: async () => {} });
+  assert.match(string.reason, /socket hang up/);
+});

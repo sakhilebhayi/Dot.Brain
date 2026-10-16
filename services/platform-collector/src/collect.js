@@ -2,12 +2,15 @@
 import { fetchHealth } from './fetch.js';
 import { buildObservation } from './record.js';
 import { writeObservation } from './memory.js';
+import { describeError } from './errors.js';
 
 /**
  * One collection run (design spec §4): fetch every platform concurrently,
  * record each result independently. A platform being down is data and keeps
  * the run green (alerting on it is Guardian's job); failing to RECORD turns
  * it red, because the point of this job is that Brain is never silently stale.
+ * Each platform is isolated: an unexpected throw in one platform's work
+ * becomes that platform's unrecorded row, never a lost hour for the others.
  *
  * @param {object} args
  * @param {object[]} args.manifests validated manifests (registry.js)
@@ -20,15 +23,22 @@ import { writeObservation } from './memory.js';
  */
 export async function collect({ manifests, cfg, fetchImpl = fetch, env = process.env, now = () => new Date(), sleep, dryRun = false }) {
   const rows = await Promise.all(manifests.map(async (manifest) => {
-    const result = await fetchHealth(manifest, { fetchImpl, env });
-    const record = buildObservation(manifest, result, now());
+    try {
+      const result = await fetchHealth(manifest, { fetchImpl, env });
+      const record = buildObservation(manifest, result, now());
 
-    if (dryRun) {
-      return { manifest, result, record, recorded: null };
+      if (dryRun) {
+        return { manifest, result, record, recorded: null };
+      }
+
+      const write = await writeObservation(cfg, record, { fetchImpl, sleep });
+      return { manifest, result, record, recorded: write.ok, reason: write.ok ? null : write.reason };
+    } catch (error) {
+      // Displayed but never recorded. `crash` is deliberately not one of
+      // FAILURE_KINDS: it is about this collector, not about the platform.
+      const reason = `collector error: ${describeError(error)}`;
+      return { manifest, result: { reachable: false, kind: 'crash', reason }, record: null, recorded: false, reason };
     }
-
-    const write = await writeObservation(cfg, record, { fetchImpl, sleep });
-    return { manifest, result, record, recorded: write.ok, reason: write.ok ? null : write.reason };
   }));
 
   const unrecorded = rows.filter((row) => row.recorded === false).length;

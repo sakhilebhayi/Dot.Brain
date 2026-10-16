@@ -1,9 +1,9 @@
 name: Platform Collector
 
 # Hourly: fetch every platform enrolled in platforms/collector/ and record one
-# observation per platform to Dot.Memory so Brain's picture of the live
-# platforms is never stale. Runs from Dot.Brain's own Actions deliberately --
-# NOT the shared cPanel crontab (F-INFRA-2026-001). See
+# observation per platform to Dot.Memory, so Brain's picture of the live
+# platforms is refreshed hourly. Runs from Dot.Brain's own Actions deliberately
+# -- NOT the shared cPanel crontab (F-INFRA-2026-001). See
 # services/platform-collector/README.md and ADR-0019.
 #
 # Enrolling a platform = a manifest in platforms/collector/, a repository
@@ -12,8 +12,11 @@ name: Platform Collector
 # services/platform-collector fails CI if a manifest's token_env is missing
 # from this file.
 #
-# GitHub's cron is best-effort: "hourly" means roughly hourly. event_ids embed
-# the UTC hour, so a late or duplicate run is harmless; a skipped hour is a gap.
+# The schedule is a request, not a promise: GitHub's cron is best-effort, so a
+# run can start late or be skipped, and this job's real cadence has not been
+# measured yet (ADR-0019, Open questions). event_ids embed the UTC hour, so a
+# late or duplicate run is harmless; a skipped hour is a gap. workflow_dispatch
+# below lets an external dispatcher drive it if gaps show up.
 on:
   schedule:
     - cron: '17 * * * *'
@@ -39,6 +42,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:

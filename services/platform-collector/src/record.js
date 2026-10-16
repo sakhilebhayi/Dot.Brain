@@ -2,32 +2,33 @@
 import { VALID_STATUSES } from './fetch.js';
 
 const MAX_TEXT = 240;
+const MAX_KEY = 80;
 const MAX_METRIC_KEYS = 32;
 const MAX_CHECKS = 64;
 
-function clip(value) {
-  return value.length > MAX_TEXT ? value.slice(0, MAX_TEXT) : value;
+function clip(value, max = MAX_TEXT) {
+  return value.length > max ? value.slice(0, max) : value;
 }
 
+// Both `checks` and `metrics` are built with Object.fromEntries rather than by
+// assigning `obj[key] = ...`: the keys come from a remote document, and
+// assigning a key literally named "__proto__" would set the object's prototype
+// and silently drop that entry from the JSON sent to Dot.Memory.
 function compactMetrics(metrics) {
-  const kept = {};
-  if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) return kept;
+  if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) return {};
 
-  let count = 0;
+  const kept = [];
   for (const [key, value] of Object.entries(metrics)) {
-    if (count >= MAX_METRIC_KEYS) break;
+    if (kept.length >= MAX_METRIC_KEYS) break;
     if (typeof value === 'number' && Number.isFinite(value)) {
-      kept[key] = value;
+      kept.push([clip(key, MAX_KEY), value]);
     } else if (typeof value === 'boolean') {
-      kept[key] = value;
+      kept.push([clip(key, MAX_KEY), value]);
     } else if (typeof value === 'string') {
-      kept[key] = clip(value);
-    } else {
-      continue;
+      kept.push([clip(key, MAX_KEY), clip(value)]);
     }
-    count += 1;
   }
-  return kept;
+  return Object.fromEntries(kept);
 }
 
 /**
@@ -47,14 +48,14 @@ export function buildObservation(manifest, result, now = new Date()) {
   const hour = iso.replace(/[-:T]/g, '').slice(0, 10);
 
   const entries = result.reachable ? Object.entries(result.checks) : [];
-  const checks = {};
-  for (const [key, check] of entries.slice(0, MAX_CHECKS)) {
-    checks[key] = {
+  const checks = Object.fromEntries(entries.slice(0, MAX_CHECKS).map(([key, check]) => [
+    clip(key, MAX_KEY),
+    {
       status: VALID_STATUSES.includes(check?.status) ? check.status : 'unknown',
       message: typeof check?.message === 'string' ? clip(check.message) : '',
       metrics: compactMetrics(check?.metrics),
-    };
-  }
+    },
+  ]));
 
   return {
     loop_id: `collect-${manifest.platform}-${day}`,
@@ -71,7 +72,7 @@ export function buildObservation(manifest, result, now = new Date()) {
       status: result.reachable ? result.status : null,
       kind: result.reachable ? null : result.kind,
       reason: result.reachable ? null : clip(result.reason),
-      generated_at: result.reachable ? result.generated_at : null,
+      generated_at: result.reachable && typeof result.generated_at === 'string' ? clip(result.generated_at) : null,
       check_count: entries.length,
       checks,
     },

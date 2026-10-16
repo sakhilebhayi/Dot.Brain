@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Usage: platform-collector collect --manifest-dir <dir> [--dry-run]
 // Exit: 0 every observation recorded (platforms may be down -- that is data)
-//       1 an observation could not be recorded, or Dot.Memory is not configured
-//       2 usage error, invalid/missing manifests, or crash
+//       1 an observation could not be recorded (including a platform's work
+//         crashing unexpectedly), or Dot.Memory is not configured for a real run
+//       2 usage error, invalid/missing manifests, or a crash outside the
+//         per-platform work
 import { appendFileSync } from 'node:fs';
 import { loadManifests } from './registry.js';
 import { memoryConfig } from './memory.js';

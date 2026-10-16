@@ -21,8 +21,12 @@ const healthy = () => ({ ok: true, status: 200, json: async () => ({ status: 'he
 const httpStatus = (status) => () => ({ ok: false, status });
 
 // Routes platform URLs to handlers and Memory writes to a recorder.
+// memoryStatus(record, attempt) -- `attempt` is how many times this platform's
+// record has been posted so far, starting at 1, so a handler can answer 500 and
+// then 201.
 function world({ platforms, memoryStatus = () => 201 }) {
   const writes = [];
+  const attempts = new Map();
   let memoryCalls = 0;
   const fetchImpl = async (url, options = {}) => {
     const u = String(url);
@@ -30,7 +34,9 @@ function world({ platforms, memoryStatus = () => 201 }) {
       memoryCalls += 1;
       const record = JSON.parse(options.body);
       writes.push(record);
-      const status = memoryStatus(record);
+      const attempt = (attempts.get(record.subject_id) ?? 0) + 1;
+      attempts.set(record.subject_id, attempt);
+      const status = memoryStatus(record, attempt);
       return { ok: status >= 200 && status < 300, status, json: async () => ({}) };
     }
     const handler = platforms[u];
@@ -80,6 +86,67 @@ test('one platform failing to record turns the run red but the others are still 
   assert.match(beta.reason, /HTTP 500/);
 });
 
+test('a transient Memory failure is retried and the platform is still recorded; exit 0', async () => {
+  const w = world({
+    platforms: { [URLS.a]: healthy, [URLS.b]: healthy },
+    memoryStatus: (record, attempt) => (record.subject_id === 'beta' && attempt === 1 ? 500 : 201),
+  });
+  const slept = [];
+  const { rows, exitCode } = await collect({
+    manifests: MANIFESTS, cfg: CFG, fetchImpl: w.fetchImpl, env: ENV, now: NOW, sleep: async (ms) => { slept.push(ms); },
+  });
+  assert.equal(exitCode, 0);
+  assert.ok(rows.every((row) => row.recorded === true));
+  assert.equal(w.writes.filter((r) => r.subject_id === 'beta').length, 2);
+  assert.equal(w.writes.filter((r) => r.subject_id === 'alpha').length, 1);
+  assert.deepEqual(slept, [2000]);
+});
+
+test('an unexpected throw for one platform leaves that row unrecorded, records the others, and turns the run red', async () => {
+  // `ok` is read outside fetchHealth's try blocks, so this escapes fetchHealth for alpha only.
+  const exploding = () => ({ get ok() { throw new Error('boom'); } });
+  const w = world({ platforms: { [URLS.a]: exploding, [URLS.b]: healthy } });
+  const { rows, exitCode } = await collect({ manifests: MANIFESTS, cfg: CFG, fetchImpl: w.fetchImpl, env: ENV, now: NOW, sleep: noSleep });
+  assert.equal(exitCode, 1);
+  assert.equal(rows.length, 2);
+
+  const alpha = rows.find((row) => row.manifest.platform === 'alpha');
+  assert.equal(alpha.recorded, false);
+  assert.equal(alpha.record, null);
+  assert.equal(alpha.result.reachable, false);
+  assert.equal(alpha.result.kind, 'crash');
+  assert.match(alpha.result.reason, /collector error: boom/);
+  assert.match(alpha.reason, /collector error: boom/);
+
+  const beta = rows.find((row) => row.manifest.platform === 'beta');
+  assert.equal(beta.recorded, true);
+  assert.deepEqual(w.writes.map((r) => r.subject_id), ['beta']);
+});
+
+test('a throw while building or writing a record is contained to its platform too', async () => {
+  const w = world({ platforms: { [URLS.a]: healthy, [URLS.b]: healthy } });
+  let calls = 0;
+  const now = () => {
+    calls += 1;
+    if (calls === 1) throw new Error('clock broke');
+    return NOW();
+  };
+  const { rows, exitCode } = await collect({ manifests: MANIFESTS, cfg: CFG, fetchImpl: w.fetchImpl, env: ENV, now, sleep: noSleep });
+  assert.equal(exitCode, 1);
+  assert.equal(rows.filter((row) => row.recorded === false).length, 1);
+  assert.equal(rows.filter((row) => row.recorded === true).length, 1);
+  assert.equal(w.writes.length, 1);
+});
+
+test('a throw is also contained in a dry run, and still turns the run red', async () => {
+  const exploding = () => ({ get ok() { throw new Error('boom'); } });
+  const w = world({ platforms: { [URLS.a]: exploding, [URLS.b]: healthy } });
+  const { rows, exitCode } = await collect({ manifests: MANIFESTS, cfg: { enabled: false }, fetchImpl: w.fetchImpl, env: ENV, now: NOW, sleep: noSleep, dryRun: true });
+  assert.equal(exitCode, 1);
+  assert.equal(rows.find((row) => row.manifest.platform === 'alpha').recorded, false);
+  assert.equal(rows.find((row) => row.manifest.platform === 'beta').recorded, null);
+});
+
 test('Dot.Memory unconfigured turns a real run red and makes no write', async () => {
   const w = world({ platforms: { [URLS.a]: healthy, [URLS.b]: healthy } });
   const { rows, exitCode } = await collect({ manifests: MANIFESTS, cfg: { enabled: false }, fetchImpl: w.fetchImpl, env: ENV, now: NOW, sleep: noSleep });
@@ -110,6 +177,13 @@ test('formatTable renders one row per platform with its outcome', () => {
     '| beta | no | - | access | NO |',
     '| gamma | yes | warning | - | dry-run |',
   ].join('\n'));
+});
+
+test('formatTable renders a crashed row', () => {
+  const rows = [
+    { manifest: { platform: 'alpha' }, result: { reachable: false, kind: 'crash', reason: 'collector error: boom' }, record: null, recorded: false, reason: 'collector error: boom' },
+  ];
+  assert.equal(formatTable(rows).split('\n')[2], '| alpha | no | - | crash | NO |');
 });
 
 const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
@@ -150,12 +224,30 @@ test('a failed job-summary write is a warning and does not change the exit code'
   }
 });
 
-test('a crash exits 2, not 1', () => {
+test('an unexpected throw while collecting is contained: that row is unrecorded, the table still prints, exit 1', () => {
   const dir = oneManifestDir();
   try {
-    // Preload that makes Date.prototype.toISOString throw, so buildObservation rejects inside collect().
+    // Preload that makes Date.prototype.toISOString throw, so buildObservation throws inside collect().
     const result = spawnSync(process.execPath, [
       '--import', 'data:text/javascript,Date.prototype.toISOString=()=>{throw new Error("boom")}',
+      CLI, 'collect', '--manifest-dir', dir, '--dry-run',
+    ], { env: { PATH: process.env.PATH }, encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /boom/);
+    assert.match(result.stderr, /collector error/);
+    assert.match(result.stdout, /\| platform \| reachable \|/);
+    assert.match(result.stdout, /\| x \| no \| - \| crash \| NO \|/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a crash outside the per-platform work exits 2, not 1', () => {
+  const dir = oneManifestDir();
+  try {
+    // Preload that makes console.log throw, so printing the table (inside the CLI's try) crashes.
+    const result = spawnSync(process.execPath, [
+      '--import', 'data:text/javascript,console.log=()=>{throw new Error("boom")}',
       CLI, 'collect', '--manifest-dir', dir, '--dry-run',
     ], { env: { PATH: process.env.PATH }, encoding: 'utf8' });
     assert.equal(result.status, 2);

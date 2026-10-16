@@ -114,3 +114,35 @@ test('an invalid check status becomes unknown and a non-string message becomes e
   const result = { ...UP, checks: { queue: { status: 'great', message: 42, metrics: 'nope' } } };
   assert.deepEqual(buildObservation(MANIFEST, result, NOW).detail.checks.queue, { status: 'unknown', message: '', metrics: {} });
 });
+
+test('a check or metric literally named __proto__ survives as an own property', () => {
+  const checks = JSON.parse('{"__proto__":{"status":"critical","message":"m","metrics":{"__proto__":7,"x":2}}}');
+  const { detail } = buildObservation(MANIFEST, { ...UP, checks }, NOW);
+  assert.ok(Object.hasOwn(detail.checks, '__proto__'));
+  assert.ok(Object.hasOwn(detail.checks['__proto__'].metrics, '__proto__'));
+  const json = JSON.stringify(detail);
+  assert.match(json, /"__proto__":\{"status":"critical"/);
+  assert.match(json, /"__proto__":7/);
+  assert.equal(detail.check_count, 1);
+  assert.equal(Object.getPrototypeOf(detail.checks), Object.prototype);
+});
+
+test('generated_at is clipped to 240 characters', () => {
+  const { detail } = buildObservation(MANIFEST, { ...UP, generated_at: 'g'.repeat(100 * 1024) }, NOW);
+  assert.equal(detail.generated_at.length, 240);
+});
+
+test('generated_at stays null when the document had none', () => {
+  assert.equal(buildObservation(MANIFEST, { ...UP, generated_at: null }, NOW).detail.generated_at, null);
+});
+
+test('check names and metric keys are clipped to 80 characters', () => {
+  const longKey = 'k'.repeat(500);
+  const checks = { [longKey]: { status: 'healthy', message: '', metrics: { [longKey]: 1 } } };
+  const { detail } = buildObservation(MANIFEST, { ...UP, checks }, NOW);
+  const [name] = Object.keys(detail.checks);
+  assert.equal(name.length, 80);
+  const [metric] = Object.keys(detail.checks[name].metrics);
+  assert.equal(metric.length, 80);
+  assert.equal(detail.check_count, 1);
+});

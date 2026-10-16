@@ -1,7 +1,7 @@
 {
   "name": "@dot-brain/platform-collector",
   "version": "1.0.0",
-  "description": "Hourly collector: fetches each enrolled platform's dot-guardian/v1 health document and records one observation per platform to Dot.Memory, so Brain's picture of the live platforms is never stale. Records only; never remediates (that is Guardian). See ../../docs/superpowers/specs/2026-10-16-hourly-platform-collection-design.md.",
+  "description": "Hourly collector: fetches each enrolled platform's dot-guardian/v1 health document and records one observation per platform to Dot.Memory, so Brain's picture of the live platforms is refreshed hourly. Records only; never remediates (that is Guardian). See ../../docs/superpowers/specs/2026-10-16-hourly-platform-collection-design.md.",
   "type": "module",
   "bin": { "platform-collector": "./src/cli.js" },
   "scripts": { "test": "node --test" },

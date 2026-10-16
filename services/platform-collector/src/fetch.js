@@ -1,4 +1,5 @@
 // services/platform-collector/src/fetch.js
+import { describeError } from './errors.js';
 
 export const VALID_STATUSES = ['healthy', 'warning', 'critical', 'unknown'];
 
@@ -31,7 +32,7 @@ function kindForStatus(status) {
  * recorded as `config` rather than skipped -- a silent hole in an hourly
  * series is worse than a recorded one.
  *
- * @param {{health_url: string, token_env: string, timeout_ms: number}} manifest
+ * @param {{platform: string, health_url: string, token_env: string, timeout_ms: number}} manifest
  * @param {{fetchImpl?: typeof fetch, env?: Record<string, string|undefined>}} [opts]
  */
 export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.env } = {}) {
@@ -47,7 +48,11 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
       signal: AbortSignal.timeout(manifest.timeout_ms),
     });
   } catch (error) {
-    return { reachable: false, kind: 'unreachable', reason: `fetch failed: ${error.message}` };
+    return { reachable: false, kind: 'unreachable', reason: `fetch failed: ${describeError(error)}` };
+  }
+
+  if (response == null) {
+    return { reachable: false, kind: 'unreachable', reason: 'fetch returned no response' };
   }
 
   if (!response.ok) {
@@ -59,7 +64,7 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
     doc = await response.json();
   } catch (error) {
     if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
-      return { reachable: false, kind: 'unreachable', reason: `body read failed: ${error?.message ?? error}` };
+      return { reachable: false, kind: 'unreachable', reason: `body read failed: ${describeError(error)}` };
     }
     return { reachable: false, kind: 'contract', reason: 'response body was not JSON' };
   }
@@ -72,6 +77,13 @@ export async function fetchHealth(manifest, { fetchImpl = fetch, env = process.e
     || !VALID_STATUSES.includes(doc.status)
   ) {
     return { reachable: false, kind: 'contract', reason: 'response did not match the dot-guardian/v1 contract' };
+  }
+
+  // Lenient on absence, strict on mismatch: a URL that answers for a different
+  // platform (a mis-pointed manifest, a copied one) must not be recorded as this
+  // platform's health.
+  if (typeof doc.platform === 'string' && doc.platform !== manifest.platform) {
+    return { reachable: false, kind: 'contract', reason: `document is for "${doc.platform.slice(0, 64)}", not "${manifest.platform}"` };
   }
 
   return {

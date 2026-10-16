@@ -1,6 +1,16 @@
 // services/platform-collector/src/memory.js
+import { describeError } from './errors.js';
 
 const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Statuses worth another attempt besides 5xx. 403 is here on evidence: ADR-0016
+// measured ~6.6% of requests from GitHub runner IPs to this shared host being
+// refused by the edge WAF (Dot.Memory lives on it), and the next attempt, a
+// couple of seconds later, usually gets through. Treating it as terminal would
+// turn ~1-2 runs a day red on WAF noise and teach the owner to ignore the red
+// signal. 408 and 429 are the standard "try again" answers. Every other 4xx
+// (400, 401, 404, 422...) means the request itself is wrong; retrying is futile.
+const RETRYABLE_CLIENT_STATUSES = [403, 408, 429];
 
 /**
  * Same shape as services/revenue-intelligence/src/memory-client.js and
@@ -18,9 +28,10 @@ export function memoryConfig(env = process.env) {
 
 /**
  * POST one observation to Dot.Memory's intelligence events endpoint. Never
- * throws. Network errors and 5xx are retried after each delay in `delaysMs`
- * (an hour lost to one transient 502 is exactly the staleness this job exists
- * to prevent); a 4xx means the record itself is wrong, so retrying is futile.
+ * throws. Network errors, 5xx and 403/408/429 are retried after each delay in
+ * `delaysMs` (an hour lost to one transient 502 or edge-WAF 403 is exactly the
+ * staleness this job exists to prevent); any other 4xx means the record itself
+ * is wrong, so retrying is futile.
  *
  * @param {{enabled: boolean, url?: string, token?: string}} cfg
  * @param {object} record
@@ -48,12 +59,14 @@ export async function writeObservation(cfg, record, { fetchImpl = fetch, sleep =
       if (response.ok) {
         return { ok: true, attempts: attempt + 1 };
       }
-      reason = `Dot.Memory answered HTTP ${response.status}`;
-      if (response.status < 500) {
+      reason = response.status === 403
+        ? 'Dot.Memory answered HTTP 403 (likely the edge WAF, see ADR-0016)'
+        : `Dot.Memory answered HTTP ${response.status}`;
+      if (response.status < 500 && !RETRYABLE_CLIENT_STATUSES.includes(response.status)) {
         return { ok: false, reason, attempts: attempt + 1 };
       }
     } catch (error) {
-      reason = `Dot.Memory request failed: ${error.message}`;
+      reason = `Dot.Memory request failed: ${describeError(error)}`;
     }
 
     if (attempt < delaysMs.length) {

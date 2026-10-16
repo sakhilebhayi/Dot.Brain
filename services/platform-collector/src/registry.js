@@ -18,6 +18,25 @@ const ALLOWED_KEYS = [...REQUIRED_KEYS, ...Object.keys(DEFAULTS)];
 // so it must be plain and bounded.
 const PLATFORM_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
+const INVALID_URL = 'health_url must be a valid https URL with a host and no embedded credentials';
+
+// The URL is never echoed in an error: it can carry credentials
+// (https://user:pass@host), and these messages end up in public run logs.
+function checkHealthUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(INVALID_URL);
+  }
+  if (url.protocol !== 'https:') {
+    throw new Error('health_url must use https');
+  }
+  if (!url.hostname || url.username || url.password) {
+    throw new Error(INVALID_URL);
+  }
+}
+
 /**
  * @param {unknown} raw
  * @returns {{platform: string, health_url: string, token_env: string, timeout_ms: number}}
@@ -42,9 +61,7 @@ export function validateManifest(raw) {
   if (!PLATFORM_PATTERN.test(manifest.platform)) {
     throw new Error(`platform must match ${PLATFORM_PATTERN}, got ${JSON.stringify(manifest.platform)}`);
   }
-  if (!manifest.health_url.startsWith('https://')) {
-    throw new Error(`health_url must use https, got ${JSON.stringify(manifest.health_url)}`);
-  }
+  checkHealthUrl(manifest.health_url);
   if (typeof manifest.timeout_ms !== 'number' || !Number.isFinite(manifest.timeout_ms) || manifest.timeout_ms <= 0) {
     throw new Error(`timeout_ms must be a positive number, got ${JSON.stringify(manifest.timeout_ms)}`);
   }
@@ -62,8 +79,11 @@ export function validateManifest(raw) {
  * @param {typeof readFileSync} [readFileImpl]
  */
 export function loadManifests(dir, readDirImpl = readdirSync, readFileImpl = readFileSync) {
+  // Sorted, so the order of rows, writes and log lines does not depend on the
+  // filesystem's directory order.
   const loaded = readDirImpl(dir)
     .filter((name) => name.endsWith('.json'))
+    .sort()
     .map((name) => {
       try {
         return { name, manifest: validateManifest(JSON.parse(readFileImpl(`${dir}/${name}`, 'utf8'))) };

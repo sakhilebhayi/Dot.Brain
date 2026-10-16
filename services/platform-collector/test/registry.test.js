@@ -63,6 +63,41 @@ test('validateManifest rejects a non-https health_url', () => {
   );
 });
 
+test('validateManifest rejects a health_url that is unparseable, has no host, or embeds credentials, without echoing it', () => {
+  const cases = ['https://', 'https://user:pw@mines.infodot.co.za/guardian/health', 'https://user@mines.infodot.co.za/x', 'not a url', 'https:///'];
+  for (const health_url of cases) {
+    assert.throws(
+      () => validateManifest({ ...VALID, health_url }),
+      (error) => {
+        assert.match(error.message, /health_url must be a valid https URL with a host and no embedded credentials/);
+        assert.ok(!error.message.includes('pw'), `message leaks the password: ${error.message}`);
+        assert.ok(!error.message.includes(health_url), `message echoes the URL: ${error.message}`);
+        return true;
+      },
+      `expected ${JSON.stringify(health_url)} to be rejected`,
+    );
+  }
+});
+
+test('validateManifest rejects http without echoing the URL, even one with credentials', () => {
+  for (const health_url of ['http://host.test/x', 'http://user:pw@host.test/x', 'ftp://host.test/x']) {
+    assert.throws(
+      () => validateManifest({ ...VALID, health_url }),
+      (error) => {
+        assert.match(error.message, /health_url must use https/);
+        assert.ok(!error.message.includes('pw'), `message leaks the password: ${error.message}`);
+        assert.ok(!error.message.includes('host.test'), `message echoes the URL: ${error.message}`);
+        return true;
+      },
+    );
+  }
+});
+
+test('validateManifest accepts an https health_url with a port, path and query', () => {
+  const health_url = 'https://mines.infodot.co.za:8443/guardian/health?full=1';
+  assert.equal(validateManifest({ ...VALID, health_url }).health_url, health_url);
+});
+
 test('validateManifest rejects a timeout_ms that is not a positive finite number', () => {
   for (const timeout_ms of ['abc', -1, 0, null, Infinity]) {
     assert.throws(
@@ -87,7 +122,16 @@ test('loadManifests parses and validates every .json file and ignores the rest',
     'README.md': 'not a manifest',
   });
   const manifests = loadManifests('dir', readDirImpl, readFileImpl);
-  assert.deepEqual(manifests.map((m) => m.platform), ['dot-mines', 'blupin']);
+  assert.deepEqual(manifests.map((m) => m.platform), ['blupin', 'dot-mines']);
+});
+
+test('loadManifests returns manifests in sorted file order, whatever order the directory lists them', () => {
+  const { readDirImpl, readFileImpl } = fakeFs({
+    'zeta.json': JSON.stringify({ ...VALID, platform: 'zeta' }),
+    'alpha.json': JSON.stringify({ ...VALID, platform: 'alpha' }),
+    'mid.json': JSON.stringify({ ...VALID, platform: 'mid' }),
+  });
+  assert.deepEqual(loadManifests('dir', readDirImpl, readFileImpl).map((m) => m.platform), ['alpha', 'mid', 'zeta']);
 });
 
 test('loadManifests names the file when a manifest is invalid', () => {
