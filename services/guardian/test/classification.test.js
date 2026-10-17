@@ -91,20 +91,55 @@ test('a single failed poll does not open an availability incident', () => {
   assert.equal(second.opened[0].check_key, 'availability');
 });
 
-test('a 403 opens an access incident immediately, and it only recommends', () => {
-  // Not gated: an access failure is real the first time it happens. It just
-  // is not an outage, so it must not escalate.
+test('a first 403 is held back: an edge-firewall blip is not an incident', () => {
+  // 2026-10-17 06:55 UTC: one poll was refused with 403 for five platforms at
+  // once and each opened an incident, a Dot.Memory record and a GitHub issue
+  // attempt for something gone by the next poll.
   const store = tempStore();
   const { opened } = reconcile(store, manifest(), {
     reachable: false, kind: 'access', reason: 'HTTP 403',
   }, new Date(), { failureStreak: 1, failureElapsedMs: 0, availabilityWindowMs: 600000 });
+
+  assert.equal(opened.length, 0);
+  assert.equal(normalizeChecks({ reachable: false, kind: 'access', reason: 'HTTP 403' }, { failureStreak: 1, failureElapsedMs: 0 }).access.status, 'unknown');
+});
+
+test('a 403 that persists opens an access incident, and it only recommends', () => {
+  // A revoked token fails every poll, so it still surfaces once it has lasted
+  // the window. It is not an outage, so it must not escalate.
+  const store = tempStore();
+  const { opened } = reconcile(store, manifest(), {
+    reachable: false, kind: 'access', reason: 'HTTP 403',
+  }, new Date(), { failureStreak: 3, failureElapsedMs: 15 * 60 * 1000, availabilityWindowMs: 600000 });
 
   assert.equal(opened.length, 1);
   assert.equal(opened[0].check_key, 'access');
   assert.equal(opened[0].severity, 'sev3');
 
   const decision = evaluate({ incident: opened[0], manifest: manifest({ autonomy_level: 2 }) });
-  assert.notEqual(decision.action, 'escalate', 'a WAF blip must not page a human at sev1');
+  assert.notEqual(decision.action, 'escalate', 'a WAF problem must not page a human at sev1');
+});
+
+test('a persisting 403 that then clears closes its incident', () => {
+  const store = tempStore();
+  reconcile(store, manifest(), { reachable: false, kind: 'access', reason: 'HTTP 403' }, new Date(), {
+    failureStreak: 3, failureElapsedMs: 15 * 60 * 1000, availabilityWindowMs: 600000,
+  });
+  const back = reconcile(store, manifest(), { reachable: true, status: 'healthy', checks: { database: { status: 'healthy', message: '', metrics: {} } } });
+
+  assert.equal(back.resolved.length, 1);
+  assert.equal(back.resolved[0].check_key, 'access');
+});
+
+test('a missing token is a configuration fault and opens immediately, not after a wait', () => {
+  const store = tempStore();
+  const { opened } = reconcile(store, manifest(), {
+    reachable: false, kind: 'config', reason: 'token env X is not set',
+  }, new Date(), { failureStreak: 1, failureElapsedMs: 0, availabilityWindowMs: 600000 });
+
+  assert.equal(opened.length, 1);
+  assert.equal(opened[0].check_key, 'access');
+  assert.equal(opened[0].severity, 'sev2');
 });
 
 test('a failure run tracks both its length and its duration, and a success clears it', () => {

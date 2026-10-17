@@ -7,8 +7,12 @@ import { postDeploy } from './verify.js';
 import * as escalation from './escalate.js';
 import {
   breakerFor,
+  clearIssueFailure,
   deploymentsSince,
   hasEscalation,
+  issueRetryDelayMs,
+  issueRetryWaitMs,
+  recordIssueFailure,
   recordVerification,
   setIncidentStatus,
   touchIncident,
@@ -130,8 +134,25 @@ async function act({ incident, decision, recall, manifest, store, memoryCfg, fet
     if (hasEscalation(store, incident.incident_uid)) {
       return { issue: 'already-open' };
     }
-    const issueUrl = await escalation.recommend({ store, manifest, incident, decision, recall, run, now: now() });
-    return { issue: issueUrl };
+    // A failed advice issue is retried with a growing delay, not every poll.
+    const waitMs = issueRetryWaitMs(store, incident.incident_uid, now());
+    if (waitMs > 0) {
+      return { issue: 'retry-later', retry_in_s: Math.ceil(waitMs / 1000) };
+    }
+    try {
+      const issueUrl = await escalation.recommend({ store, manifest, incident, decision, recall, run, now: now() });
+      clearIssueFailure(store, incident.incident_uid);
+      return { issue: issueUrl };
+    } catch (error) {
+      const reason = firstLine(error.stderr || error.message);
+      const attempts = recordIssueFailure(store, incident.incident_uid, reason, now());
+      const retryMin = Math.round(issueRetryDelayMs(attempts) / 60000);
+      const hint = /not accessible|not found|404|403|permission|resource/i.test(reason)
+        ? ` Check that GUARDIAN_GH_TOKEN can create issues in ${manifest.repo}.`
+        : '';
+      log(`[${manifest.platform}] could not open an advice issue for ${incident.signature} on ${manifest.repo}: ${reason}. The incident is still recorded in Dot.Memory. Next attempt in ${retryMin} min.${hint}`);
+      return { issue: null, issue_error: reason, attempts };
+    }
   }
 
   if (decision.action === 'escalate') {
@@ -195,6 +216,11 @@ async function act({ incident, decision, recall, manifest, store, memoryCfg, fet
 
   log(`[${manifest.platform}] ${incident.signature} verification FAILED; rolled back: ${undone.rolledBack}`);
   return { deployed: true, verified: false, rolled_back: undone.rolledBack, pr_url: result.pr_url };
+}
+
+function firstLine(text) {
+  const line = String(text ?? '').split('\n').map((l) => l.trim()).find((l) => l && !l.startsWith('Command failed')) ?? String(text ?? '').trim();
+  return line.slice(0, 220);
 }
 
 function safeDetail(incident) {

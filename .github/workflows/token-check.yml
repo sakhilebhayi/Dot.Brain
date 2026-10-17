@@ -1,0 +1,34 @@
+name: Guardian Token Check
+
+# Daily, read-only. The guardian polls and records to Dot.Memory with other
+# credentials, but everything it raises (advice issues, pull requests) goes
+# through GUARDIAN_GH_TOKEN. This asks GitHub whether that token is still
+# valid, when it expires, and whether it can reach every enrolled repository.
+# A failed scheduled run is emailed by GitHub, so this is the alarm: it fails
+# only when the token is rejected or expires within 7 days, and warns (annotation
+# plus the job summary) at 14 days or when an enrolled repository is out of reach.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: GUARDIAN_GH_TOKEN expiry and reach
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check the token
+        working-directory: services/guardian
+        env:
+          GH_TOKEN: ${{ secrets.GUARDIAN_GH_TOKEN }}
+        run: node src/token-check.js --manifest-dir ../../platforms/guardian
