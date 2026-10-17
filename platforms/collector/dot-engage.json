@@ -1,0 +1,5 @@
+{
+  "platform": "dot-engage",
+  "health_url": "https://engage.infodot.co.za/guardian/health",
+  "token_env": "DOT_ENGAGE_GUARDIAN_TOKEN"
+}

@@ -67,7 +67,7 @@ test('every committed manifest stays at recommend-level autonomy and deploys thr
   const manifests = loadManifests(new URL('../../../platforms/guardian', import.meta.url).pathname);
   assert.deepEqual(
     manifests.map((manifest) => manifest.platform).sort(),
-    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-memory', 'dot-mines'],
+    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-engage', 'dot-forms', 'dot-memory', 'dot-mines', 'dot-press', 'dot-projects', 'dot-sheet'],
   );
   for (const manifest of manifests) {
     assert.ok(manifest.autonomy_level <= 2, `${manifest.platform} must stay at recommend-level autonomy until scenario testing signs off (plan §15)`);

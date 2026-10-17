@@ -56,6 +56,11 @@ jobs:
           DOT_DOPEMINE_GUARDIAN_TOKEN: ${{ secrets.DOT_DOPEMINE_GUARDIAN_TOKEN }}
           DOT_DOCS_GUARDIAN_TOKEN: ${{ secrets.DOT_DOCS_GUARDIAN_TOKEN }}
           DOT_CHARTS_GUARDIAN_TOKEN: ${{ secrets.DOT_CHARTS_GUARDIAN_TOKEN }}
+          DOT_PROJECTS_GUARDIAN_TOKEN: ${{ secrets.DOT_PROJECTS_GUARDIAN_TOKEN }}
+          DOT_FORMS_GUARDIAN_TOKEN: ${{ secrets.DOT_FORMS_GUARDIAN_TOKEN }}
+          DOT_ENGAGE_GUARDIAN_TOKEN: ${{ secrets.DOT_ENGAGE_GUARDIAN_TOKEN }}
+          DOT_PRESS_GUARDIAN_TOKEN: ${{ secrets.DOT_PRESS_GUARDIAN_TOKEN }}
+          DOT_SHEET_GUARDIAN_TOKEN: ${{ secrets.DOT_SHEET_GUARDIAN_TOKEN }}
           GH_TOKEN: ${{ secrets.GUARDIAN_GH_TOKEN }}
           # Long-term operational memory (ops-incident archive + recall).
           # The URL is public knowledge; the token is a Sanctum service
