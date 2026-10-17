@@ -5,7 +5,7 @@ import {
   setIncidentStatus,
   touchIncident,
 } from './store.js';
-import { normalizeChecks } from './health.js';
+import { normalizeChecks, SYNTHETIC_CHECK_KEYS } from './health.js';
 
 /**
  * Checks whose critical failure means the platform itself is down (sev1).
@@ -31,7 +31,8 @@ export function severityFor(checkKey, status) {
  * Identity for dedupe is (platform, check_key): one active incident per
  * failing check, however many polls see it. warning->critical upgrades the
  * same incident's severity in place; healthy closes it; unknown neither
- * opens nor closes (no signal is not proof either way).
+ * opens nor closes (no signal is not proof either way). Incidents on the
+ * synthetic fetch-failure checks close when the platform answers validly.
  *
  * Returns { opened, ongoing, resolved } of incident rows.
  */
@@ -67,6 +68,23 @@ export function reconcile(store, manifest, healthResult, now = new Date(), optio
 
     if (check.status === 'healthy' && active) {
       resolved.push(setIncidentStatus(store, active.incident_uid, 'resolved', now));
+    }
+  }
+
+  // A fetch failure is filed under a synthetic check (access, availability,
+  // maintenance, contract). Once the platform answers with a valid document
+  // those keys are simply absent from it, so the loop above never sees a
+  // `healthy` entry for them and the incident would stay open forever: that is
+  // how four access warnings from 2026-10-17's WAF blips, and an old
+  // Dot.Mines one, sat open in Dot.Memory long after the platforms recovered.
+  // A valid document IS the proof of recovery, so close them here.
+  if (healthResult.reachable) {
+    for (const checkKey of SYNTHETIC_CHECK_KEYS) {
+      if (checkKey in checks) continue; // a platform check that happens to share the name was handled above
+      const active = activeIncidentForCheck(store, manifest.platform, checkKey);
+      if (active) {
+        resolved.push(setIncidentStatus(store, active.incident_uid, 'resolved', now));
+      }
     }
   }
 

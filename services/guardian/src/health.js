@@ -94,6 +94,14 @@ const FAILURE_REPORTING = {
 };
 
 /**
+ * The check keys that only ever exist because a fetch FAILED (availability,
+ * maintenance, access, contract). A healthy platform's own document never
+ * contains them, so an incident filed under one of these can only be closed
+ * by noticing the platform answered properly again -- see reconcile().
+ */
+export const SYNTHETIC_CHECK_KEYS = [...new Set(Object.values(FAILURE_REPORTING).map((reporting) => reporting.check))];
+
+/**
  * Flatten a fetchHealth result into a uniform checks map. A failure becomes
  * a synthetic check so the rest of the pipeline needs no special case.
  *
