@@ -183,3 +183,42 @@ Cross-cutting requirements: ecosystem inventory ✅; dependency map ✅; root-ca
 5. **Guardian enrollment** for Central, Memory, Dopemine, Doc, Charts via `dot-guardian/v1` health documents and collector manifests; then a single ecosystem page (in Dot.Central or Dot.Memory) reading the collector's hourly records once Memory exposes per-check detail (ADR-0019 open question).
 6. Close/patch the three stale Memory incidents; rotate both Guardian PATs before 2026-11-20; fix the shared registry URLs and active flags; set `APP_NAME` on Charts and Engage.
 7. Decide the realtime story for shared hosting (hosted broadcaster or remove live affordances) for Mines, Engage and Projects.
+
+## 12. Rollout update, 2026-10-17 05:00 UTC
+
+Written after the fixes in §3 and §11 were merged, deployed and re-measured. Everything below was observed, not assumed; each line names where.
+
+### 12.1 What is now true
+
+| Item | Evidence |
+|---|---|
+| `/up/scheduler` answers 200 on Memory, Dopemine, Charts, Central and Doc. Doc also reports the queue worker. | `curl` at 04:07 and again after each deploy; Doc waited for its first queue heartbeat (about five minutes) before turning 200. |
+| Each of those five deploys kept the shared crontab whole: 1 + 8 lines, Central 2 + 7. | `== crontab: ...` line of every deploy log. |
+| A GitHub watchdog asks each probe every 15 minutes and now retries three times before failing. | Central's watchdog failed once at 03:19 on an HTTP 403 from the host firewall while the scheduler was fine (run 38998363371); fix merged in Memory #16, Dopemine #9, Charts #8, Central #14, and carried by the Doc stack. |
+| The Guardian polls six platforms, all reachable and healthy, no incidents. The hourly collector fetches the same six (dry run). | Guardian run 39003772656 on Dot.Brain main 1f47fd7; collector dry run 39003808534. |
+| Authenticated `/guardian/health` reports are healthy on Central (7 checks incl. Mines sync and Memory outbox), Memory (5, incl. intelligence ingest), Dopemine, Charts and Doc (queue). A wrong token answers 401; no token configured answers 503. | `curl` with the local token files, 04:30 to 04:50. |
+| Nightly SQLite backups are in code and deployed for Memory (02:20), Dopemine (02:25), Charts (02:30) and Doc (02:35), beside Central (02:15). | Merged and deployed; **first run not yet observed**. Verify with each repo's `server-logs.yml` "Backup evidence" step after 02:35 tomorrow (Doc has no server-logs workflow). |
+| Dot.Charts API: `GET /api/me` without an Accept header was a **500** (no `login` route for the default guest redirect) and an invalid `POST /api/backtests` was a 302. Both now return JSON (401, 422). | Reproduced live, fixed in Dot.Charts #10, re-measured live after the deploy. |
+| InfoDot CI is green on main for the first time since 2026-08-07. | InfoDot #2, run on main at 22:59. |
+
+### 12.2 Corrections to the status matrix in §10
+
+| Platform | Was | Now |
+|---|---|---|
+| Memory, Dopemine, Charts, Doc | probe and watchdog "Partially implemented", Guardian "no" | probe ✅, watchdog ✅, Guardian ✅ enrolled and healthy, backups ◐ (deployed, first run unobserved) |
+| Central | Guardian "no" | Guardian ✅ enrolled and healthy |
+| InfoDot | test gate "Partially implemented" | test gate ✅ |
+| Dot.Charts | no entry | API error contract ✅ fixed |
+
+### 12.3 Still open
+
+| Item | Why it is not done |
+|---|---|
+| Dot.Files `/up` answers 500 and prints server paths | Dot.Files #80 adds the adopt, deploy and logs workflows. It needs five `DEPLOY_*` repository secrets and the owner to run the one-time adoption. |
+| Dot.Agents deploy has never succeeded | Dot.Agents #4 clears its advisories and CI is green. Merging triggers the first automated deploy to a live site whose provenance is unknown, so it waits for an owner decision. |
+| Guardian cannot open GitHub issues on the five new repositories | `GUARDIAN_GH_TOKEN` is scoped to Dot.Mines. The Guardian catches that per incident, so polls and Memory archiving are unaffected. Extend the token to the five repositories before the first real incident there. |
+| No off-host copy of any backup | The copies sit beside the live SQLite files on the same host. |
+| Dot.docs requires a review that the owner removes before each merge | The rule was removed on 2026-10-17 to merge #24, #25 and #26 and must be re-enabled. |
+| Dependency advisories | Dot.Central #13 clears composer; npm still fails in Central and Doc on `braces` (no patched release; Tailwind v3 tree). |
+| Realtime on shared hosting, stale open Memory incidents, registry URLs, `APP_NAME` on Charts and Engage | Unchanged from §7. |
+| Failure simulations and staging | Still none. |
