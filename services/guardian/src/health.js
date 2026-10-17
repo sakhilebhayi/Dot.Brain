@@ -83,12 +83,21 @@ function kindForStatus(status) {
  * or answered with a server error, are allowed to be `availability` -- that
  * is the check severityFor() escalates to sev1, so anything else landing
  * there pages a human about an outage that is not happening.
+ *
+ * `gated` kinds are held at `unknown` until the failure has persisted. That
+ * includes `access`: on 2026-10-17 a single 06:55 UTC poll was refused with
+ * HTTP 403 by the shared host's edge firewall for five platforms at once, and
+ * each one opened a sev3 incident, a Dot.Memory record and a GitHub issue
+ * attempt for a blip that was gone by the next poll. A genuinely revoked
+ * token fails every poll, so it still opens once it has lasted the window.
+ * `config` (no token, wrong URL) stays ungated: that is our own fault and
+ * will not clear by itself.
  */
 const FAILURE_REPORTING = {
   unreachable: { check: 'availability', status: 'critical', gated: true, describe: (r) => `Nothing answered at the health endpoint: ${r}.` },
   platform_error: { check: 'availability', status: 'critical', gated: true, describe: (r) => `The platform answered with a server error (${r}).` },
   maintenance: { check: 'maintenance', status: 'warning', gated: true, describe: (r) => `The platform is in maintenance mode (${r}), which is what a deploy looks like.` },
-  access: { check: 'access', status: 'warning', gated: false, describe: (r) => `The platform refused the guardian's credentials (${r}). It is reachable; this is an access problem, not an outage.` },
+  access: { check: 'access', status: 'warning', gated: true, describe: (r) => `The platform refused the guardian's credentials (${r}). It is reachable; this is an access problem, not an outage.` },
   config: { check: 'access', status: 'critical', gated: false, describe: (r) => `The guardian is misconfigured for this platform: ${r}.` },
   contract: { check: 'contract', status: 'warning', gated: false, describe: (r) => `The platform answered, but not with dot-guardian/v1: ${r}.` },
 };
