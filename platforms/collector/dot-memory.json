@@ -1,0 +1,5 @@
+{
+  "platform": "dot-memory",
+  "health_url": "https://memory.infodot.co.za/api/guardian/health",
+  "token_env": "DOT_MEMORY_TOKEN"
+}

@@ -52,6 +52,10 @@ jobs:
       - name: Poll
         env:
           DOT_MINES_GUARDIAN_TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
+          DOT_CENTRAL_GUARDIAN_TOKEN: ${{ secrets.DOT_CENTRAL_GUARDIAN_TOKEN }}
+          DOT_DOPEMINE_GUARDIAN_TOKEN: ${{ secrets.DOT_DOPEMINE_GUARDIAN_TOKEN }}
+          DOT_DOCS_GUARDIAN_TOKEN: ${{ secrets.DOT_DOCS_GUARDIAN_TOKEN }}
+          DOT_CHARTS_GUARDIAN_TOKEN: ${{ secrets.DOT_CHARTS_GUARDIAN_TOKEN }}
           GH_TOKEN: ${{ secrets.GUARDIAN_GH_TOKEN }}
           # Long-term operational memory (ops-incident archive + recall).
           # The URL is public knowledge; the token is a Sanctum service

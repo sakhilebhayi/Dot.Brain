@@ -1,0 +1,21 @@
+{
+  "platform": "dot-central",
+  "health_url": "https://central.infodot.co.za/guardian/health",
+  "token_env": "DOT_CENTRAL_GUARDIAN_TOKEN",
+  "repo": "sakhilebhayi/Dot.Central",
+  "default_branch": "main",
+  "deploy": {
+    "workflow": "deploy.yml",
+    "confirm_inputs": {
+      "confirm": "deploy"
+    }
+  },
+  "autonomy_level": 2,
+  "environment": "production",
+  "poll_interval_s": 300,
+  "protected_areas": [
+    "database/migrations/**",
+    "app/Policies/**",
+    "app/Services/Shifts/**"
+  ]
+}
