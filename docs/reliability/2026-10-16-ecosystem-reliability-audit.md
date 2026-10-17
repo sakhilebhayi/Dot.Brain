@@ -222,3 +222,39 @@ Written after the fixes in §3 and §11 were merged, deployed and re-measured. E
 | Dependency advisories | Dot.Central #13 clears composer; npm still fails in Central and Doc on `braces` (no patched release; Tailwind v3 tree). |
 | Realtime on shared hosting, stale open Memory incidents, registry URLs, `APP_NAME` on Charts and Engage | Unchanged from §7. |
 | Failure simulations and staging | Still none. |
+
+## 13. Findings from the Dot.Agents inspection and a ten-host probe, 2026-10-17 06:00 UTC
+
+### 13.1 Corrections to the inventory in §1
+
+| Earlier statement | What is true |
+|---|---|
+| "Dot.Press and Dot.Sheet: no DNS record (development only)" | **Both are live.** The hostnames are `pres.infodot.co.za` (Laravel, session cookie `laravel_session`, so no `APP_NAME` set) and `sheets.infodot.co.za` (Dot.Sheets, `dotsheets-session`). Both are on 198.38.92.233 and answer `/up` 200. My first sweep guessed `press` and `sheet`. |
+| "Live without a pipeline: InfoDot, Files, Forms, Projects, Engage" | Add **Dot.Agents, Dot.Press and Dot.Sheet**. Dot.Files has had a pipeline since 2026-10-17 (adopted, deployed). |
+| "The shared registry marks only Charts inactive" | Unchanged, but the registry also still points at `infodot.app`. |
+| Home directory entries on the host | `control.infodot.co.za` (no DNS), `docs.infodot.co.za` (resolves to 198.244.229.148, a different server, no answer) and `charts-static-clone-backup` exist. Not investigated further. |
+
+### 13.2 New defect D9: eight live hosts serve full debug error pages to anyone
+
+A `POST` to `/up` (a GET-only route, so a harmless 405 that never reaches a controller) returns:
+
+| Host | Response | Host | Response |
+|---|---|---|---|
+| mines, central, memory, charts, dopemine | 1 KB plain 405 | doc, agents, files, forms, projects, engage, pres, sheets | **about 840 KB debug page, 65 to 71 stack frames, server paths** |
+
+Cause: `APP_DEBUG=true` in the production `.env` (confirmed for Dot.Agents by the inspect run; inferred for the rest from identical behaviour). Counting patterns in the pages (no content printed) found **no application key, API key, token or `DB_`/`MAIL_` value**; they leak source code, framework internals and home-directory paths. Impact: information disclosure that helps an attacker, not a credential leak. Fix: `APP_DEBUG=false` and `config:cache` on each host; nothing else is needed. Not fixed at the time of writing.
+
+### 13.3 Dot.Agents: how it actually runs
+
+Read-only inspect run 39005614928 (`server-inspect.yml`, Dot.Agents #5):
+
+| Fact | Value |
+|---|---|
+| Location | `/home/<account>/agents.infodot.co.za/agents`, same account as the other Dot apps |
+| Deployed how | **Not a git checkout.** Uploaded or unpacked; directory last changed 11 June. Installed `laravel/framework` is 12.61.1, months older than `main` |
+| Drivers | `DB_CONNECTION=sqlite`, `QUEUE_CONNECTION=database`, `CACHE_STORE=database`, `SESSION_DRIVER=database`, `BROADCAST_CONNECTION=log`, `MAIL_MAILER=smtp`. `REDIS_*` keys exist but nothing uses Redis |
+| `APP_DEBUG` | **true** (see D9) |
+| Cron | **No cron line for Dot.Agents.** Nothing runs `schedule:run` or a queue worker, so its 5 scheduled tasks and its queued jobs (70 job classes) are not being processed. Backlog size not yet measured |
+| Host | PHP 8.4.26 CLI; `pdo_sqlite`, `pdo_pgsql`, `pdo_mysql`, `redis` extensions present; no Horizon, Reverb or supervisor process |
+
+Conclusion: production already runs the **shared-host profile** (Option A in the Dot.Agents recommendation), without the cron lines or deploy discipline the other apps have. The VPS pipeline in the 2026-09-19 audit (Dot.Agents #6) does not apply.
