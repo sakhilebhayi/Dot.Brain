@@ -1,0 +1,5 @@
+{
+  "platform": "dot-projects",
+  "health_url": "https://projects.infodot.co.za/guardian/health",
+  "token_env": "DOT_PROJECTS_GUARDIAN_TOKEN"
+}

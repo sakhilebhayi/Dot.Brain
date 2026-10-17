@@ -42,6 +42,11 @@ follow-up lands (ADR-0019, Open questions).
 | `dot-dopemine` | `https://dopemine.infodot.co.za/guardian/health` | `DOT_DOPEMINE_GUARDIAN_TOKEN` |
 | `dot-docs` | `https://doc.infodot.co.za/guardian/health` | `DOT_DOCS_GUARDIAN_TOKEN` |
 | `dot-charts` | `https://charts.infodot.co.za/guardian/health` | `DOT_CHARTS_GUARDIAN_TOKEN` |
+| `dot-projects` | `https://projects.infodot.co.za/guardian/health` | `DOT_PROJECTS_GUARDIAN_TOKEN` |
+| `dot-forms` | `https://forms.infodot.co.za/guardian/health` | `DOT_FORMS_GUARDIAN_TOKEN` |
+| `dot-engage` | `https://engage.infodot.co.za/guardian/health` | `DOT_ENGAGE_GUARDIAN_TOKEN` |
+| `dot-press` | `https://pres.infodot.co.za/guardian/health` | `DOT_PRESS_GUARDIAN_TOKEN` |
+| `dot-sheet` | `https://sheets.infodot.co.za/guardian/health` | `DOT_SHEET_GUARDIAN_TOKEN` |
 
 ## Enrolling another platform
 

@@ -1,0 +1,5 @@
+{
+  "platform": "dot-forms",
+  "health_url": "https://forms.infodot.co.za/guardian/health",
+  "token_env": "DOT_FORMS_GUARDIAN_TOKEN"
+}

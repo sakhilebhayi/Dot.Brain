@@ -1,0 +1,22 @@
+{
+  "platform": "dot-projects",
+  "health_url": "https://projects.infodot.co.za/guardian/health",
+  "token_env": "DOT_PROJECTS_GUARDIAN_TOKEN",
+  "repo": "sakhilebhayi/Dot.Projects",
+  "default_branch": "main",
+  "deploy": {
+    "workflow": "deploy.yml",
+    "confirm_inputs": {
+      "confirm": "deploy"
+    }
+  },
+  "autonomy_level": 2,
+  "environment": "production",
+  "poll_interval_s": 300,
+  "protected_areas": [
+    "database/migrations/**",
+    "app/Policies/**",
+    "config/sanctum.php",
+    "config/ecosystem.php"
+  ]
+}

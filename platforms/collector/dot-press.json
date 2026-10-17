@@ -1,0 +1,5 @@
+{
+  "platform": "dot-press",
+  "health_url": "https://pres.infodot.co.za/guardian/health",
+  "token_env": "DOT_PRESS_GUARDIAN_TOKEN"
+}
