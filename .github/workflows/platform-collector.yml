@@ -55,6 +55,10 @@ jobs:
           DOT_MEMORY_URL: https://memory.infodot.co.za
           DOT_MEMORY_TOKEN: ${{ secrets.DOT_MEMORY_TOKEN }}
           DOT_MINES_GUARDIAN_TOKEN: ${{ secrets.DOT_MINES_GUARDIAN_TOKEN }}
+          DOT_CENTRAL_GUARDIAN_TOKEN: ${{ secrets.DOT_CENTRAL_GUARDIAN_TOKEN }}
+          DOT_DOPEMINE_GUARDIAN_TOKEN: ${{ secrets.DOT_DOPEMINE_GUARDIAN_TOKEN }}
+          DOT_DOCS_GUARDIAN_TOKEN: ${{ secrets.DOT_DOCS_GUARDIAN_TOKEN }}
+          DOT_CHARTS_GUARDIAN_TOKEN: ${{ secrets.DOT_CHARTS_GUARDIAN_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           args=""

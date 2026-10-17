@@ -62,3 +62,17 @@ test('the committed dot-mines manifest is valid', () => {
   assert.equal(mines.deploy.confirm_inputs.confirm, 'deploy');
   assert.ok(mines.autonomy_level <= 2, 'dot-mines must stay at recommend-level autonomy until scenario testing signs off (plan §15)');
 });
+
+test('every committed manifest stays at recommend-level autonomy and deploys through deploy.yml with confirm=deploy', () => {
+  const manifests = loadManifests(new URL('../../../platforms/guardian', import.meta.url).pathname);
+  assert.deepEqual(
+    manifests.map((manifest) => manifest.platform).sort(),
+    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-memory', 'dot-mines'],
+  );
+  for (const manifest of manifests) {
+    assert.ok(manifest.autonomy_level <= 2, `${manifest.platform} must stay at recommend-level autonomy until scenario testing signs off (plan §15)`);
+    assert.equal(manifest.deploy.workflow, 'deploy.yml', manifest.platform);
+    assert.equal(manifest.deploy.confirm_inputs.confirm, 'deploy', manifest.platform);
+    assert.match(manifest.health_url, /^https:\/\/[a-z]+\.infodot\.co\.za\/(api\/)?guardian\/health$/, manifest.platform);
+  }
+});

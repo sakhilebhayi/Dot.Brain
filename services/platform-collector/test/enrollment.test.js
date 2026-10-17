@@ -12,12 +12,22 @@ const WORKFLOW = readFileSync(`${ROOT}.github/workflows/platform-collector.yml`,
 const TESTS_WORKFLOW = readFileSync(`${ROOT}.github/workflows/tests.yml`, 'utf8');
 const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 
-test('the only enrolled platform is dot-mines, and every committed manifest is valid', () => {
+test('the six live platforms are enrolled, in sorted file order, and every committed manifest is valid', () => {
   const manifests = loadManifests(MANIFEST_DIR);
-  assert.deepEqual(manifests.map((m) => m.platform), ['dot-mines']);
-  const mines = manifests[0];
-  assert.equal(mines.health_url, 'https://mines.infodot.co.za/guardian/health');
-  assert.equal(mines.token_env, 'DOT_MINES_GUARDIAN_TOKEN');
+  assert.deepEqual(
+    manifests.map((m) => m.platform),
+    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-memory', 'dot-mines'],
+  );
+  const byId = Object.fromEntries(manifests.map((m) => [m.platform, m]));
+  assert.equal(byId['dot-mines'].health_url, 'https://mines.infodot.co.za/guardian/health');
+  assert.equal(byId['dot-mines'].token_env, 'DOT_MINES_GUARDIAN_TOKEN');
+  // Dot.Memory authenticates the guardian with its existing Sanctum service
+  // token, so it reuses DOT_MEMORY_TOKEN instead of a second secret.
+  assert.equal(byId['dot-memory'].health_url, 'https://memory.infodot.co.za/api/guardian/health');
+  assert.equal(byId['dot-memory'].token_env, 'DOT_MEMORY_TOKEN');
+  for (const m of manifests) {
+    assert.match(m.health_url, /^https:\/\/[a-z]+\.infodot\.co\.za\/(api\/)?guardian\/health$/);
+  }
 });
 
 test('the workflow passes every enrolled manifest token_env to the job', () => {
