@@ -258,3 +258,38 @@ Read-only inspect run 39005614928 (`server-inspect.yml`, Dot.Agents #5):
 | Host | PHP 8.4.26 CLI; `pdo_sqlite`, `pdo_pgsql`, `pdo_mysql`, `redis` extensions present; no Horizon, Reverb or supervisor process |
 
 Conclusion: production already runs the **shared-host profile** (Option A in the Dot.Agents recommendation), without the cron lines or deploy discipline the other apps have. The VPS pipeline in the 2026-09-19 audit (Dot.Agents #6) does not apply.
+
+## 14. Pipeline rollout to five more apps, and what it found, 2026-10-17 (probe at 07:52 UTC)
+
+Written after Projects, Forms, Engage, Press and Sheet were each taken over by a pipeline and deployed. This section supersedes the parts of §12.3 and §13 that it names. Everything below was observed in a run log, a command output or a live request.
+
+### 14.1 What is now true
+
+| Item | Evidence |
+|---|---|
+| **D9 is closed on all thirteen live hosts.** `POST /up` answers a 1 KB 405, `GET /up` answers 200, on mines, central, memory, charts, dopemine, doc, agents, files, forms, projects, engage, pres and sheets. | One `curl` sweep at 07:52 UTC. The pipelines also force `APP_DEBUG=false` on every deploy. |
+| Projects, Forms, Engage, Press and Sheet each run on `main` through a manual, gated pipeline: test gate, drift report, adopt once, deploy, smoke check, cron lines through the shared locked crontab block. | Projects #4 (f3e4109, adopt run 39010753794). Forms #3, #4, #5 (f0f71f3, adopt run 39012186438, deploy 39012377893). Engage #3 (6d51572, adopt 39013061354, deploy 39013233773). Press #3 (1a071bf, adopt 39013952754, deploy 39014372906). Sheet #3 (a922456, adopt 39014808591, deploy 39015027734). |
+| Dot.Projects login was a 500 and is now 200. The unused database was rebuilt with a guarded `migrate:fresh` (0 users, 0 projects checked first); 11 migrations ran. | Owner's cPanel output after the reset; `/login`, `/register`, `/forgot-password` return 200. |
+| Forms, Engage, Press and Sheet applied their pending migrations after a rollback copy and, for the database, an owner-made backup. | The "Running migrations" block of each deploy log: Forms 2, Engage 9, Press 7, Sheet 13, all DONE. |
+| The shared crontab grew from 9 to 17 lines without losing a line. | `== crontab: ... other line(s) preserved` in each log: 9, 10, 12, 14, 16 preserved. |
+
+### 14.2 Defects the rollout found (all fixed in the pipelines before they cost data)
+
+| Id | Defect | Evidence and fix |
+|---|---|---|
+| D10 | **Create-table migrations renamed to fix an ordering bug fail on a live database that recorded the old names** ("table already exists"), after maintenance mode has started. Hit Forms (1 table), Engage (3), Press (3), Sheet (3). | Reproduced on a production-like SQLite database in every repo: fails without the change, passes with it. Each renamed migration now returns early when its table exists (Forms #4, Engage #3, Press #3, Sheet #3). Owner's `migrate:status` on Engage and Press showed the old names recorded. |
+| D11 | **Host git hooks can abort a release.** Forms' old checkout carried a Git LFS `post-checkout` hook with no `git-lfs` installed, so `git checkout` exited non-zero after maintenance mode started. Engage's host has four such hooks. | Forms adopt run 39011933736 left forms.infodot.co.za returning 503 for about four minutes (07:00:29 to 07:04:35 UTC) until the re-run. Fix: release git commands run with `core.hooksPath=/dev/null` (Forms #5, and in Engage, Press and Sheet). Reproduced on a fake host. |
+| D12 | **Adopt refused any folder that already had `.git`**, but the Forms and Engage hosts are checkouts of their own unpushed history. | Adopt now keeps that history on a local `host-before-adopt-*` branch, points `origin` at the real repository and resets to `main`. Engage's old remote was a different GitHub account. Tested on a fake host. |
+| D13 | **A drift report that cannot find the host would have said "no drift".** | Found by testing; the report now refuses a missing or empty file list (fixed before the first rollout). |
+
+### 14.3 Still open after the rollout
+
+| Item | Why it is not done |
+|---|---|
+| Review rules on Forms, Engage, Projects, Press and Sheet are off | The owner removed them to merge the pipeline pull requests. They must be re-enabled. Dot.docs and Dot.Files were handled the same way earlier. |
+| Logged-in flows on the five apps are untested | Only public pages, assets and the debug probe were checked by request. |
+| No nightly backup for Forms, Engage, Projects, Press or Sheet | Press is SQLite in the app folder and Central's backup could be ported. Engage's and Forms' database types are not confirmed here. Rollback copies cover code only, and SQLite when the file is inside the app folder. |
+| No Guardian health document, watchdog or backup for the five | Not built. `GUARDIAN_GH_TOKEN` also still needs the five repositories. |
+| Engage: six view files the old host had edited were replaced by `main` | The edits were uncommitted, so they exist only in the adopt rollback copy (`dot-engage-adopt-20261017T071803Z.tgz`). |
+| Dot.Agents has no cron and no decided pipeline | Unchanged from §13.3. |
+| The one-off `set-app-debug` pull requests (#2) in the five repositories | Superseded by the pipelines; not closed. |
