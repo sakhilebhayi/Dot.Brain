@@ -1,5 +1,5 @@
-// Is the guardian's own GitHub token still good, and can it reach every
-// repository it is enrolled to act on?
+// Is the guardian's own GitHub token still good, and can it CREATE ISSUES in
+// every repository it is enrolled to act on?
 //
 // The guardian is only as useful as GUARDIAN_GH_TOKEN: when it expires the
 // polls keep running but nothing can be raised, and until now nothing said so
@@ -28,7 +28,12 @@ export function parseExpiry(header) {
 
 /**
  * Pure verdict from what the probes saw.
- * @param {{ results: Array<{ repo: string, status: number }>, expiryHeader: string|null }} probe
+ * `read` is the status of reading the repo's issues. These repositories are public, so a read
+ * succeeds for ANY valid token and proves nothing about write access; it only shows the token
+ * is accepted. `write` is the status of a deliberately INVALID issue-create request
+ * (see probe()): 422 means GitHub let the token through to validate the body, 403/404 means
+ * the token has no Issues: write on that repository.
+ * @param {{ results: Array<{ repo: string, read: number, write: number }>, expiryHeader: string|null }} probe
  * @returns {{ level: 'ok'|'warn'|'fail', daysLeft: number|null, findings: string[] }}
  */
 export function assess({ results, expiryHeader }, now = new Date()) {
@@ -36,7 +41,7 @@ export function assess({ results, expiryHeader }, now = new Date()) {
   let level = 'ok';
   const raise = (to) => { if (to === 'fail' || (to === 'warn' && level === 'ok')) level = to; };
 
-  if (results.length > 0 && results.every((r) => r.status === 401)) {
+  if (results.length > 0 && results.every((r) => r.read === 401 || r.write === 401)) {
     return { level: 'fail', daysLeft: null, findings: ['GitHub rejected the token (HTTP 401): it is expired or revoked. The guardian cannot raise issues or open pull requests.'] };
   }
 
@@ -55,43 +60,57 @@ export function assess({ results, expiryHeader }, now = new Date()) {
     findings.push('GitHub reports no expiry for this token (a classic token, or one created without an expiry). Nothing to rotate on a date, but it never warns you either.');
   }
 
-  const unreachable = results.filter((r) => r.status !== 200 && r.status !== 401);
-  if (unreachable.length > 0) {
+  const cannotWrite = results.filter((r) => r.write === 403 || r.write === 404);
+  if (cannotWrite.length > 0) {
     raise('warn');
-    findings.push(`The token cannot read issues in ${unreachable.length} enrolled repositor${unreachable.length === 1 ? 'y' : 'ies'}: ${unreachable.map((r) => `${r.repo} (HTTP ${r.status})`).join(', ')}. The guardian cannot open issues there; add them to the token's repository access.`);
+    findings.push(`The token cannot create issues in ${cannotWrite.length} of ${results.length} enrolled repositor${results.length === 1 ? 'y' : 'ies'}: ${cannotWrite.map((r) => r.repo).join(', ')}. The guardian can detect and record problems there but cannot open advice or escalation issues. Give the token Issues: read and write on them.`);
   }
-  const partial401 = results.filter((r) => r.status === 401);
-  if (partial401.length > 0 && partial401.length < results.length) {
+  const unknown = results.filter((r) => ![403, 404, 422, 401].includes(r.write) || (r.read !== 200 && r.read !== 401));
+  if (unknown.length > 0) {
     raise('warn');
-    findings.push(`HTTP 401 for ${partial401.map((r) => r.repo).join(', ')} while other repositories answered: check the token's access.`);
+    findings.push(`Unexpected answers from GitHub for ${unknown.map((r) => `${r.repo} (read ${r.read}, write probe ${r.write})`).join(', ')}.`);
   }
 
   return { level, daysLeft, findings };
 }
 
-/** Probe every enrolled repo with a read of its issues. Returns the raw facts. */
+/**
+ * Probe every enrolled repo twice:
+ *  - read the issues (is the token accepted at all; also yields the expiry header);
+ *  - POST an issue whose title is an ARRAY. That body can never be valid, so GitHub
+ *    answers 422 and creates nothing, but only after deciding the token may create
+ *    issues here. A token without Issues: write is refused first (403/404).
+ */
 export async function probe({ token, repos, fetchImpl = fetch }) {
+  const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'dot-guardian-token-check' };
   const results = [];
   let expiryHeader = null;
-  for (const repo of repos) {
+  const call = async (url, options = {}) => {
     try {
-      const response = await fetchImpl(`https://api.github.com/repos/${repo}/issues?per_page=1&state=open`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'dot-guardian-token-check' },
-        signal: AbortSignal.timeout(15000),
-      });
-      results.push({ repo, status: response.status });
+      const response = await fetchImpl(url, { headers, signal: AbortSignal.timeout(15000), ...options });
       expiryHeader ??= response.headers.get('github-authentication-token-expiration');
-    } catch (error) {
-      results.push({ repo, status: 0 });
+      return response.status;
+    } catch {
+      return 0;
     }
+  };
+  for (const repo of repos) {
+    const read = await call(`https://api.github.com/repos/${repo}/issues?per_page=1&state=open`);
+    const write = await call(`https://api.github.com/repos/${repo}/issues`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: ['guardian token check: invalid on purpose, nothing is created'] }),
+    });
+    results.push({ repo, read, write });
   }
   return { results, expiryHeader };
 }
 
 export function summaryMarkdown(verdict, results) {
   const icon = { ok: 'OK', warn: 'WARNING', fail: 'FAILING' }[verdict.level];
-  const rows = results.map((r) => `| ${r.repo} | ${r.status === 200 ? 'reachable' : `HTTP ${r.status}`} |`).join('\n');
-  return `## Guardian token check: ${icon}\n\n${verdict.findings.map((f) => `- ${f}`).join('\n')}\n\n| Enrolled repository | Issues API |\n|---|---|\n${rows}\n`;
+  const word = (r) => (r.write === 422 ? 'can create issues' : (r.write === 403 || r.write === 404) ? 'CANNOT create issues' : r.write === 401 ? 'token rejected' : `unexpected (HTTP ${r.write})`);
+  const rows = results.map((r) => `| ${r.repo} | ${r.read === 200 ? 'ok' : `HTTP ${r.read}`} | ${word(r)} |`).join('\n');
+  return `## Guardian token check: ${icon}\n\n${verdict.findings.map((f) => `- ${f}`).join('\n')}\n\n| Enrolled repository | Read issues | Create issues |\n|---|---|---|\n${rows}\n`;
 }
 
 async function main() {
