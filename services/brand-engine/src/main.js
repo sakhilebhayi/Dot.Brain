@@ -8,6 +8,8 @@
 //       0 report produced, 2 invalid input, 3 refused
 // Exit (analyze, plan, verify, evidence assemble; see analyze/cli.js):
 //       0 done, 1 verify found regressions, 2 invalid input, 3 refused
+// Exit (propose, lint-proposal; see governance/cli.js):
+//       0 ok, 1 the lint refused a proposal, 2 invalid input, 3 refused (not a draft)
 //
 // Read-only and offline. No environment variable is read, so there is
 // nothing secret that could reach the output.
@@ -16,6 +18,7 @@ import { stableStringify } from './json.js';
 import { defaultBrandDir, loadBrandDir, lookupProfile } from './registry.js';
 import { SCORE_USAGE, scoreMain } from './score/cli.js';
 import { WORKFLOW_COMMANDS, WORKFLOW_USAGE, workflowMain } from './analyze/cli.js';
+import { GOVERNANCE_COMMANDS, GOVERNANCE_USAGE, governanceMain } from './governance/cli.js';
 
 export const USAGE = [
   'usage: brand-engine profile list [--brand-dir <dir>]',
@@ -27,6 +30,7 @@ export const USAGE = [
   '       brand-engine drift <id|file> --root <checkout> [--repo <owner/name>] [--brand-dir <dir>]',
   SCORE_USAGE,
   WORKFLOW_USAGE,
+  GOVERNANCE_USAGE,
 ].join('\n');
 
 const FLAGS = new Set(['--brand-dir', '--root', '--repo']);
@@ -67,6 +71,7 @@ export function main(argv, deps = {}) {
 
   if (['score', 'compare', 'rubric'].includes(argv[0])) return scoreMain(argv, deps);
   if (WORKFLOW_COMMANDS.includes(argv[0])) return workflowMain(argv, deps);
+  if (GOVERNANCE_COMMANDS.includes(argv[0])) return governanceMain(argv, deps);
 
   const args = parseArgs(argv);
   if (args.error) { err(args.error); return 2; }

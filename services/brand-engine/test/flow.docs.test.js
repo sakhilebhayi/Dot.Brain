@@ -67,7 +67,8 @@ test('the effort table names only checks the rubric defines, so a rubric change 
 test('the doctrine records the workflow in its change log, stays proposed, and does not claim a real product was scored', () => {
   const d = read('brain.brand_experience.md');
   assert.match(d, /^status: proposed$/m);
-  assert.match(d, /^version: 0\.3\.0$/m);
+  assert.match(d, /^version: 0\.4\.0$/m);
+  assert.match(d, /\| 0\.4\.0 \| 2026-10-23 \|/);
   assert.match(d, /\| 0\.3\.0 \| 2026-10-23 \|/);
   assert.match(d, /\| 0\.2\.0 \| 2026-10-23 \|/);
   assert.match(d, /No real product has been scored/);
@@ -81,9 +82,9 @@ test('CODEOWNERS routes the new schemas and the policy-bearing workflow code to 
   }
 });
 
-test('the workflow added no GitHub workflow, no skill and no governance or Memory call', () => {
+test('the workflow source calls no governance, Memory or Dopemine, and only tests.yml and brand-assess.yml name the engine', () => {
   for (const name of readdirSync(join(ROOT, '.github', 'workflows'))) {
-    if (name === 'tests.yml') continue;
+    if (name === 'tests.yml' || name === 'brand-assess.yml') continue;
     assert.ok(!/brand-engine|bxqs/.test(read(`.github/workflows/${name}`)), name);
   }
   const text = walk(SRC).filter((p) => p.endsWith('.js')).map((p) => readFileSync(p, 'utf8')).join('\n');

@@ -1,7 +1,7 @@
 {
   "name": "@dot-brain/brand-engine",
   "version": "0.2.0",
-  "description": "Brand Feeling Engine: schemas, validator, profile registry with extends resolution, framework, drift check, the Brand Experience Quality Score (BXQS) scoring engine, and the analyse, plan, verify and evidence-assembly workflow. Rules only, no LLM; reads tool reports, never runs a tool; recommends, never ratifies. See ../../adr/ADR-0021-brand-feeling-engine.md and ADR-0023.",
+  "description": "Brand Feeling Engine: schemas, validator, profile registry with extends resolution, framework, drift check, the Brand Experience Quality Score (BXQS) scoring engine, the analyse, plan, verify and evidence-assembly workflow, and governance (propose, lint-proposal). Rules only, no LLM; reads tool reports, never runs a tool; recommends, never ratifies. See ../../adr/ADR-0021-brand-feeling-engine.md, ADR-0023 and ADR-0024.",
   "type": "module",
   "bin": { "brand-engine": "./src/cli.js" },
   "scripts": { "test": "node --test" },

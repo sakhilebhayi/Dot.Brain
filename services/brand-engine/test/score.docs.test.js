@@ -65,9 +65,9 @@ test('no real score exists in the repository: brand/ holds a rubric and no repor
   for (const f of readdirSync(join(BRAND, 'profiles'))) assert.ok(!/report|score/.test(f), f);
 });
 
-test('no scoring workflow, skill or analyser was added in this increment', () => {
+test('the scoring source holds exactly its ten modules, and only tests.yml and brand-assess.yml name the engine', () => {
   for (const name of readdirSync(join(ROOT, '.github', 'workflows'))) {
-    if (name === 'tests.yml') continue;
+    if (name === 'tests.yml' || name === 'brand-assess.yml') continue;
     assert.ok(!/brand-engine|bxqs/.test(read(`.github/workflows/${name}`)), name);
   }
   const src = readdirSync(join(ROOT, 'services', 'brand-engine', 'src', 'score')).sort();

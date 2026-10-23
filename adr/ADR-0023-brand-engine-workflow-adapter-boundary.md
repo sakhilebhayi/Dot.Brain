@@ -1,6 +1,6 @@
 ---
 title: ADR-0023 — Brand Engine Workflow: The Engine Reads Reports and Never Runs Tools, and a Fix Is Verified, Not Declared
-version: 1.0.0
+version: 1.0.1
 status: proposed
 owners: [Chief Architect]
 last-review: 2026-10-23
@@ -56,10 +56,11 @@ The scoring engine counts the evidence it is given and has no way to produce any
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-10-23 | Brand engine workflow (AI-drafted, owner to review) | Initial decision record for analyse, plan, verify and evidence assembly, and the adapter boundary. |
+| 1.0.1 | 2026-10-23 | Brand engine governance, Skill and Action (AI-drafted, owner to review) | The open question about the Skill and the Actions workflow now points to ADR-0024; no decision above changed. |
 
 ## Open questions
 
 - **Owner review of the adapter choices:** the detector ceiling of ten, axe's rule-level pass share, the `[error-path]` tag, treating contrast hits from the detector as detail (d4) findings, and the default theme list (`light`, `dark`).
 - **The effort table** (S, M or L per check) is a first estimate for ordering; it should be revised once real plans exist.
 - **Lighthouse performance and best-practices** are noted and not scored because the rubric has no check for them. Whether the rubric should have one is a rubric change (a new version), not a workflow change.
-- **The Claude Skill and the Actions workflow** that run the external tools and call these commands are later increments; nothing here runs automatically.
+- **The Claude Skill and the Actions workflow** that call these commands are decided in [ADR-0024](ADR-0024-brand-engine-governance-skill-action.md) (proposed). The Action reads reports a product committed and does not run the external tools; running them in CI remains a later decision.
