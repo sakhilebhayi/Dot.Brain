@@ -9,8 +9,9 @@ It loads the reviewed data in [`brand/`](../../brand/README.md), validates it, r
 `extends` chain, and checks that the files a profile cites have not drifted. It is **read-only,
 offline, and has no LLM**. It decides nothing about a brand and ratifies nothing. Since 0.2.0 it also
 **scores**: given an evidence file it computes the Brand Experience Quality Score (BXQS) report described
-below. It measures nothing itself: the analysers that produce the evidence file, the Claude Skill and any
-Actions workflow are later increments.
+below. Since the workflow increment it also **analyses** a checkout, **plans** the work, **verifies** the result
+and **assembles** the evidence file (see "Workflow" below). It never runs another tool: it reads the reports
+that tools wrote. The Claude Skill and the Actions workflow that run those tools are later increments.
 
 ## Run
 
@@ -25,6 +26,10 @@ node src/cli.js drift <id|file> --root <checkout> [--repo <owner/name>]
 node src/cli.js score --evidence <file> --profile <id|file> [--rubric bxqs-1.0.0] [--built-by <id>]
 node src/cli.js compare <baseline-report.json> <candidate-report.json>
 node src/cli.js rubric show|validate [bxqs-1.0.0]
+node src/cli.js analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>]
+node src/cli.js plan <analysis.json> [--out <dir>]
+node src/cli.js verify --before <analysis.json> <path> [--plan <plan.json>] [--claimed <ids|all>] [--reports <dir>] [--out <dir>]
+node src/cli.js evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <f>] [--observed <f>] [-o <evidence.json>]
 ```
 
 `<id>` is a Dot.Brain profile (`infodot` or `infodot@0.1.0`). A value ending `.json`, or containing a
@@ -42,6 +47,11 @@ path separator, is a **product profile** loaded from that path: a product reposi
 (usage, evidence file, unknown profile, `--built-by` that contradicts the file), `3` refused (a rubric that
 was modified since release or is not released, invalid brand data, a comparison across a major rubric
 version). Their output is a JSON document on stdout; the reasons are on stderr.
+
+`analyze`, `plan`, `verify` and `evidence assemble` use: `0` done (verify: improved, or no change), `1` verify
+only: regressions, or a claimed task that did not land, `2` invalid input (usage, a malformed file or report, an
+unknown profile), `3` refused (invalid brand data, a modified rubric or document, a comparison that proves
+nothing, an inconclusive verify).
 
 Output is deterministic: sorted keys, no timestamps, and the CLI reads no environment variable, so
 no secret can reach it.
@@ -103,8 +113,8 @@ participants per result) is what unlocks it.
 
 ### The evidence file
 
-JSON, [`schemas/brand-evidence.schema.json`](../../schemas/brand-evidence.schema.json). The analysers (a later
-increment) produce it; until then a person or a test writes it. Check ids and metric ids are those in the rubric
+JSON, [`schemas/brand-evidence.schema.json`](../../schemas/brand-evidence.schema.json). `evidence assemble`
+(below) produces it from an analysis and the two files a person writes; a test may also write it by hand. Check ids and metric ids are those in the rubric
 (`node src/cli.js rubric show`): they are the contract.
 
 ```json
@@ -144,6 +154,118 @@ compared with an annotation that part of the difference is methodology. MAJOR (d
 methodologies. A different rubric id, or the same version with a different hash, is refused. Semver policy:
 [`brand/rubrics/README.md`](../../brand/rubrics/README.md).
 
+## Workflow: analyse, plan, verify, assemble
+
+Decision record: [ADR-0023](../../adr/ADR-0023-brand-engine-workflow-adapter-boundary.md) (proposed). The engine
+**reads reports and never runs external tools**; the Action or the Claude Skill runs the design detector, axe,
+Lighthouse and the test runner, and drops their output in a directory.
+
+```
+tools (run elsewhere) --> reports/ ----------------------------+
+product checkout --> analyze --> analysis.json --> plan --> plan.json / plan.md
+                        |             |                          (someone applies the tasks)
+                        |             +--> verify --before analysis.json <checkout> --> verification.json
+                        +--> evidence assemble (+ assessments + observed) --> evidence.json --> score
+```
+
+### analyze
+
+`analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--rubric <ref>]`
+
+- **Profile.** `--profile` (a Brain profile id or a path), else `<path>/brand/profile.json`, else exit 2. The profile is resolved and handed to every check as `ctx.profile`.
+- **Checks.** Every module in `src/analyze/checks/` runs (registry below). **Reports.** Every file in `--reports` is routed to an adapter (below).
+- **Output.** Without `--out`, `analysis.json` on stdout. With `--out <dir>`: `analysis.json` and `summary.md` (and the summary on stdout). `--out` inside the checkout is refused (exit 2).
+- **Identity.** The commit and `owner/name` come from `<path>/.git` (HEAD, refs, `packed-refs`, `config`) read directly; git is never run and the remote URL is never output. `--repo` and `--commit` fill in a checkout that is not a git repository, and may not contradict one that is.
+- **Deterministic and read-only.** No clock, no absolute path, no environment value; the same checkout, profile and reports give the same bytes; a test checksums the checkout before and after.
+- **Not measured.** Every rubric automated check without counted evidence is listed in `not_measured` with a reason: `no_check_registered`, `no_report_supplied`, `report_had_no_data`, `not_applicable`, `check_not_measured`, `check_errored`, `conflicting_sources`. The score counts each as zero and says so.
+- `analysis.json` is validated against [`schemas/brand-analysis.schema.json`](../../schemas/brand-analysis.schema.json) and ends with `integrity.sha256`.
+
+### The check registry and the file API
+
+A check is `src/analyze/checks/<id with "." and "_" as "-">.js` (for example `d8-token-pair-contrast.js`) and
+default-exports `{ id, dimension, title, appliesTo(ctx), run(ctx) }`. `run` returns
+`{ status: 'measured' | 'not_applicable' | 'not_measured', evidence: [{ check_id, source_class: 'automated_check', result, detail?, artifact_ref? }], findings: [{ id, severity, dimension, check_id, message, location?: { file, line }, fix_hint }] }`
+where `result` is a number from 0 to 1 (or `"pass"` / `"fail"`), `severity` is `blocker | major | minor | info`, and a
+finding may add `kind`, `wcag_level`, `wcag_criterion` and `principle` (see "From findings to the score").
+`ctx = { root, profile, files: { list(globs), read(rel), exists(rel) }, themes }`.
+
+- `files` is read-only and confined to the checkout: no `..`, no absolute path, no symlink that leaves the root, no vendored, generated, minified, binary, oversized (1 MiB) or credential-named (`.env`, `*.pem`, `id_rsa`, ...) file, a total read budget, and a record of everything it declined to read. `read` returns the text, `null` if missing, and throws `FileAccessError` (with a `code`) for anything refused.
+- `themes` defaults to `["light", "dark"]` (`--themes`); the engine does not discover themes, it tells a check which to evaluate.
+- Each check runs in its **own worker thread** with a 30 s timeout, an empty environment and discarded console output. A check that throws, loops, runs out of memory or returns a result that breaks the contract becomes `not_measured` with an engine finding (severity `major`, `engine: true`). It is never a pass and never stops the run. Files starting `_`, `_lib/` and sub-directories are not checks; a mis-named or symlinked module is reported.
+- `--checks-dir <dir>` loads modules from another directory **inside the brand-engine package** (used by the tests). Check modules are code: they are never loaded from a product checkout.
+
+### Adapters
+
+`--reports <dir>` is read non-recursively (at most 50 files, 8 MiB each, 32 MiB in all; symlinks and binaries skipped and listed). A file is routed by name, then by content; a file that is routed to an adapter and is not what it claims to be is **exit 2**, a file nobody recognises is only listed.
+
+| Tool and file | Adapter | Evidence (rubric check) | Findings |
+|---|---|---|---|
+| Design detector, `impeccable detect --json` (`*detect*.json`, `*impeccable*.json`): an array of `{ antipattern, name, description, severity, category, file, line, snippet }` | `detector` | `d2.impeccable_detect_findings` (identity: category `slop`) and `d4.detector_clean` (everything else, motion rules included): `1 - n / 10`, n = distinct counted hits; advisory hits are listed, not counted | one per hit, severity `minor` (`info` for advisory) |
+| axe-core results (`*axe*.json`; one object or an array of pages) | `axe` | `d8.axe_violations`: passing rules / (passing + failing), pooled over pages | one per violated rule per page; WCAG level A or AA: `blocker`, kind `wcag_failure`, criterion from the `wcagNNN` tag |
+| Lighthouse JSON (`*lighthouse*.json`) | `lighthouse` | `d8.axe_violations` from the accessibility audits (audit level; axe wins if both). Best-practices and performance are **noted, never scored** (no rubric check measures them) | failed audits, `major`, no WCAG level invented |
+| JUnit XML (`*junit*.xml`, or any XML with a `<testsuite>`) and TAP (`*.tap`) | `tests` | `d5.test_pass_counts`: passed / (passed + failed), skipped and TODO not counted, pooled over files; `d10.error_path_tests` over tests tagged `[error-path]` or `@error-path` | one per failed test: `blocker`, kind `failing_test` |
+
+Every adapter parses strictly (JSON and TAP with limits; XML with a small reader that has no DOCTYPE, no entities and no backtracking), rejects malformed input with a clear message, never executes anything, and copies free text only through a gate that strips control characters, redacts credential-shaped strings and clips the length. URLs lose their query and fragment. A check id supplied by two sources (a module and a report, or two modules) is a conflict: neither is counted and the analysis says so.
+
+### The two files a person writes (`evidence assemble --assessments / --observed`)
+
+```json
+{ "format": "brand-assessments/1", "recorded_at": "2026-10-23T12:00:00Z",
+  "assessors": [{ "id": "jane", "kind": "human" }],
+  "assessments": [{ "dimension": "usability_cognitive_load", "assessor": "jane", "level": 3,
+                    "notes": "up to 700 characters, in the assessor's words", "artifact_ref": "notes/jane.md" }] }
+```
+
+The level must be 0 to 4 and the dimension one the rubric allows an expert to assess; the engine records the **rubric anchor** for that level beside the notes. `kind` is recorded as written (`ai` assessments are scored at the policy's reduced credit by `score`).
+
+```json
+{ "format": "brand-observed/1", "recorded_at": "2026-10-23T12:30:00Z",
+  "observations": [{ "dimension": "usability_cognitive_load", "source_class": "observed_behaviour",
+                     "metric_id": "task_completion_rate", "value": 0.8, "n": 8, "method": "Moderated sessions",
+                     "participants": "human", "artifact_ref": "notes/sessions.md" }] }
+```
+
+The metric must be one the rubric defines for that dimension and class. `participants` must be `"human"`: a simulated or AI-driven run is refused (record it as automated or expert evidence). **A prohibited engagement metric (session time, opens, streaks, scroll depth, notification click-through, variable reward, time to return, and their aliases) is refused with its reason, never dropped.** Unknown keys are refused; credential-shaped strings are refused.
+
+### plan
+
+`plan <analysis.json> [--out <dir>]` writes `plan.json` ([`schemas/brand-plan.schema.json`](../../schemas/brand-plan.schema.json)) and, with `--out`, `plan.md`, a task list to paste into an issue or pull request.
+
+- **Grouping:** findings with the same check and root cause (the fix hint without numbers, selectors or parenthesised detail) are one task.
+- **Order:** blockers first; then expected points per effort (rubric points the check can still earn, split across the check's tasks; effort S=1, M=3, L=8 from a table in `src/analyze/tables.js`, one size up when a task touches more than five files); then dimension order and task id. Effort is an estimate **for ordering only**.
+- **Each task:** id (`T-` + hash of the root cause, stable between runs), title, `why` (dimension, principle `BXP-NN`, profile, the profile's standards for it), files and lines, fix hints, `acceptance` (a re-runnable check id and the finding ids that must be gone), effort, expected points, risk and notes, the profile's domain overrides for its principle.
+- **Precedence:** a task in a brand dimension whose principle the profile says yields to accessibility, regulation, security, domain safety or functional correctness is **withheld** (listed, not proposed) while that concern has an open blocker on the same files, or any blocker where no file is known.
+- **Engagement:** a task about retention or outcomes (dimensions 11 and 12), the habit and retention principles (BXP-09, BXP-10), or text naming an engagement measure is `needs_human`: listed apart, never ranked, never proposed.
+- Engine problems (a check that could not run) are listed apart; they are not product tasks.
+
+### verify
+
+`verify --before <analysis.json> <path> [--profile ..] [--reports <dir>] [--plan <plan.json>] [--claimed T-id,...|all] [--out <dir>]` re-analyses the checkout (same rubric, profile and themes as the baseline) and diffs by finding id.
+
+| Result | Meaning |
+|---|---|
+| `fixed` | in the baseline, gone now, **and its check was measured again** |
+| `still_open` | in both |
+| `new` | a regression: not in the baseline, from a check measured in both |
+| `newly_measured` | from a check the baseline did not measure; information, not a regression |
+| `unverifiable` | its check is no longer measured; neither fixed nor open |
+
+For each plan task: `landed` (check measured, none of its findings left), `open`, `claimed_not_landed` (claimed with `--claimed`, findings remain), `claimed_unverifiable`. Verdicts and exit codes: `regressed` (a new finding, or a measured value lower) 1; `claims_not_landed` 1; `inconclusive` (nothing measured improved and something cannot be measured, or a claimed task cannot be verified) 3; `improved` (a measured fix or higher value, nothing worse) 0; `no_change` 0. A baseline that was edited (its integrity hash fails), a different rubric hash, profile, major version or repository, and a plan made from another analysis are **refused (3)**. With `--out`, `verification.json`, `verification.md` and the new `analysis.json` are written.
+
+Findings are matched by check, file and message. A check should put a stable identifier of the offending element in the message (an image's `src`, not a line number); otherwise two identical findings in one file cannot be told apart.
+
+### evidence assemble
+
+`evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <f>] [--observed <f>] [--generated-at <date-time>] [--repo ..] [--commit ..] [--assistive-tech true|false] [-o <file>]` writes an evidence file `score` accepts, validated with the scorer's own validator before it is written.
+
+- Every counted automated value, with `artifact_ref` naming its source (`check:<id>` or `adapter:<tool>:<report>`); expert and observed entries exactly as the manual files give them; `x-provenance` with the analysis, assessments and observed hashes and the source of each automated value.
+- `--built-by` is required: the scorer cannot verify independence without it. `generated_at` is `--generated-at`, else the latest `recorded_at` of the manual files, else an error (the engine reads no clock). A checkout without a GitHub origin or a commit needs `--repo` and `--commit`.
+- **From findings to the score.** Only blockers (and AAA WCAG notes) reach the score. The kind comes from the finding's `kind` or, failing that, a default by check id (`d8.*` contrast, axe, labels and focus: `wcag_failure`; `d6.claim_lint`: `unsupported_claim`; `d5.test_pass_counts` and `d10.error_path_tests`: `failing_test`). A WCAG failure needs a level and a criterion (`d8.token_pair_contrast` defaults to AA 1.4.3, `d8.focus_visible` to AA 2.4.7, `d8.labels_alt_lang` to level A with a criterion read from the message). **A blocker that cannot be given a kind, or a WCAG failure without a criterion, refuses the assembly** (exit 2) and names the finding.
+
+### Workflow tests
+
+`test/flow.*.test.js`: the file API (path traversal, symlink escape, huge, binary and minified files, budgets, globs), the registry (contract, auto-load, `_lib/` ignored, timeout, error isolation, an empty environment), every adapter (valid, malformed and hostile input, size caps, prohibited metrics, simulated participants), analyze (determinism, read-only, `.git` parsing, redaction, rubric cross-checks, not-measured reasons, conflicts), plan (grouping, order, precedence, engagement), verify (fixed, open, new, unverifiable, claimed-not-landed, refusals), the CLI (exit codes, no environment value in any output, atomic `-o`), the documents, and `flow.e2e.test.js`: a synthetic product (`test/fixtures/e2e`, marked fixture) with three seeded defects (a low-contrast token pair, an unsupported claim, an image with no alt text) goes through analyze, plan, a false claim (not believed), a partial fix, a real fix, verify, assemble and score. The fixture checks in `test/fixtures/e2e/checks` are stand-ins, not the built-in checks.
+
 ## What it enforces
 
 - **Shape**: the two schemas in `schemas/`, interpreted directly from the files. A schema keyword the
@@ -167,7 +289,8 @@ methodologies. A different rubric id, or the same version with a different hash,
 
 ## What it does not do
 
-- Measure anything. `score` counts the evidence it is given; it has no analysers. No real product has been scored, and the only scores in this repository are test fixtures marked as such.
+- Measure anything about how a person feels. `score` counts the evidence it is given; `analyze` produces automated evidence from files and reports, and no real product has been scored: the only scores in this repository are test fixtures marked as such.
+- Run an external tool, edit the product repository, or call a network. It reads reports other tools wrote, and writes only where `--out` and `-o` say, never inside the checkout.
 - Ratify a rubric. A rubric is ratified by the owner adding a record that names the hash, in a reviewed merge.
 - Call an LLM, Dot.Memory or Dot.Dopemine, or any network.
 - Ratify or sign anything. Profiles are not DKP packs: they reuse DKP's field names and nothing else.

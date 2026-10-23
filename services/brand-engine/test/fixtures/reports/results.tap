@@ -1,0 +1,9 @@
+TAP version 13
+1..4
+ok 1 - parses a profile
+ok 2 - resolves extends
+not ok 3 - rejects a cycle
+  ---
+  duration_ms: 1.2
+  ...
+ok 4 - future feature # SKIP not built yet

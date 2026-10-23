@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Brand Experience (Brand Feeling Engine Doctrine)
-version: 0.2.0
+version: 0.3.0
 status: proposed
 owners: [Chief Intelligence Architect, UX Agent]
 reviewing-agent: Governance Agent
@@ -13,7 +13,7 @@ review-cadence: quarterly
 
 Purpose: how a brand's intended feelings become checkable product-experience decisions across the Dot ecosystem. This document is the doctrine: what the Brand Experience Framework and the brand profiles are, what counts as evidence for them, who may change them, how they apply to a single repository, and what ranks above them. The decisions behind it are in [ADR-0021](adr/ADR-0021-brand-feeling-engine.md); the data is in [brand/](brand/README.md); the code is in [services/brand-engine](services/brand-engine/README.md). It is `proposed`: it becomes `active` only when the owner says so.
 
-> **Related documents:** [adr/ADR-0021-brand-feeling-engine.md](adr/ADR-0021-brand-feeling-engine.md) — the decision record · [adr/ADR-0022-bxqs-scoring-policy.md](adr/ADR-0022-bxqs-scoring-policy.md) — the scoring policy · [brand/rubrics/README.md](brand/rubrics/README.md) — the rubric, its immutability and semver policy · [brain.design.md](brain.design.md) — calm-technology standards for Brain's own surfaces (this document is the ecosystem-level counterpart for products) · [brain.dopemine.md](brain.dopemine.md) §2–3 — engagement ethics the habit and retention principles inherit · [brain.governance.md](brain.governance.md) — decision rights and the ethics gate · [brain.experiments.md](brain.experiments.md) — the only route to a validated finding · [brain.autonomy.md](brain.autonomy.md) — strategic direction is Level 3 · [brain.dkp.md](brain.dkp.md) — the field vocabulary reused (not the signed-pack machinery) · [schemas/brand-profile.schema.json](schemas/brand-profile.schema.json) · [schemas/brand-principle.schema.json](schemas/brand-principle.schema.json) · [schemas/brand-rubric.schema.json](schemas/brand-rubric.schema.json) · [schemas/brand-evidence.schema.json](schemas/brand-evidence.schema.json) · [schemas/brand-score.schema.json](schemas/brand-score.schema.json).
+> **Related documents:** [adr/ADR-0021-brand-feeling-engine.md](adr/ADR-0021-brand-feeling-engine.md) — the decision record · [adr/ADR-0022-bxqs-scoring-policy.md](adr/ADR-0022-bxqs-scoring-policy.md) — the scoring policy · [adr/ADR-0023-brand-engine-workflow-adapter-boundary.md](adr/ADR-0023-brand-engine-workflow-adapter-boundary.md) — the workflow and the adapter boundary · [brand/rubrics/README.md](brand/rubrics/README.md) — the rubric, its immutability and semver policy · [brain.design.md](brain.design.md) — calm-technology standards for Brain's own surfaces (this document is the ecosystem-level counterpart for products) · [brain.dopemine.md](brain.dopemine.md) §2–3 — engagement ethics the habit and retention principles inherit · [brain.governance.md](brain.governance.md) — decision rights and the ethics gate · [brain.experiments.md](brain.experiments.md) — the only route to a validated finding · [brain.autonomy.md](brain.autonomy.md) — strategic direction is Level 3 · [brain.dkp.md](brain.dkp.md) — the field vocabulary reused (not the signed-pack machinery) · [schemas/brand-profile.schema.json](schemas/brand-profile.schema.json) · [schemas/brand-principle.schema.json](schemas/brand-principle.schema.json) · [schemas/brand-rubric.schema.json](schemas/brand-rubric.schema.json) · [schemas/brand-evidence.schema.json](schemas/brand-evidence.schema.json) · [schemas/brand-score.schema.json](schemas/brand-score.schema.json) · [schemas/brand-analysis.schema.json](schemas/brand-analysis.schema.json) · [schemas/brand-plan.schema.json](schemas/brand-plan.schema.json).
 
 ---
 
@@ -32,7 +32,7 @@ flowchart TB
     B --> P[Product profile<br/>in the product's own repository]
     P --> R[Resolved profile<br/>origin recorded on every rule]
     R --> S[Claude session designs and builds<br/>using the design skills]
-    S --> M[Measure and report<br/>BXQS scoring built; analysers are a later increment]
+    S --> M[Measure and report<br/>BXQS scoring and the analyse, plan, verify workflow built; the Skill and the Action are later]
     M --> PR[Proposed knowledge update<br/>a pull request the owner reviews]
 ```
 
@@ -123,8 +123,8 @@ A 100-point score over twelve dimensions, built so that it cannot be inflated. D
 
 | Exists | Not yet built |
 |---|---|
-| Schemas for profiles, principles, the rubric, the evidence file and the score report | Analysers that read a repository and produce the evidence file |
-| `services/brand-engine`: validator, registry, `extends` resolution, drift check, the BXQS scoring engine, `compare`, CLI | The Claude Skill that retrieves a profile and runs the workflow |
+| Schemas for profiles, principles, the rubric, the evidence file, the score report, the analysis and the plan | The built-in static checks that read a repository (a separate change; the registry that loads and isolates them exists) |
+| `services/brand-engine`: validator, registry, `extends` resolution, drift check, the BXQS scoring engine, `compare`, and the workflow: `analyze`, `plan`, `verify`, `evidence assemble`, adapters for the design detector, axe-core, Lighthouse, JUnit and TAP, and the manual assessment and observed formats | The Claude Skill that retrieves a profile and runs the workflow |
 | The 12 principles (all `draft`) and profiles `dot-ecosystem`, `infodot`, `blupin` (all `draft`) | An Actions workflow |
 | The rubric `bxqs-1.0.0` (`proposed`, released, hash pinned) and its golden tests | Any call to Dot.Memory or Dot.Dopemine |
 | CODEOWNERS routing for `brand/`, the schemas and the scoring code | Customer-brand tenancy; demonstrations on example products |
@@ -140,6 +140,7 @@ No real product has been scored. The only scores anywhere in this repository are
 |---|---|---|---|
 | 0.1.0 | 2026-10-23 | Brand engine foundation (AI-drafted, owner to review) | Initial doctrine: layers, evidence classes, status rules, per-repo application, precedence, engagement constraint, scope, and an explicit list of what does not exist yet. |
 | 0.2.0 | 2026-10-23 | Brand engine scoring (AI-drafted, owner to review) | Added section 10, the Brand Experience Quality Score: evidenced score, ceiling and attainment; caps; AI-only 50% and builder independence; blockers, states and confidence; why 90 needs observed or customer evidence; semver policy (MAJOR: dimension set, weights or caps; MINOR: checks added or changed; PATCH: wording). Status remains `proposed`. |
+| 0.3.0 | 2026-10-23 | Brand engine workflow (AI-drafted, owner to review) | Added the analyse, plan, verify and evidence-assembly workflow and the adapter boundary (ADR-0023): the engine reads reports from external tools and never runs them; plans never override safety, regulation, accessibility, security or correctness and never propose engagement work; a fix is verified by measurement, not declared. Section 11 updated. Status remains `proposed`. |
 
 ## Open Questions
 

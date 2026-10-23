@@ -1,0 +1,125 @@
+{
+  "x-fixture": true,
+  "id": "e2e-fixture-product",
+  "kind": "product",
+  "extends": "infodot@0.1.0",
+  "version": "0.1.0",
+  "status": "draft",
+  "classification": "public",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "purpose": {
+    "text": "FIXTURE ONLY. A made-up bookkeeping helper for small shops, used to test the analyse, plan, verify and score workflow.",
+    "confidence": 0.1,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Test data.",
+        "declared_by": "fixture author (test data, not a real owner decision)"
+      }
+    ]
+  },
+  "audience": [
+    {
+      "segment": "unknown",
+      "identified": false,
+      "description": "FIXTURE ONLY. No audience is asserted.",
+      "evidence": []
+    }
+  ],
+  "positioning": {
+    "text": "FIXTURE ONLY. Not a real positioning.",
+    "confidence": 0,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Test data.",
+        "declared_by": "fixture author (test data, not a real owner decision)"
+      }
+    ]
+  },
+  "emotional_promise": [
+    {
+      "feeling": "example",
+      "text": "FIXTURE ONLY. An intended feeling, never measured.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Test data.",
+          "declared_by": "fixture author (test data, not a real owner decision)"
+        }
+      ]
+    }
+  ],
+  "behavioural_principles": [],
+  "visual_direction": {
+    "source_refs": [],
+    "constraints": [
+      "FIXTURE ONLY. Tokens would be cited from DESIGN.md, not copied."
+    ],
+    "prohibited": []
+  },
+  "language": {
+    "voice": {
+      "text": "Plain language. Business and accountability stated in words, not counters. Practical, and respectful of small-business owners; never condescending.",
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Same wording as the parent, so no override is needed.",
+          "declared_by": "fixture author (test data, not a real owner decision)"
+        }
+      ]
+    },
+    "banned_phrases": [],
+    "claims_policy": {
+      "forbidden": [
+        {
+          "id": "no-unsupported-figures",
+          "rule": "FIXTURE ONLY. No customer counts or other figures without a cited source."
+        }
+      ],
+      "evidence_required": []
+    }
+  },
+  "experience_standards": [],
+  "domain_overrides": [],
+  "overrides": [],
+  "unknowns": [
+    {
+      "id": "u-everything",
+      "question": "FIXTURE ONLY. Everything: this is not a real product.",
+      "blocks_ratification": true
+    }
+  ],
+  "provenance": {
+    "sources": [
+      {
+        "kind": "document",
+        "uri": "fixture:example-product",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5",
+    "notes": [
+      "Test fixture. Not a real product profile."
+    ]
+  },
+  "confidence": 0.1
+}

@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Repository Root
-version: 1.9.0
+version: 1.10.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-10-23
@@ -256,6 +256,7 @@ Followed by a one-paragraph purpose statement and a "Related documents" cross-li
 | 1.7.0 | 2026-08-08 | Autonomy Score sub-project | Registered `services/autonomy-score/` and `platforms/autonomy-signals.json` in the services/ tree entry. |
 | 1.8.0 | 2026-10-23 | Brand engine foundation | Registered `brain.brand_experience.md`, `brand/` and `services/brand-engine/` (tree, ownership matrix); `schemas/` now also holds the brand profile and principle schemas. All brand data is `draft`; the owner ratifies. |
 | 1.9.0 | 2026-10-23 | Brand engine scoring | `brand/` now also holds the released, immutable BXQS rubric (`brand/rubrics/`); `schemas/` holds the rubric, evidence and score schemas; `services/brand-engine` gained `score`, `compare` and `rubric` (ADR-0022). Rubric is `proposed`; no real product has been scored. |
+| 1.10.0 | 2026-10-23 | Brand engine workflow | `services/brand-engine` gained `analyze`, `plan`, `verify` and `evidence assemble`, adapters for external tool reports and the analysis and plan schemas (ADR-0023, proposed). The engine reads reports and never runs a tool. Nothing is ratified; no real product has been scored. |
 
 ## Open Questions
 

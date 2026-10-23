@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Platform Knowledge (Self-Referential)
-version: 1.2.0
+version: 1.3.0
 status: active
 owners: [Chief Intelligence Architect, Governance Agent, Registry Agent]
 platform-id: dot-brain
@@ -130,13 +130,13 @@ One incident pack (2026-02): a corroboration-multiplier bug applied ×1.10 twice
 
 Added by [ADR-0021](../adr/ADR-0021-brand-feeling-engine.md); doctrine in [brain.brand_experience.md](../brain.brand_experience.md). What exists in this repository:
 
-- `services/brand-engine/`: a zero-dependency Node library and CLI (`profile list|show|validate|resolve`, `framework list|show`, `drift`, and, since 0.2.0, `score`, `compare`, `rubric show|validate`). Read-only, offline, no LLM. Run by hand; no workflow runs it.
+- `services/brand-engine/`: a zero-dependency Node library and CLI (`profile list|show|validate|resolve`, `framework list|show`, `drift`, and, since 0.2.0, `score`, `compare`, `rubric show|validate`, and since the workflow increment `analyze`, `plan`, `verify`, `evidence assemble`). Offline, no LLM; it reads reports other tools wrote and never runs one. Run by hand; no workflow runs it.
 - `brand/`: the 12 framework principles and the `dot-ecosystem`, `infodot` and `blupin` profiles, all `draft`, none ratified, plus the released, immutable BXQS rubric `bxqs-1.0.0` (`proposed`). `.github/CODEOWNERS` routes `/brand/` to the owner.
-- `schemas/brand-profile.schema.json`, `brand-principle.schema.json`, `brand-rubric.schema.json`, `brand-evidence.schema.json` and `brand-score.schema.json`. The first two reuse DKP's field vocabulary; the documents are not signed Knowledge Packs.
+- `schemas/brand-profile.schema.json`, `brand-principle.schema.json`, `brand-rubric.schema.json`, `brand-evidence.schema.json`, `brand-score.schema.json`, `brand-analysis.schema.json` and `brand-plan.schema.json`. The first two reuse DKP's field vocabulary; the documents are not signed Knowledge Packs.
 
-Scoring ([ADR-0022](../adr/ADR-0022-bxqs-scoring-policy.md)) is advisory and counts only the evidence it is given.
+Scoring ([ADR-0022](../adr/ADR-0022-bxqs-scoring-policy.md)) is advisory and counts only the evidence it is given. The workflow ([ADR-0023](../adr/ADR-0023-brand-engine-workflow-adapter-boundary.md), proposed) turns tool reports into evidence, ranks the work, and verifies a fix by measurement.
 
-What it does not do: measure or assess any real product (no analyser exists and no real product has been scored), block a deploy, call Dot.Memory or Dot.Dopemine, hold any product-level or customer-brand profile, or ratify anything. Ratification of a profile or principle is strategic direction and is the owner's alone (Level 3). Because it consumes and emits no Knowledge Packs, it has no new event, pack or metric registration.
+What it does not do: assess any real product (no real product has been scored, and the built-in static checks are a separate change), block a deploy, call Dot.Memory or Dot.Dopemine, hold any product-level or customer-brand profile, or ratify anything. Ratification of a profile or principle is strategic direction and is the owner's alone (Level 3). Because it consumes and emits no Knowledge Packs, it has no new event, pack or metric registration.
 
 ## Autonomy Classification (brain.autonomy.md)
 
@@ -183,6 +183,7 @@ For Dot.Brain to have its first real Level 1 process, something in this reposito
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial self-referential integration package: registry self-knowledge OQ answered (yes, under stricter-than-tenant rules — human verification only, no self-grading, unsuppressable drift channel), custody-not-ownership tenancy, no trust self-score (Governance Board attestation instead), 3 domain metrics, calibration round-trip. Completes F-06 at 21 of 21 |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.2.0 | 2026-10-23 | Brand engine foundation | Added §14, the Brand Feeling Engine (facts only): service, data, schemas, and what it does not do |
+| 1.3.0 | 2026-10-23 | Brand engine workflow | §14 now names the analyse, plan, verify and evidence-assembly commands, the analysis and plan schemas and ADR-0023; the scoring increment's wording is kept |
 
 ## Open Questions
 
