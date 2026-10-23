@@ -1,0 +1,81 @@
+{
+  "id": "BXP-12",
+  "slug": "cross-platform-consistency",
+  "title": "Consistency across platforms and touchpoints",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "Where platforms share users, data or tasks, shared things behave the same (sign-in, naming, states, errors, units, token interoperability) while each platform keeps its own functional identity and information hierarchy.",
+  "intended_outcome": "A user who moves between Dot platforms is not surprised by a shared concept, and no platform is forced into another's interface.",
+  "applicable_contexts": [
+    "single sign-on and hand-offs",
+    "shared entity names and units",
+    "notifications and errors",
+    "design tokens",
+    "exports and integrations"
+  ],
+  "implementation_guidance": [
+    "Keep a shared glossary of ecosystem entities (names, units, status words) and use identical names for identical concepts. A rename is a cross-repository change.",
+    "Share only what must be shared: sign-in hand-off, error shape, state vocabulary and the accessibility baseline. Do not share layout, colour identity or navigation.",
+    "Token interoperability: each product publishes its tokens in a machine-readable file so another product can link to or embed it without recolouring. Profiles cite that file by path and sha256.",
+    "Cross-platform hand-offs preserve context (who, what, where) and do not ask again.",
+    "Report each inconsistency as \"align\" or \"justified difference\". A justified difference is recorded with its reason in the product profile."
+  ],
+  "validation_method": {
+    "automated": [
+      "Drift check of cited design files.",
+      "Glossary term usage scan across repositories, where all are available."
+    ],
+    "expert_review": [
+      "Walk a journey that crosses at least one hand-off."
+    ],
+    "observed_behaviour": [],
+    "customer_feedback": []
+  },
+  "limitations": [
+    "Consistency has a cost where domains differ (a mining fleet dashboard versus a document editor). Some differences are correct.",
+    "Checking across platforms needs several repositories. The engine applies per repository."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that the ecosystem communicates coherence while individual platforms preserve their own functional identities.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Consistent shared concepts reduce relearning when users move between platforms.",
+      "rationale": "Plausible from single sign-on usage; not measured."
+    }
+  ],
+  "rubric_dimensions": [
+    "cross_platform_consistency",
+    "brand_distinctiveness"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

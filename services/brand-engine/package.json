@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/brand-engine",
+  "version": "0.1.0",
+  "description": "Brand Feeling Engine foundation: schemas, validator, profile registry with extends resolution, framework and drift check. Rules only, no LLM; recommends, never ratifies. See ../../adr/ADR-0021-brand-feeling-engine.md.",
+  "type": "module",
+  "bin": { "brand-engine": "./src/cli.js" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}

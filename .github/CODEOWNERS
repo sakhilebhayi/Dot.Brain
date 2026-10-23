@@ -1,0 +1,9 @@
+# Knowledge data is separate from code and is reviewed by path. Nothing under
+# /brand/ becomes ratified except by the owner's own review and merge
+# (ADR-0021: an AI session may propose a profile or principle, never ratify one).
+# The schemas and the rule file below define what "ratified" has to look like,
+# so they are reviewed the same way.
+/brand/ @sakhilebhayi
+/schemas/brand-profile.schema.json @sakhilebhayi
+/schemas/brand-principle.schema.json @sakhilebhayi
+/services/brand-engine/src/rules.js @sakhilebhayi

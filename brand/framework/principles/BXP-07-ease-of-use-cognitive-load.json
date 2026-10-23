@@ -1,0 +1,90 @@
+{
+  "id": "BXP-07",
+  "slug": "ease-of-use-cognitive-load",
+  "title": "Ease of use and cognitive load",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "The interface asks the user to hold, decide and learn as little as the task allows: one primary action per view, familiar patterns where meaning matters, plain language, and information ordered by the user's next decision.",
+  "intended_outcome": "Users complete their primary tasks quickly and correctly without instruction.",
+  "applicable_contexts": [
+    "all user interfaces",
+    "forms and settings",
+    "dashboards",
+    "data-dense operational screens used by trained operators"
+  ],
+  "implementation_guidance": [
+    "Per screen, name the question it answers and the next action. If it cannot be named, split the screen (see brain.design.md section 2).",
+    "Forms ask only for what the task needs, in the order the user knows it, validate inline with specific messages and preserve entries on error.",
+    "Use platform conventions for standard controls. Deviate only where a documented signature decision justifies it (BXP-03).",
+    "Disclose rare options progressively. Never hide the weakest or most uncertain information.",
+    "Dense operational screens are allowed where users are trained operators, but they must group, label and order by decision relevance.",
+    "State a technical term once, with its meaning, where it first appears."
+  ],
+  "validation_method": {
+    "automated": [
+      "Count of primary actions per view and required fields per form from the rendered DOM (a heuristic, not a measure of load)."
+    ],
+    "expert_review": [
+      "Heuristic evaluation of primary tasks.",
+      "Cognitive walkthrough of primary tasks."
+    ],
+    "observed_behaviour": [
+      "Task success rate and time on task from a moderated or unmoderated test (n and method recorded)."
+    ],
+    "customer_feedback": []
+  },
+  "limitations": [
+    "Cognitive load differs between novices and trained operators; one layout rarely suits both.",
+    "Counting interface elements is a proxy, not a measure of load."
+  ],
+  "evidence": [
+    {
+      "class": "documented_research",
+      "summary": "General usability heuristics widely used for expert review. Supports the choice of heuristic evaluation as a method; establishes no effect size for any Dot product.",
+      "citation": "Jakob Nielsen, \"10 Usability Heuristics for User Interface Design\", Nielsen Norman Group (nngroup.com).",
+      "citation_verified": false
+    },
+    {
+      "class": "documented_research",
+      "summary": "Cognitive load theory, cited as background for treating working-memory demand as a design constraint. Establishes no effect size for any Dot product.",
+      "citation": "John Sweller, \"Cognitive load during problem solving: Effects on learning\", Cognitive Science 12(2), 1988.",
+      "citation_verified": false
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Naming the question and next action per screen reduces unfocused screens.",
+      "rationale": "Practitioner reasoning; not measured on Dot products."
+    }
+  ],
+  "rubric_dimensions": [
+    "usability_cognitive_load",
+    "functional_completeness"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.5
+}

@@ -1,0 +1,85 @@
+{
+  "id": "BXP-05",
+  "slug": "perceived-value-actual-usefulness",
+  "title": "Perceived value versus actual usefulness",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "What the product appears to offer must match what it measurably does for the user's job. Value is demonstrated by a result the user can see and check, not asserted by copy, visuals or pricing cues.",
+  "intended_outcome": "A user can point to a concrete thing the product did for them, and every stated benefit is backed by a feature present in the build.",
+  "applicable_contexts": [
+    "landing and marketing pages",
+    "dashboards and reports",
+    "pricing and upgrade prompts",
+    "recommendations",
+    "release notes"
+  ],
+  "implementation_guidance": [
+    "Bind each headline benefit to a product behaviour and a checkable result in the same flow. A benefit with no corresponding feature in the build is a finding.",
+    "Show what changed for automated actions, and keep a log of what the system did on the user's behalf.",
+    "Title each dashboard figure with the question it answers and state its source. Retire figures nobody uses (see brain.design.md section 2).",
+    "An upgrade prompt names the specific capability gained and never interrupts a task in progress.",
+    "Value never overrides correctness: a polished wrong number is worse than no number."
+  ],
+  "validation_method": {
+    "automated": [
+      "Claim-to-feature trace: each claim in copy matches a present route or feature (heuristic, flagged for human review)."
+    ],
+    "expert_review": [
+      "Walk the primary job end to end and note where value is asserted but not shown."
+    ],
+    "observed_behaviour": [
+      "Task completion with a correct result on the primary job (usability test or telemetry; n recorded)."
+    ],
+    "customer_feedback": [
+      "Ask what the product did for the user the last time they used it, in their words."
+    ]
+  },
+  "limitations": [
+    "Perceived value is subjective and context-dependent.",
+    "Automated claim tracing is heuristic and will miss implied claims."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "Dot Intelligence Manifesto principle 3: every recommendation is measurable; define the metric before the feature.",
+      "declared_by": "Dot Intelligence Manifesto (CLAUDE.md), principle 3"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Binding every benefit claim to a shown result lowers the gap between what is promised and what is delivered.",
+      "rationale": "Reasoned from the claim-versus-feature mismatches this engine is built to find; no Dot measurement of the effect exists."
+    }
+  ],
+  "rubric_dimensions": [
+    "perceived_demonstrated_value",
+    "functional_completeness",
+    "measurable_customer_outcomes"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

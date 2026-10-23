@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-profile.schema.json",
+  "title": "Brand Profile",
+  "description": "A versioned brand or product profile (brain.brand_experience.md). Same field vocabulary as DKP (contributors, provenance, confidence) but a profile is NOT a signed Knowledge Pack. Every emotional_promise item is an INTENDED feeling and is never measured here. Ratification (status 'ratified') requires a human approver and ratified_at; an AI session may propose but never ratify. Cross-field rules (status/approver, evidence-class requirements, extends resolution, override reasons) are enforced by services/brand-engine, not expressible here.",
+  "type": "object",
+  "required": ["id", "kind", "version", "status", "classification", "contributors", "purpose", "audience", "positioning", "emotional_promise", "behavioural_principles", "visual_direction", "language", "experience_standards", "domain_overrides", "unknowns", "provenance", "confidence"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "kind": { "enum": ["ecosystem", "brand", "product"] },
+    "extends": { "$ref": "#/$defs/idVersion" },
+    "version": { "$ref": "#/$defs/semver" },
+    "status": { "enum": ["draft", "proposed", "ratified", "superseded"] },
+    "supersedes": { "$ref": "#/$defs/idVersion" },
+    "classification": { "enum": ["public", "ecosystem", "restricted", "sensitive"], "default": "public" },
+    "contributors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/contributor" } },
+    "approver": { "$ref": "#/$defs/approver" },
+    "ratified_at": { "type": "string", "format": "date-time" },
+    "purpose": { "$ref": "#/$defs/statement" },
+    "audience": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["segment", "identified", "description", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "segment": { "type": "string", "minLength": 1 },
+          "identified": { "type": "boolean" },
+          "description": { "type": "string", "minLength": 1 },
+          "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidenceItem" } }
+        }
+      }
+    },
+    "positioning": { "$ref": "#/$defs/statement" },
+    "emotional_promise": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["feeling", "text", "label", "measured", "confidence", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "feeling": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "label": { "const": "intended" },
+          "measured": { "const": false },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceItem" } }
+        }
+      }
+    },
+    "behavioural_principles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "non_negotiable", "confidence", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "text": { "type": "string", "minLength": 1 },
+          "principle": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+          "non_negotiable": { "type": "boolean" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceItem" } }
+        }
+      }
+    },
+    "visual_direction": {
+      "type": "object",
+      "required": ["source_refs", "constraints", "prohibited"],
+      "additionalProperties": false,
+      "properties": {
+        "source_refs": { "type": "array", "items": { "$ref": "#/$defs/sourceRef" } },
+        "constraints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "prohibited": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "language": {
+      "type": "object",
+      "required": ["voice", "banned_phrases", "claims_policy"],
+      "additionalProperties": false,
+      "properties": {
+        "voice": { "$ref": "#/$defs/statement" },
+        "banned_phrases": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "claims_policy": {
+          "type": "object",
+          "required": ["forbidden", "evidence_required"],
+          "additionalProperties": false,
+          "properties": {
+            "forbidden": {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["id", "rule"],
+                "additionalProperties": false,
+                "properties": {
+                  "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                  "rule": { "type": "string", "minLength": 1 }
+                }
+              }
+            },
+            "evidence_required": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        }
+      }
+    },
+    "experience_standards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["principle", "principle_version", "stance", "expression", "non_negotiable"],
+        "additionalProperties": false,
+        "properties": {
+          "principle": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+          "principle_version": { "$ref": "#/$defs/semver" },
+          "stance": { "enum": ["applies", "emphasised", "adapted", "not_applicable"] },
+          "expression": { "type": "string", "minLength": 1 },
+          "rationale": { "type": "string", "minLength": 1 },
+          "non_negotiable": { "type": "boolean" }
+        }
+      }
+    },
+    "domain_overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["principle", "yields_to", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "principle": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+          "yields_to": { "enum": ["domain_safety", "regulation", "accessibility", "security", "functional_correctness"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "question", "blocks_ratification"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "question": { "type": "string", "minLength": 1 },
+          "blocks_ratification": { "type": "boolean" }
+        }
+      }
+    },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "confidence": { "$ref": "#/$defs/confidence" }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "idVersion": { "type": "string", "pattern": "^[a-z][a-z0-9-]*@\\d+\\.\\d+\\.\\d+$" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "statement": {
+      "type": "object",
+      "required": ["text", "confidence", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceItem" } }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "required": ["repo", "path", "commit", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+        "path": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "role": { "enum": ["product_definition", "design_system", "token_source", "conflicting_guidance", "context"] }
+      }
+    },
+    "contributor": {
+      "type": "object",
+      "required": ["id", "kind", "display_name"],
+      "additionalProperties": false,
+      "patternProperties": { "^x-": {} },
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["human", "ai"] },
+        "display_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "approver": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "human" },
+        "display_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidenceItem": {
+      "type": "object",
+      "required": ["class", "summary"],
+      "additionalProperties": false,
+      "patternProperties": { "^x-": {} },
+      "properties": {
+        "class": { "enum": ["documented_research", "observed_behaviour", "internal_hypothesis", "validated_finding", "declared_intent"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "citation": { "type": "string", "minLength": 1 },
+        "citation_verified": { "type": "boolean" },
+        "n": { "type": "integer", "minimum": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "experiment_ref": { "type": "string", "minLength": 1 },
+        "declared_by": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["sources", "transformations", "published_by"],
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["kind", "uri", "observed_at"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["system", "dataset", "sensor", "discussion", "model_run", "document", "human_observation"] },
+              "uri": { "type": "string", "minLength": 1 },
+              "observed_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "transformations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step", "tool", "tool_version", "actor"],
+            "additionalProperties": false,
+            "properties": {
+              "step": { "type": "string", "minLength": 1 },
+              "tool": { "type": "string", "minLength": 1 },
+              "tool_version": { "type": "string", "minLength": 1 },
+              "actor": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "published_by": { "type": "string", "minLength": 1 },
+        "notes": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

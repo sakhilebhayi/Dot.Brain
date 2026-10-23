@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Cross-Reference Map
-version: 1.0.37
+version: 1.0.38
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Reasoning Agent
@@ -62,6 +62,9 @@ flowchart TD
 | [../brain.market_intelligence.md](../brain.market_intelligence.md) | Fact hierarchy, research-memory schema, reuse-before-research cost discipline, robots.txt/no-credential-bypass governance | brain.governance (escalation pattern reused, not a hard dependency) |
 | [../brain.autonomy.md](../brain.autonomy.md) | Three-level classification (L1/L2/L3), Autonomy Score formula + unmeasured-category-zero rule, per-entity scoring, interval/gate thresholds, streak rule, Owner Intervention Log content requirements | brain.governance (approval-tier shape, not a hard dependency) |
 | [../services/autonomy-score/](../services/autonomy-score/) | Binary category-formula implementation of brain.autonomy.md §3's Autonomy Score | brain.autonomy.md §3 (formula), platforms/autonomy-signals.json (data) |
+| [../brain.brand_experience.md](../brain.brand_experience.md) | Brand Feeling Engine doctrine: five evidence classes, status rules (AI proposes, only a human ratifies), per-repo application, precedence of safety/regulation/accessibility/security/correctness over brand | ADR-0021, brain.dopemine §2–3 (engagement constraint), brain.experiments (validated finding), brain.autonomy (strategic direction is Level 3), brain.design (calm-technology counterpart), brain.governance §5 (ethics gate) |
+| [../brand/](../brand/README.md) | Reviewed data: 12 framework principles and the dot-ecosystem, infodot and blupin profiles (all draft) | schemas/brand-principle.schema.json, schemas/brand-profile.schema.json, services/brand-engine, .github/CODEOWNERS |
+| [../services/brand-engine/](../services/brand-engine/README.md) | Schema interpreter, rules, registry, `extends` resolution, drift check, CLI for brand/ and product profiles | brain.brand_experience.md, ADR-0021, schemas/brand-*.schema.json |
 | [../brain.personas.md](../brain.personas.md) | Persona catalog + rendering contracts, extension procedure | brain.api §5 (serving surface), brain.learning Loop C (template evolution), brain.security §3 (persona ≠ permission) |
 | [../brain.recommendations.md](../brain.recommendations.md) | Recommendation object, decision lifecycle, quality bar, terminal-state learning table | brain.workflows §5–7 (gates/delivery/outcome), brain.reasoning (anchoring conclusions), brain.api §4 (evidence links), brain.dopemine (target/guard rules), brain.metrics §1 (impact-block gate) |
 | [../brain.experiments.md](../brain.experiments.md) | Pre-registration protocol, E1–E4 classes, evidence-class ranking, stopping rules | brain.metrics §1 (metric pre-registration), brain.reasoning I3 (result consumption), brain.governance (approval tiers + gates), brain.community §3 (E4 floor) |
@@ -140,6 +143,7 @@ flowchart TD
 | 1.0.35 | 2026-08-08 | Truth-reconciliation pass | brain.cushion.md and brain.market_intelligence.md published outside the quarterly-maintenance cadence (real work, not a scheduled document): rows added to §2 |
 | 1.0.36 | 2026-08-08 | Autonomy Foundation sub-project | brain.autonomy.md published: row added to §2 |
 | 1.0.37 | 2026-08-08 | Autonomy Score sub-project | services/autonomy-score/ published: row added to §2 |
+| 1.0.38 | 2026-10-23 | Brand engine foundation | brain.brand_experience.md, brand/ and services/brand-engine/ published: rows added to §2 |
 
 ## Open Questions
 

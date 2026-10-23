@@ -1,0 +1,82 @@
+{
+  "id": "BXP-01",
+  "slug": "emotional-positioning",
+  "title": "Emotional positioning and intended feelings",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "A product states, before it designs, which feelings it intends a user to have at which moments (first use, a decision, an error, a result), in which words, and who decided. A feeling in a profile is an INTENDED design target. It is never reported as measured unless evidence of a stronger class exists.",
+  "intended_outcome": "Every interface decision can be traced to a named intended feeling at a named moment, so design can be reviewed against intent and not only against taste.",
+  "applicable_contexts": [
+    "new product definition",
+    "redesign",
+    "first-run and onboarding",
+    "error, empty and success states",
+    "notifications and emails",
+    "marketing pages"
+  ],
+  "implementation_guidance": [
+    "Record three to five intended feelings in the profile emotional_promise[], each labelled intended with measured:false, each with the journey moments it applies to.",
+    "For each key journey (first run, primary task, failure, completion) write one line: at this moment the user should feel X because the interface does Y. Y must name a concrete behaviour: copy, state, layout, motion or timing.",
+    "Treat a design rationale of \"feels premium\" or \"feels modern\" with no named feeling and moment as an assessment finding.",
+    "Where an intended feeling conflicts with a domain duty (reassurance versus a safety or loss-of-money alert), the duty wins; record the case in domain_overrides[].",
+    "Do not add a feeling to the profile unless at least one journey moment and one interface behaviour can be named for it."
+  ],
+  "validation_method": {
+    "automated": [
+      "Profile validator: every emotional_promise item is labelled intended, measured:false, and carries evidence."
+    ],
+    "expert_review": [
+      "Walk each key journey and check that each step names a feeling and an interface behaviour that realises it."
+    ],
+    "observed_behaviour": [],
+    "customer_feedback": [
+      "A short post-task question about how the user felt, recorded as customer feedback and never as proof that the design caused the feeling."
+    ]
+  },
+  "limitations": [
+    "Feelings cannot be read from a repository. The engine can check that intent is declared and traceable, not that users feel it.",
+    "Self-reported feeling depends on how and when the question is asked."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that brand strategy is expressed as intended customer feelings in the product experience.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Naming a feeling per journey moment turns a taste argument into a reviewable statement.",
+      "rationale": "Untested in Dot products. Reviewers can disagree about a stated feeling, which is the point, but no Dot team has yet shown that it improves outcomes."
+    }
+  ],
+  "rubric_dimensions": [
+    "emotional_clarity_positioning"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

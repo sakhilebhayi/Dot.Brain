@@ -1,0 +1,154 @@
+{
+  "x-fixture": true,
+  "id": "example-product",
+  "kind": "product",
+  "extends": "infodot@0.1.0",
+  "version": "0.1.0",
+  "status": "draft",
+  "classification": "public",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "purpose": {
+    "text": "FIXTURE ONLY. A made-up product that exists to prove that a product repository can keep its own profile, extend a Dot.Brain profile and cite its own files by hash.",
+    "confidence": 0.1,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Test data.",
+        "declared_by": "fixture author (test data, not a real owner decision)"
+      }
+    ]
+  },
+  "audience": [
+    {
+      "segment": "unknown",
+      "identified": false,
+      "description": "FIXTURE ONLY. No audience is asserted.",
+      "evidence": []
+    }
+  ],
+  "positioning": {
+    "text": "FIXTURE ONLY. Not a real positioning.",
+    "confidence": 0,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Test data.",
+        "declared_by": "fixture author (test data, not a real owner decision)"
+      }
+    ]
+  },
+  "emotional_promise": [
+    {
+      "feeling": "example",
+      "text": "FIXTURE ONLY. An intended feeling, never measured.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Test data.",
+          "declared_by": "fixture author (test data, not a real owner decision)"
+        }
+      ]
+    }
+  ],
+  "behavioural_principles": [],
+  "visual_direction": {
+    "source_refs": [
+      {
+        "repo": "example/example-product",
+        "path": "PRODUCT.md",
+        "commit": "abcdef0123456789abcdef0123456789abcdef01",
+        "sha256": "48475cd6944f2b56984b4b018bad48382d8545912ad4e64503efce927946fcc1",
+        "role": "product_definition"
+      },
+      {
+        "repo": "example/example-product",
+        "path": "DESIGN.md",
+        "commit": "abcdef0123456789abcdef0123456789abcdef01",
+        "sha256": "3242be4ffde375ab41c7d6e4b3d2a3b8d3e57be143cd20a2e73898a619fad936",
+        "role": "design_system"
+      }
+    ],
+    "constraints": [
+      "FIXTURE ONLY. Tokens would be cited from DESIGN.md, not copied."
+    ],
+    "prohibited": []
+  },
+  "language": {
+    "voice": {
+      "text": "Plain language. Business and accountability stated in words, not counters. Practical, and respectful of small-business owners; never condescending.",
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Same wording as the parent, so no override is needed.",
+          "declared_by": "fixture author (test data, not a real owner decision)"
+        }
+      ]
+    },
+    "banned_phrases": [],
+    "claims_policy": {
+      "forbidden": [
+        {
+          "id": "no-fixture-claims",
+          "rule": "FIXTURE ONLY. Make no claims."
+        }
+      ],
+      "evidence_required": []
+    }
+  },
+  "experience_standards": [
+    {
+      "principle": "BXP-07",
+      "principle_version": "0.1.0",
+      "stance": "adapted",
+      "expression": "FIXTURE ONLY. Dense operator screens are expected here.",
+      "rationale": "Fixture rationale: the pretend users are trained operators.",
+      "non_negotiable": false
+    }
+  ],
+  "domain_overrides": [],
+  "overrides": [
+    {
+      "field": "experience_standards:BXP-07",
+      "reason": "Fixture: the pretend product serves trained operators, so the ecosystem default of one next action per screen is adapted."
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "u-everything",
+      "question": "FIXTURE ONLY. Everything: this is not a real product.",
+      "blocks_ratification": true
+    }
+  ],
+  "provenance": {
+    "sources": [
+      {
+        "kind": "document",
+        "uri": "fixture:example-product",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5",
+    "notes": [
+      "Test fixture. Not a real product profile."
+    ]
+  },
+  "confidence": 0.1
+}

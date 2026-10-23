@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Glossary
-version: 1.0.3
+version: 1.0.4
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Documentation Agent
@@ -25,6 +25,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Autonomy Score** | Weighted 11-category score (see brain.autonomy.md §3); a category with no real signal scores 0 and is never excluded from the average | [../brain.autonomy.md](../brain.autonomy.md) §3 |
 | **Capability URL** | Unguessable evidence link embedded in a Brain PR; serves frozen-at-PR-open chain + current diff; PR lifetime + 1 year | [../brain.api.md](../brain.api.md) §4 |
 | **Causal bar** | Requirements to promote `OBSERVED_WITH` to `CAUSES`: input ≥ 0.70, mechanism Why block, experiment or expert evidence, Reasoning Agent only | [../brain.relationships.md](../brain.relationships.md) §4.2 |
+| **Brand profile** | Versioned statement of a brand's or product's purpose, audience, positioning, **intended** feelings, behavioural principles, visual direction, language and claims policy, with evidence on every assertion and a required list of unknowns. Statuses `draft`/`proposed`/`ratified`/`superseded`; only a human ratifies. Not a signed Knowledge Pack | [../brain.brand_experience.md](../brain.brand_experience.md), [../brand/](../brand/README.md), [../adr/ADR-0021-brand-feeling-engine.md](../adr/ADR-0021-brand-feeling-engine.md) |
 | **Classification levels** | `public → ecosystem → restricted → sensitive`; labels travel with knowledge; most-restrictive propagation on derived nodes | [../brain.security.md](../brain.security.md) §2 |
 | **Confidence** | Node: source_trust × validation × corroboration × age_decay. Chain/edge: min(inputs) × factors. ≥ 0.80 recommendable, 0.50–0.79 provisional, < 0.50 dormant | [../brain.dkp.md](../brain.dkp.md), edges [../brain.relationships.md](../brain.relationships.md) |
 | **Contradiction (CONTRADICTS)** | Active conflict edge; applies ×0.70 to affected confidence until resolved; opened at Δ ≥ 0.20 per ADR-0004 | [../brain.relationships.md](../brain.relationships.md), [../adr/ADR-0004](../adr/) |
@@ -42,6 +43,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Dormant** | Knowledge below 0.50 confidence: retained, searchable, unusable as inference input | [../brain.dkp.md](../brain.dkp.md), [../brain.reasoning.md](../brain.reasoning.md) |
 | **Engagement-metric prohibition** | Session time, open counts, scroll depth, notification CTR, streak length, etc. may be measured but never optimized as targets | [../brain.dopemine.md](../brain.dopemine.md) §1–2 |
 | **Ethics gate checklist** | Five questions (human-outcome target? not prohibited? guard declared? user benefit? visible + opt-out?); any "no" ⇒ rejection | [../brain.governance.md](../brain.governance.md) §5 |
+| **Evidence class (brand knowledge)** | One of `documented_research` (citation, verified flag), `observed_behaviour` (n, method), `internal_hypothesis`, `validated_finding` (experiment reference), `declared_intent` (an owner choice, not evidence of effect); each class has required and forbidden fields | [../brain.brand_experience.md](../brain.brand_experience.md) §4 |
 | **Fact hierarchy** | Facts → Observations → Insights → Hypotheses → Recommendations; speculation is never presented as fact regardless of how confidently phrased | [../brain.market_intelligence.md](../brain.market_intelligence.md) §1 |
 | **Golden signals** | Latency, traffic, errors, saturation per pipeline stage; definitions owned by telemetry | [../brain.telemetry.md](../brain.telemetry.md) §2 |
 | **Guard metric** | Paired harm-detection metric a recommendation must declare; breach auto-opens an incident and retro-flags the gate decision | [../brain.metrics.md](../brain.metrics.md) §5, [../brain.dopemine.md](../brain.dopemine.md) §5 |
@@ -53,6 +55,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Hot / Warm / Cold** | Memory tiers: ≤ 50 ms (90-day window, lessons always hot) / ≤ 2 s / ≤ 5 min immutable | [../brain.memory.md](../brain.memory.md) |
 | **Inference rules (I1–I7)** | Aggregation ·95, correlation ·80, causal promotion ·95, analogy ·60 candidate-only, contradiction, temporal projection ·70, lesson application ·90 | [../brain.reasoning.md](../brain.reasoning.md) |
 | **Ledger** | Append-only hash-chained audit record; T0 tier (RTO 1 h, RPO 0); ledger-before-graph, ledger-before-action invariants | [../adr/ADR-0006-audit-ledger-design.md](../adr/ADR-0006-audit-ledger-design.md), [../brain.workflows.md](../brain.workflows.md) |
+| **Intended feeling** | A feeling a brand profile aims for; always labelled `intended` and `measured: false`; never reported as a user outcome without observing evidence | [../brain.brand_experience.md](../brain.brand_experience.md) §1 |
 | **Lesson** | Incident-derived knowledge; never decays (λ = 0); always hot; propagation ≤ 72 h | [../brain.learning.md](../brain.learning.md) Loop D, [../brain.resilience.md](../brain.resilience.md) |
 | **Level 1 / 2 / 3 (autonomy classification)** | Autonomous (no approval needed) / Escalate (prepared, needs human approval) / Human Control (owner has non-delegable authority) | [../brain.autonomy.md](../brain.autonomy.md) §2 |
 | **Loops A–D** | Learning loops: trust calibration / conclusion calibration (overrides double-weight) / explanation templates / lessons | [../brain.learning.md](../brain.learning.md) |
@@ -98,6 +101,7 @@ Spelling note: the *file/platform* is **Dopemine** (brain.dopemine.md, Dot.Dopem
 | 1.0.1 | 2026-08-01 | Repository Reviewer (prompt 07, AI) | Added "Dot.Charts vs. dashboards" disambiguation entry |
 | 1.0.2 | 2026-08-08 | Truth-reconciliation pass | Added "Cushion dimension", "Fact hierarchy", "Research memory" — terms brain.cushion.md and brain.market_intelligence.md defined but never registered here |
 | 1.0.3 | 2026-08-08 | Autonomy Foundation sub-project | Added "Autonomy Score", "Level 1 / 2 / 3 (autonomy classification)", "Owner Intervention Log", "Owner-Free Operating Streak" |
+| 1.0.4 | 2026-10-23 | Brand engine foundation | Added "Brand profile", "Evidence class (brand knowledge)", "Intended feeling" |
 
 ## Open Questions
 

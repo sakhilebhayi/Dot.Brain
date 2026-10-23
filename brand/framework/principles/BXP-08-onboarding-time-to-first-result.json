@@ -1,0 +1,87 @@
+{
+  "id": "BXP-08",
+  "slug": "onboarding-time-to-first-result",
+  "title": "Onboarding and time to first meaningful result",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "A new user reaches a first result that matters to their own goal as fast as the domain allows, with the product doing the set-up work it can do itself and no step that exists only for the product's convenience.",
+  "intended_outcome": "Few steps and little elapsed time between first arrival and the first real result (a report built, a question answered, a record the user needs).",
+  "applicable_contexts": [
+    "sign-up and first run",
+    "empty states",
+    "imports",
+    "invitations",
+    "guided tours"
+  ],
+  "implementation_guidance": [
+    "Define per product the first meaningful result as a concrete event the user cares about. \"Account created\" and \"tour completed\" are not results. Record it in the product profile.",
+    "Instrument the steps and elapsed time from first arrival to that event, list the required steps, and remove each that is not needed for the result.",
+    "Empty states offer a path to the first result (an import or clearly labelled sample data), never a blank page or a tour for its own sake.",
+    "Defer optional profile completion and upsell until after the first result.",
+    "Preserve progress, allow skipping, and let the user return to where they left.",
+    "Never skip identity, consent or security steps to be faster (see domain_overrides)."
+  ],
+  "validation_method": {
+    "automated": [
+      "Count of required steps and fields between entry and the first-result route.",
+      "End-to-end test that a new account reaches the first-result event."
+    ],
+    "expert_review": [
+      "Walkthrough as a first-time user with no prior context."
+    ],
+    "observed_behaviour": [
+      "Median time and completion rate to the first meaningful result from real sessions (n recorded)."
+    ],
+    "customer_feedback": [
+      "An in-flow question: did you get what you came for?"
+    ]
+  },
+  "limitations": [
+    "Fastest is not always best: regulated or high-stakes set-up must not be skipped.",
+    "Measurement needs instrumentation that most Dot products do not have today."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner lists onboarding and time to first meaningful result among the factors the framework must evaluate.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "A shorter path to a first real result makes it more likely that a new user continues.",
+      "rationale": "Common product reasoning; not measured on Dot products."
+    }
+  ],
+  "rubric_dimensions": [
+    "usability_cognitive_load",
+    "perceived_demonstrated_value",
+    "measurable_customer_outcomes"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

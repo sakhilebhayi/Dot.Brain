@@ -1,0 +1,88 @@
+{
+  "id": "BXP-10",
+  "slug": "retention-advocacy",
+  "title": "Customer retention and advocacy",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "Users keep using the product, and recommend it, because it keeps proving useful and treats them well. Retention and advocacy are consequences to observe and understand, not levers to pull.",
+  "intended_outcome": "The team understands why users stay or leave and fixes the cause; leaving, exporting and cancelling are honest and easy.",
+  "applicable_contexts": [
+    "churn analysis",
+    "cancellation and export",
+    "referral and review requests",
+    "feedback collection",
+    "lifecycle messaging"
+  ],
+  "implementation_guidance": [
+    "Treat retention and referrals as lagging indicators of value. When they fall, diagnose the cause from outcome data and user feedback before adding any prompt.",
+    "Data export and account closure are discoverable and work without contacting support. No hidden cancellation, confirm-shaming or guilt copy.",
+    "Referral and review requests appear only after a success the user can see, never as a gate, and offer no incentive for a positive rating.",
+    "Ask departing users why, optionally. Report only aggregates that meet the cohort floor in brain.community.md section 3, and nothing at person level.",
+    "A retention metric that rises when users are worse off (locked in, unable to export) is invalid. Pair every retention metric with an outcome metric.",
+    "Every engagement-related recommendation this engine produces is flagged requires_human_review."
+  ],
+  "validation_method": {
+    "automated": [
+      "Presence checks that an export route and a cancellation route exist and are reachable (heuristic)."
+    ],
+    "expert_review": [
+      "Dark-pattern audit of cancellation, referral and review flows."
+    ],
+    "observed_behaviour": [
+      "Cohort retention and leaving reasons from product data (cohort size recorded; no person-level reporting)."
+    ],
+    "customer_feedback": [
+      "Interviews, reviews and support feedback, labelled as customer feedback."
+    ]
+  },
+  "limitations": [
+    "Retention depends on market, pricing and competition outside the interface.",
+    "No advocacy metric is adopted here. Choosing one is an open question.",
+    "Small products have cohorts too small to measure."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "Dot Intelligence Manifesto non-negotiable rule 3: ethical engagement only; optimise for learning, achievement, growth and progress, not addiction or screen time.",
+      "declared_by": "Dot Intelligence Manifesto (CLAUDE.md), rule 3"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Users who are free to leave and who see real results are more likely to stay and to refer others.",
+      "rationale": "A design stance; not measured on Dot products."
+    }
+  ],
+  "rubric_dimensions": [
+    "retention_continuing_value",
+    "measurable_customer_outcomes"
+  ],
+  "engagement_related": true,
+  "dopemine_constraint": "Retention and advocacy are outcomes to understand, never levers to maximise. Engagement-mechanic metrics are not targets (brain.dopemine.md section 2); cancellation and export must stay honest and easy; every engagement-related recommendation requires human review before adoption.",
+  "requires_human_review": true,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}
