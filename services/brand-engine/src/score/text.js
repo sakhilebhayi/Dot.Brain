@@ -47,6 +47,7 @@ export const TEMPLATES = {
   confidence_low_single_source: 'Automated and expert evidence together cover {weight} points of weight; {minimum} are needed for Medium.',
   confidence_low_disagreement: 'Evidence disagrees by more than {levels} level(s) on {count} dimension(s).',
   disagreement_detail: 'Evidence levels on this dimension span {low} to {high}; the spread exceeds {levels}.',
+  confidence_saturated_left_out: '{count} automated result(s) reached their ceiling, so the value is a floor and not a level. They are scored as given and left out of the comparison with expert levels; a dimension whose only automated results are saturated does not count as having an automated source for confidence.',
   independence_unverified: 'built_by was not declared, so assessor independence is not verified.',
 
   // compare

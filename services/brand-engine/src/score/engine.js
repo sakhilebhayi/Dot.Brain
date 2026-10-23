@@ -18,7 +18,7 @@
 //   A blocking finding then caps the whole dimension at w x max_fraction, so
 //   nothing a brand rule earns elsewhere can lift a dimension a safety,
 //   security or accessibility finding has lowered (ADR-0021, decision 8).
-import { ENGINE_VERSION, EvidenceError, REPORT_VERSION } from './constants.js';
+import { ENGINE_VERSION, EvidenceError, REPORT_VERSION, REPORT_VERSION_DECLARATIONS } from './constants.js';
 import { validateEvidence } from './evidence.js';
 import { matchProhibited, rubricHash } from './rubric.js';
 import { say } from './text.js';
@@ -66,9 +66,11 @@ function scoreDimension(dim, evidence, rubric, env) {
   const checks = dim.evidence.automated_check.checks;
   const suppliedChecks = new Map(evidence.automated.map((e) => [e.check_id, e]));
   let autoSum = 0;
-  let autoMeasuredWeight = 0;
+  let autoMeasuredWeight = 0; // weight of the measured checks that can be compared with an expert level
+  let measuredWeightAll = 0; // weight of every measured check, saturated or not
   let autoMeasuredSum = 0;
   let checksMeasured = 0;
+  const saturatedChecks = [];
   for (const c of checks) {
     const e = suppliedChecks.get(c.id);
     if (!e) {
@@ -77,15 +79,22 @@ function scoreDimension(dim, evidence, rubric, env) {
     }
     checksMeasured += 1;
     autoSum += c.weight * e.value;
-    autoMeasuredWeight += c.weight;
-    autoMeasuredSum += c.weight * e.value;
+    measuredWeightAll += c.weight;
+    // A saturated result is scored as given (nothing is invented) but is a floor, not a level: it stays out of the
+    // automated-versus-expert comparison and of the "automated source" that confidence counts.
+    if (e.saturated === true) saturatedChecks.push(c.id);
+    else {
+      autoMeasuredWeight += c.weight;
+      autoMeasuredSum += c.weight * e.value;
+    }
     entries.push({
       source_class: 'automated_check', check_id: c.id, result: resultOf(e.value), value: e.value, disposition: 'counted',
       ...(e.detail !== undefined ? { detail: e.detail } : {}), artifact_ref: e.artifact_ref,
+      ...(e.saturated === true ? { saturated: true } : {}),
     });
   }
   const autoPoints = w * aShare * (autoSum / 100);
-  const autoNotMeasured = w * aShare * (1 - autoMeasuredWeight / 100);
+  const autoNotMeasured = w * aShare * (1 - measuredWeightAll / 100);
   const autoMeasuredLevel = autoMeasuredWeight > 0 ? (autoMeasuredSum / autoMeasuredWeight) * 4 : null;
 
   // ----- expert -----
@@ -229,7 +238,7 @@ function scoreDimension(dim, evidence, rubric, env) {
   }
 
   const classes = new Set();
-  if (checksMeasured > 0) classes.add('automated_check');
+  if (checksMeasured - saturatedChecks.length > 0) classes.add('automated_check');
   if (counted.length > 0) classes.add('expert_assessment');
   for (const c of obsClasses) classes.add(c);
 
@@ -245,7 +254,10 @@ function scoreDimension(dim, evidence, rubric, env) {
     cap_applied: { applied: capped, cap_fraction: cap, points_capped_away: t4(cappedAway) },
     ...(findingCap ? { finding_cap: findingCap } : {}),
     components: {
-      automated_check: { allowed: dim.evidence.automated_check.allowed, points_possible: t4(w * aShare), points_earned: t4(autoPoints), checks_total: checks.length, checks_measured: checksMeasured },
+      automated_check: {
+        allowed: dim.evidence.automated_check.allowed, points_possible: t4(w * aShare), points_earned: t4(autoPoints), checks_total: checks.length, checks_measured: checksMeasured,
+        ...(saturatedChecks.length ? { checks_saturated: saturatedChecks.length } : {}),
+      },
       expert_assessment: {
         allowed: expertAllowed, points_possible: t4(w * xShare), points_earned: t4(expertPoints), assessors_counted: counted.length,
         ai_only: aiOnly, points_withheld_ai_only: t4(withheld),
@@ -257,7 +269,7 @@ function scoreDimension(dim, evidence, rubric, env) {
     evidence: entries,
   };
   return {
-    report, earned, ceilingPoints, rejected, classes, disagreement,
+    report, earned, ceilingPoints, rejected, classes, disagreement, saturatedChecks,
     hasObserved, floorMet, anyCounted: counted.length > 0, hasAuto: checksMeasured > 0, hasObservedClass: obsClasses,
   };
 }
@@ -329,6 +341,8 @@ export function scoreReport(evidence, rubric, profile, ctx = {}) {
     band = 'Low';
     confidenceReasons.push({ code: 'single_source_or_expert_only', text: say('confidence_low_single_source', { weight: expertAutoWeight, minimum: minWeight }) });
   }
+  const saturatedTotal = parts.reduce((n, p) => n + p.saturatedChecks.length, 0);
+  if (saturatedTotal > 0) confidenceReasons.push({ code: 'saturated_left_out', text: say('confidence_saturated_left_out', { count: saturatedTotal }) });
   const expertSupplied = evidence.expert.length > 0;
   if (expertSupplied && env.builder === undefined) confidenceReasons.push({ code: 'independence_unverified', text: say('independence_unverified') });
 
@@ -378,7 +392,7 @@ export function scoreReport(evidence, rubric, profile, ctx = {}) {
 
   const used = new Set(evidence.expert.map((e) => e.assessor));
   const report = {
-    report_version: REPORT_VERSION,
+    report_version: saturatedTotal > 0 || evidence.assessors.some((a) => a.declaration !== undefined && used.has(a.id)) ? REPORT_VERSION_DECLARATIONS : REPORT_VERSION,
     header: {
       rubric: {
         id: rubric.id, version: rubric.version, sha256: rubricSha, status: rubricRatified ? 'ratified' : 'proposed',
@@ -395,7 +409,7 @@ export function scoreReport(evidence, rubric, profile, ctx = {}) {
         ...(evidence.built_by !== undefined ? { built_by: evidence.built_by } : {}),
       },
       generated_at: evidence.generated_at,
-      assessors: evidence.assessors.filter((a) => used.has(a.id)).map((a) => ({ id: a.id, kind: a.kind })).sort((a, b) => byText(a.id, b.id)),
+      assessors: evidence.assessors.filter((a) => used.has(a.id)).map((a) => ({ id: a.id, kind: a.kind, ...(a.declaration ? { declaration: a.declaration } : {}) })).sort((a, b) => byText(a.id, b.id)),
     },
     headline: { evidenced_score: t2(evidenced), ceiling: t2(ceiling), attainment_percent: t2(attainment), out_of: 100 },
     state,

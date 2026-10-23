@@ -2,6 +2,10 @@
 // or a static page), it is not a placeholder (enough real words, no lorem/TODO/"coming soon"), and it is linked
 // from a layout, footer or partial that public pages share. The share is out of six. A route whose view cannot
 // be found is counted as present but its content is not judged (it is not counted as real).
+// Pages a package registers count as routes: Jetstream's `/terms-of-service` and `/privacy-policy` exist when
+// config/jetstream.php enables Features::termsAndPrivacyPolicy(), and their text is resources/markdown/terms.md and
+// policy.md, which are judged like a template (real words, no stub wording). If the route exists and its markdown
+// does not, that is `*-missing`.
 import { defineCheck } from './_lib/define.js';
 import { templates, copyUnits } from './_lib/sources.js';
 import { routeTable } from './_lib/routes.js';
@@ -9,13 +13,14 @@ import { DYN } from './_lib/markup.js';
 
 const ID = 'd6.privacy_terms_present';
 const DOCS = [
-  { key: 'privacy', label: 'privacy notice', re: /privacy/i },
-  { key: 'terms', label: 'terms', re: /terms|conditions|\btos\b/i },
+  { key: 'privacy', label: 'privacy notice', re: /privacy/i, link: /privacy|polic(?:y|ies)/i },
+  { key: 'terms', label: 'terms', re: /terms|conditions|\btos\b/i, link: /terms|conditions|\btos\b/i },
 ];
 const STUB = /\blorem\s+ipsum\b|\b(?:TODO|FIXME|TBD)\b|\bcoming\s+soon\b|\bplaceholder\b|\byour\s+(?:company|business)\s+name\b/i;
 const MIN_WORDS = 80;
 const SHARED = /(?:^|\/)(?:layouts?|components?|partials?|includes?|footer|nav|header)[^/]*$|(?:^|\/)(?:layouts?|components?|partials?|includes?)\//i;
 
+const DYNAMIC_BODY = /\{!!\s*\$|\$(?:terms|policy|content|body|html)\b|<x-markdown|@markdown/;
 const viewName = (rel) => /^resources\/views\/(.+)\.blade\.php$/.exec(rel)?.[1]?.replaceAll('/', '.') ?? null;
 
 export default defineCheck({
@@ -44,10 +49,23 @@ export default defineCheck({
       got += 1;
 
       // real
-      if (tpl) {
+      const fromMarkdown = Boolean(route?.markdown) && (!tpl || DYNAMIC_BODY.test(tpl.source));
+      if (fromMarkdown) {
+        const md = repo.read(route.markdown);
+        if (md === null) {
+          got -= 1; // existence was credited above; the page the framework serves has no text
+          findings.push({ rule: `${d.key}-missing`, severity: 'major', message: `${route.provider ?? 'The framework'} registers the ${d.label} page (${route.path}) but ${route.markdown} does not exist, so it serves nothing.`, file: route.file, line: 1, hint: `Write ${route.markdown} with the real ${d.label}.` });
+          continue;
+        }
+        const text = md.replace(/```[\s\S]*?```/g, ' ').replace(/[#>*_`|\[\]()!-]+/g, ' ');
+        const wordCount = (text.match(/[\p{L}]{2,}/gu) ?? []).length;
+        if (STUB.test(text) || wordCount < MIN_WORDS) {
+          findings.push({ rule: `${d.key}-placeholder`, severity: 'major', message: `The ${d.label} (${route.markdown}) looks like a placeholder: ${STUB.test(text) ? 'it contains stub wording' : `${wordCount} words (fewer than ${MIN_WORDS})`}.`, file: route.markdown, line: 1, hint: `Write the real ${d.label}.` });
+        } else got += 1;
+      } else if (tpl) {
         const text = units.filter((u) => u.file === tpl.rel).map((u) => u.text).join(' ').replaceAll(DYN, ' ');
         const wordCount = (text.match(/[\p{L}]{2,}/gu) ?? []).length;
-        const dynamicBody = /\{!!\s*\$|\$(?:terms|policy|content|body|html)\b|<x-markdown|@markdown/.test(tpl.source);
+        const dynamicBody = DYNAMIC_BODY.test(tpl.source);
         if (dynamicBody && !STUB.test(text)) unjudged += 1;
         else if (STUB.test(text) || wordCount < MIN_WORDS) {
           findings.push({ rule: `${d.key}-placeholder`, severity: 'major', message: `The ${d.label} page looks like a placeholder: ${STUB.test(text) ? 'it contains stub wording' : `${wordCount} words of static text (fewer than ${MIN_WORDS})`}.`, file: tpl.rel, line: 1, hint: `Write the real ${d.label}; if the text is rendered from the database, this finding is a false positive.` });
@@ -59,7 +77,7 @@ export default defineCheck({
         if (e.tag !== 'a') return false;
         const h = e.attrs.get('href');
         if (!h) return false;
-        return d.re.test(h.value) || h.exprs.some((x) => d.re.test(x));
+        return d.link.test(h.value) || h.exprs.some((x) => d.link.test(x));
       }));
       if (linked) got += 1;
       else findings.push({ rule: `${d.key}-not-linked`, severity: 'minor', message: `No link to the ${d.label} was found in a layout, footer or shared partial.`, file: tpl?.rel ?? route?.file, line: tpl ? 1 : (route?.line ?? 1), hint: `Link the ${d.label} from the footer so every public page reaches it.` });

@@ -1,6 +1,6 @@
 ---
 title: ADR-0023 — Brand Engine Workflow: The Engine Reads Reports and Never Runs Tools, and a Fix Is Verified, Not Declared
-version: 1.0.1
+version: 1.0.2
 status: proposed
 owners: [Chief Architect]
 last-review: 2026-10-23
@@ -38,6 +38,9 @@ The scoring engine counts the evidence it is given and has no way to produce any
 - Reports must be produced and supplied again to verify them. A baseline measured with an axe report cannot be verified without one; the verdict says so rather than guessing.
 - Findings are matched across runs by check, file and message. A check should put a stable identifier of the offending element in its message (an image's `src`, not its line number), or two identical findings in one file cannot be told apart and fixing one while adding another reads as no change.
 - The numbers an adapter has to choose (the detector ceiling of ten findings, the pass share for axe, the error-path tag) are proposals in the same sense as the rubric's weights: the owner reviews them in this pull request.
+- A ceiling is a floor once it is reached (ten detector hits and 191 read the same). The adapter therefore marks the evidence `saturated` and says so in its detail; the score leaves a saturated result out of the automated-versus-expert comparison and lists a confidence reason, and changes no number. How the detector should be scaled instead is a rubric change and is written up as a proposal (`brand/proposals/BRP-2026-10-24-detector-ceiling-and-third-party-origins`), not decided by the adapter. The comparison rule is the one place this touches the confidence policy of ADR-0022; it is recorded here, for the owner to confirm, because ADR-0022 is the owner's accepted decision and was not edited.
+- Each document (analysis, evidence file, score report) names the lowest schema version that can describe it, so a document that uses no 1.1.0 feature is the same bytes as before and an old file stays valid.
+- A scope (`analyze --scope`) is part of the methodology: the report records it, `verify` keeps the baseline's and refuses a different one.
 - Adding a check is a new file in `src/analyze/checks/`; adding an adapter is a new module and a row in the routing table, with a new fixture and tests. Neither changes the rubric.
 
 ## Alternatives considered
@@ -57,10 +60,11 @@ The scoring engine counts the evidence it is given and has no way to produce any
 |---|---|---|---|
 | 1.0.0 | 2026-10-23 | Brand engine workflow (AI-drafted, owner to review) | Initial decision record for analyse, plan, verify and evidence assembly, and the adapter boundary. |
 | 1.0.1 | 2026-10-23 | Brand engine governance, Skill and Action (AI-drafted, owner to review) | The open question about the Skill and the Actions workflow now points to ADR-0024; no decision above changed. |
+| 1.0.2 | 2026-10-24 | Brand engine Phase 1 fixes (AI-drafted, owner to review) | Consequences: a reached ceiling is visible (`saturated`) and left out of the confidence comparison, documents name the lowest schema version that describes them, and a scope is recorded and kept by `verify`. No decision above changed. |
 
 ## Open questions
 
-- **Owner review of the adapter choices:** the detector ceiling of ten, axe's rule-level pass share, the `[error-path]` tag, treating contrast hits from the detector as detail (d4) findings, and the default theme list (`light`, `dark`).
+- **Owner review of the adapter choices:** the detector ceiling of ten (and the proposal that replaces its scaling), axe's rule-level pass share, the `[error-path]` tag, treating contrast hits from the detector as detail (d4) findings, and the default theme list (`light`, `dark`).
 - **The effort table** (S, M or L per check) is a first estimate for ordering; it should be revised once real plans exist.
 - **Lighthouse performance and best-practices** are noted and not scored because the rubric has no check for them. Whether the rubric should have one is a rubric change (a new version), not a workflow change.
 - **The Claude Skill and the Actions workflow** that call these commands are decided in [ADR-0024](ADR-0024-brand-engine-governance-skill-action.md) (proposed). The Action reads reports a product committed and does not run the external tools; running them in CI remains a later decision.

@@ -270,7 +270,7 @@ test('invalid evidence is refused with a message: schema, duplicates, unknown id
   invalid((e) => { e.expert.push({ ...e.expert[0] }); }, /more than one assessment/);
   invalid((e) => { e.assessors.push({ ...e.assessors[0] }); }, /items must be unique|duplicate id/);
   invalid((e) => { e.extra = true; }, /extra: is not an allowed property/);
-  invalid((e) => { e.evidence_version = '2.0.0'; }, /must be "1\.0\.0"/);
+  invalid((e) => { e.evidence_version = '2.0.0'; }, /must be one of "1\.0\.0", "1\.1\.0"/);
   invalid((e) => { e.expert[0].level = 5; }, /must be <= 4/);
   invalid((e) => { e.findings = [{ id: 'f', kind: 'invented_kind', detail: 'x', artifact_ref: 'a' }]; }, /must be one of/);
   assert.throws(() => scoreReport(null, RUBRIC, PROFILE()), EvidenceError);
@@ -367,7 +367,7 @@ test('the report records the rubric hash, engine, profile, input commit, timesta
   const r = run({ ...buildSideEvidence(), generated_at: '2026-10-24T08:30:00Z' });
   assert.equal(r.header.rubric.sha256, BUNDLE.sha256);
   assert.equal(r.header.rubric.version, '1.0.0');
-  assert.equal(r.header.engine_version, '0.2.0');
+  assert.equal(r.header.engine_version, '0.3.0');
   assert.deepEqual([r.header.profile.id, r.header.profile.version, r.header.profile.effective_status], ['fixture-product', '0.1.0', 'draft']);
   assert.match(r.header.profile.sha256, /^[0-9a-f]{64}$/);
   assert.equal(r.header.input.commit, 'a'.repeat(40));

@@ -48,8 +48,8 @@ export default defineCheck({
     const tokens = new Set();
     const addPath = (p) => { for (const seg of p.split(/[/._-]+/)) for (const w of words(seg.replace(/[{}?]/g, ''))) tokens.add(w); };
     for (const r of table.routes) { addPath(r.path); if (r.name) addPath(r.name); if (r.view) addPath(r.view); }
-    for (const e of repo.list((rel) => /^(?:src\/)?(?:pages|views|routes|app)\/.+\.(?:vue|jsx|tsx|svelte|astro)$/.test(rel) || /^(?:resources\/views\/)[^/]+\.blade\.php$/.test(rel))) addPath(e);
-    for (const e of repo.list((rel, k) => k === 'html' && !/(?:^|\/)(?:node_modules|vendor|tests?|docs)\//.test(rel))) addPath(e);
+    for (const e of repo.listAll((rel) => /^(?:src\/)?(?:pages|views|routes|app)\/.+\.(?:vue|jsx|tsx|svelte|astro)$/.test(rel) || /^(?:resources\/views\/)[^/]+\.blade\.php$/.test(rel))) addPath(e);
+    for (const e of repo.listAll((rel, k) => k === 'html' && !/(?:^|\/)(?:node_modules|vendor|tests?|docs)\//.test(rel))) addPath(e);
     if (tokens.size === 0) return { notMeasured: `${claims.length} feature claim(s) found but no route, page or view names to compare them with (no routes/*.php, page files or static pages)` };
 
     const findings = [];

@@ -29,9 +29,11 @@ test('analyze over the good fixture: every check runs, nothing errors, nothing i
   assert.deepEqual(doc.engine_problems, []);
   assert.equal(doc.checks.length, 19);
   assert.ok(doc.checks.every((c) => !c.error), JSON.stringify(doc.checks.filter((c) => c.error)));
-  assert.equal(doc.checks.filter((c) => c.status === 'measured').length, 18);
-  assert.equal(doc.checks.find((c) => c.id === 'd6.honest_states').status, 'not_measured');
-  assert.equal(doc.evidence.length, 18);
+  // not measured on purpose: honest_states never yields a value; claim_lint and focus_visible have an empty set (no claim-bearing
+  // string, no removed outline) and an empty set is not a pass
+  assert.equal(doc.checks.filter((c) => c.status === 'measured').length, 16);
+  for (const id of ['d6.honest_states', 'd6.claim_lint', 'd8.focus_visible']) assert.equal(doc.checks.find((c) => c.id === id).status, 'not_measured', id);
+  assert.equal(doc.evidence.length, 16);
   assert.equal(doc.counts.by_severity.blocker, 0);
   assert.equal(doc.counts.by_severity.major, 0);
   assert.equal(doc.coverage.skipped_total, 0);

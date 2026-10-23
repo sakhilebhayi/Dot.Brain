@@ -205,9 +205,11 @@ test('a11y: reduced motion: global override, per-selector override, and what sta
   assert.deepEqual(brief(own), ['motion-no-reduced-variant major resources/css/app.css:2']);
   const noPref = run('d4.reduced_motion', css('@media (prefers-reduced-motion: no-preference) { .a { transition: color 0.2s; } }'));
   assert.equal(noPref.evidence[0].result, 1);
+  // nothing declared is an empty set: not a pass at 1.00
   const none2 = run('d4.reduced_motion', css('.a { color: red; }'));
-  assert.equal(none2.evidence[0].result, 1);
-  assert.match(none2.evidence[0].detail, /nothing to reduce/);
+  assert.equal(none2.status, 'not_measured');
+  assert.deepEqual(none2.evidence, []);
+  assert.match(reasonOf(none2), /nothing to cover/);
   const tw = run('d4.reduced_motion', view('<div class="animate-spin"></div>\n<div class="animate-spin motion-reduce:animate-none"></div>\n<div class="transition-none"></div>'));
   assert.equal(tw.evidence[0].result, 0.5);
 });
@@ -384,7 +386,7 @@ test('claims: an evidence marker downgrades a finding to info only when the file
 });
 
 test('claims: each family of claim is found, and ordinary wording is left alone', () => {
-  const hit = (text) => run('d6.claim_lint', view(`<p>${text}</p>`)).findings.map((f) => f.id.split('.')[2]);
+  const hit = (text) => substantive(run('d6.claim_lint', view(`<p>${text}</p>`))).map((f) => f.id.split('.')[2]);
   const cases = [
     ['Trusted by 12,000 teams', ['invented-count']],
     ['Join 500+ businesses today', ['invented-count']],
@@ -428,7 +430,8 @@ test('claims: testimonials need a source and countdown timers are urgency', () =
 
 test('claims: dynamic figures are not invented figures', () => {
   const r = run('d6.claim_lint', view('<p>Trusted by {{ $count }} businesses</p><p>Only {{ $stock }} left</p>'));
-  assert.deepEqual(r.findings, []);
+  assert.deepEqual(substantive(r), []);
+  assert.equal(r.status, 'not_measured', 'nothing claim-bearing is left, so there is no share to measure');
 });
 
 test('copy lint: banned phrases match inflections, hyphens and line breaks, not substrings', () => {

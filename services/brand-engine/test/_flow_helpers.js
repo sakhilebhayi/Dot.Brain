@@ -82,7 +82,7 @@ export const writeDoc = (path, doc) => writeText(path, `${stableStringify(doc)}\
 export function makeAnalysis({ findings = [], evidence = [], domainOverrides = [], principleRefs = [], input = {}, profile = {}, rubric, checks } = {}) {
   const doc = {
     analysis_version: '1.0.0',
-    engine_version: '0.2.0',
+    engine_version: '0.3.0',
     input: { repo: 'example/fixture', commit: FAKE_COMMIT, commit_source: 'git', ...input },
     rubric: rubric ?? { id: BUNDLE.rubric.id, version: BUNDLE.rubric.version, sha256: BUNDLE.sha256 },
     profile: {

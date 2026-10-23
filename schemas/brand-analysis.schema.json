@@ -7,7 +7,7 @@
   "required": ["analysis_version", "engine_version", "input", "rubric", "profile", "themes", "checks", "evidence", "findings", "not_measured", "conflicts", "coverage", "reports", "engine_problems", "counts", "integrity"],
   "additionalProperties": false,
   "properties": {
-    "analysis_version": { "const": "1.0.0" },
+    "analysis_version": { "enum": ["1.0.0", "1.1.0"] },
     "engine_version": { "type": "string", "minLength": 1, "maxLength": 20 },
     "input": {
       "type": "object",
@@ -107,7 +107,8 @@
           "value": { "type": "number", "minimum": 0, "maximum": 1 },
           "detail": { "type": "string", "minLength": 1, "maxLength": 1000 },
           "artifact_ref": { "type": "string", "pattern": "^[^\\s]{1,300}$" },
-          "origin": { "type": "string", "pattern": "^(check|adapter):[^\\s]{1,100}$" }
+          "origin": { "type": "string", "pattern": "^(check|adapter):[^\\s]{1,100}$" },
+          "saturated": { "const": true, "description": "analysis_version 1.1.0. The value is a floor: the source reached its ceiling, so it cannot say how far past it the product is. The score leaves such a result out of the automated-versus-expert comparison." }
         }
       }
     },

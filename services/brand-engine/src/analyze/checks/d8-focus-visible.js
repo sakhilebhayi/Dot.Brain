@@ -102,11 +102,11 @@ export default defineCheck({
       }
     }
 
+    // Nothing removed and nothing positive-tabindexed is an empty set, not a pass: whether a visible indicator exists needs a rendered page.
+    if (items === 0) return { notMeasured: 'no outline removal and no positive tabindex was found in the scanned stylesheets and templates, so there is no share to compute; the browser default focus indicator applies, and whether it is visible needs a rendered page' };
     return {
-      value: items === 0 ? 1 : (items - bad) / items,
-      detail: items === 0
-        ? 'no outline removal and no positive tabindex found in the scanned stylesheets and templates; the browser default focus indicator applies. This is the absence of a known defect, not proof of a visible indicator.'
-        : `${items - bad} of ${items} outline removals or positive tabindex uses are safe (replaced by a visible indicator); the rest are listed. Rendered focus order and indicator visibility are not measured.`,
+      value: (items - bad) / items,
+      detail: `${items - bad} of ${items} outline removals or positive tabindex uses are safe (replaced by a visible indicator); the rest are listed. Rendered focus order and indicator visibility are not measured.`,
       findings,
     };
   },

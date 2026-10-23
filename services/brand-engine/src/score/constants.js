@@ -1,6 +1,9 @@
 // services/brand-engine/src/score/constants.js
-export const ENGINE_VERSION = '0.2.0';
+export const ENGINE_VERSION = '0.3.0';
 export const REPORT_VERSION = '1.0.0';
+// 1.1.0 adds header.assessors[].declaration, entries[].saturated and components.automated_check.checks_saturated.
+// A report names the LOWEST version that can describe it: a report that uses none of them is byte-identical to a 1.0.0 one.
+export const REPORT_VERSION_DECLARATIONS = '1.1.0';
 export const EVIDENCE_VERSION = '1.0.0';
 
 export const SOURCE_CLASSES = ['automated_check', 'expert_assessment', 'observed_behaviour', 'customer_feedback'];

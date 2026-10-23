@@ -59,6 +59,26 @@ export function validateEvidence(evidence, rubric) {
     assessors.set(a.id, a.kind);
   }
 
+  // 1.1.0 features: a file that uses one must say so. A 1.0.0 file is still valid and means what it always meant.
+  const declared = evidence.assessors.map((a, i) => ({ a, i })).filter(({ a }) => a.declaration !== undefined);
+  const saturatedRows = evidence.automated.map((e, i) => ({ e, i })).filter(({ e }) => e.saturated !== undefined);
+  if (evidence.evidence_version === '1.0.0') {
+    for (const { i } of declared) errors.push(`$.assessors[${i}].declaration: needs evidence_version 1.1.0`);
+    for (const { i } of saturatedRows) errors.push(`$.automated[${i}].saturated: needs evidence_version 1.1.0`);
+  }
+  // A declaration is recorded, never counted. It may only add refusals, never lift anything.
+  for (const { a, i } of declared) {
+    const d = a.declaration;
+    const where = `$.assessors[${i}].declaration`;
+    if (Object.keys(d).length === 0) errors.push(`${where}: must declare at least one thing`);
+    if (d.built_the_change === true && d.fresh_reviewer === true) errors.push(`${where}: an assessor that built the change cannot also be a fresh reviewer`);
+    if (d.ai_only !== undefined && d.ai_only !== (a.kind === 'ai')) errors.push(`${where}.ai_only: ${d.ai_only} contradicts kind "${a.kind}"`);
+    if (d.built_the_change === true && evidence.built_by === undefined) errors.push(`${where}.built_the_change: says this assessor built the change, but the evidence names no built_by`);
+    if (d.built_the_change === true && evidence.built_by !== undefined && a.id !== evidence.built_by) errors.push(`${where}.built_the_change: says this assessor built the change, but built_by is ${JSON.stringify(evidence.built_by)}`);
+    if (d.built_the_change === false && evidence.built_by !== undefined && a.id === evidence.built_by) errors.push(`${where}.built_the_change: says this assessor did not build the change, but it is the built_by`);
+    if (d.fresh_reviewer === true && evidence.built_by !== undefined && a.id === evidence.built_by) errors.push(`${where}.fresh_reviewer: the built_by cannot be a fresh reviewer of its own change`);
+  }
+
   evidence.automated.forEach((e, i) => {
     if (!idx.checks.has(e.check_id)) errors.push(`$.automated[${i}]: unknown check_id ${e.check_id}`);
   });
