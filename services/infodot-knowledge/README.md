@@ -68,14 +68,22 @@ Workflow: [`.github/workflows/infodot-knowledge.yml`](../../.github/workflows/in
    and follows `next_since` until it is `null`.
 2. **Memory decision write.** `POST {DOT_MEMORY_URL}/api/intelligence/decisions`,
    bearer `DOT_MEMORY_TOKEN`, one per candidate, in the flat envelope
-   `services/intelligence` already writes (plus the additive `verdict` and
-   `evidence_refs` the schema calls for): `subject_type: infodot-contribution`,
+   `services/intelligence` already writes: `subject_type: infodot-contribution`,
    `subject_id` = the contribution reference, `signature: knowledge-candidate`,
-   `verdict`, `confidence`, `detail.rationale[]`, `evidence_refs: [ref]`.
-   Carries no content, no URL, no author, no email.
-3. **Memory outcomes read.** `GET {DOT_MEMORY_URL}/api/knowledge-recommendations/outcomes?since=<ISO>`,
-   HMAC-signed with the same scheme and secret (header names assumed identical
-   to InfoDot's): `{items: [{contribution_ref, decision_event_id, outcome: "adopted"|"declined", decided_at}]}`.
+   `confidence`, `evidence_refs: [ref]` (top-level `verdict` is additive).
+   Memory has no verdict column: it reads **`detail.verdict`**,
+   **`detail.rationale[]`** (objects `{rule, effect, detail}`, not strings) and
+   **`detail.rule_version`** flat from `detail`, and never lists a record
+   without a valid verdict to moderators. Carries no content, no URL, no
+   author, no email.
+3. **Memory outcomes read.** `GET {DOT_MEMORY_URL}/api/knowledge-recommendations/outcomes?since=<ISO>&limit=<n>`,
+   HMAC-signed with the same scheme and secret (a GET signs `{timestamp}.`):
+   `{items: [{contribution_ref, decision_event_id, outcome: "adopted"|"declined", decided_at}]}`.
+   The feed is **history**: every outcome row, oldest first, `since` inclusive.
+   Brain pages through it (moving `since` to the last row's `decided_at`) and
+   keeps only the **latest row per `decision_event_id`**, so a decline that was
+   later overturned never suppresses or mis-grades anything. Suppression looks
+   at each contribution's latest outcome only.
 
 ## The rules (`src/rules.js`, `scoreCandidate(item, now, config)`)
 

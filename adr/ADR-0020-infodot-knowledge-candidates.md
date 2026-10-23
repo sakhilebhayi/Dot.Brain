@@ -57,4 +57,4 @@ InfoDot's public Q&A and Solutions hub accumulates answers worth reusing, and th
 - **Duplicate and contradiction detection is out of scope.** The scorer judges one contribution at a time; two items that say the same thing, or opposite things, can both be recommended. A moderator sees that; Brain does not claim to.
 - **Independence is InfoDot's determination.** Brain trusts `accepted_by_independent` / `verified_by_independent` as given and cannot see who accepted or verified.
 - **Scheduling.** The workflow is manual-only. The owner decides the cadence after reading a dry run; the pass reads the whole candidate set each time because settling and staleness are time-driven.
-- **Memory's outcomes endpoint header names** are assumed to match InfoDot's (`X-InfoDot-Timestamp` / `X-InfoDot-Signature`); confirm when Memory's endpoint lands.
+- **Memory's outcomes endpoint header names** are assumed to match InfoDot's (`X-InfoDot-Timestamp` / `X-InfoDot-Signature`); confirm against the deployed Memory endpoint.

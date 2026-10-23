@@ -67,3 +67,42 @@ test('readOutcomes fails on 401, a malformed document, or an unreachable Memory'
     assert.equal(r.stage, 'outcomes');
   }
 });
+
+test('outcomes are history: the latest row per decision wins (declined then adopted = adopted)', async () => {
+  const rows = [
+    { contribution_ref: 'a', decision_event_id: 'kc:1', outcome: 'declined', decided_at: '2026-01-01T00:00:00Z' },
+    { contribution_ref: 'b', decision_event_id: 'kc:2', outcome: 'adopted', decided_at: '2026-01-02T00:00:00Z' },
+    { contribution_ref: 'a', decision_event_id: 'kc:1', outcome: 'adopted', decided_at: '2026-02-01T00:00:00Z' },
+    { contribution_ref: 'b', decision_event_id: 'kc:2', outcome: 'declined', decided_at: '2026-01-01T00:00:00Z' },
+  ];
+  const r = await readOutcomes(CFG, { since: 'x', ...opts, fetchImpl: async () => reply(200, { items: rows }) });
+  const by = Object.fromEntries(r.items.map((i) => [i.decision_event_id, i.outcome]));
+  assert.deepEqual(by, { 'kc:1': 'adopted', 'kc:2': 'adopted' });
+  assert.equal(r.items.length, 2);
+});
+
+test('outcomes are paged: a full page continues from the last decided_at (inclusive), a short page ends', async () => {
+  const row = (n, at) => ({ contribution_ref: `c${n}`, decision_event_id: `kc:${n}`, outcome: 'adopted', decided_at: at });
+  const sinces = [];
+  const pages = [
+    [row(1, '2026-01-01T00:00:00Z'), row(2, '2026-01-02T00:00:00Z')],
+    [row(2, '2026-01-02T00:00:00Z'), row(3, '2026-01-03T00:00:00Z')],
+    [row(3, '2026-01-03T00:00:00Z')],
+  ];
+  const fetchImpl = async (url) => {
+    const u = new URL(url);
+    sinces.push([u.searchParams.get('since'), u.searchParams.get('limit')]);
+    return reply(200, { items: pages[sinces.length - 1] });
+  };
+  const r = await readOutcomes(CFG, { since: '1970-01-01T00:00:00Z', limit: 2, ...opts, fetchImpl });
+  assert.deepEqual(sinces, [['1970-01-01T00:00:00Z', '2'], ['2026-01-02T00:00:00Z', '2'], ['2026-01-03T00:00:00Z', '2']]);
+  assert.deepEqual(r.items.map((i) => i.decision_event_id).sort(), ['kc:1', 'kc:2', 'kc:3']);
+});
+
+test('a full page that makes no progress cannot loop the reader', async () => {
+  let calls = 0;
+  const same = [{ contribution_ref: 'a', decision_event_id: 'kc:1', outcome: 'adopted', decided_at: 'S' }, { contribution_ref: 'b', decision_event_id: 'kc:2', outcome: 'adopted', decided_at: 'S' }];
+  const r = await readOutcomes(CFG, { since: 'S', limit: 2, ...opts, fetchImpl: async () => { calls += 1; return reply(200, { items: same }); } });
+  assert.equal(calls, 1);
+  assert.equal(r.items.length, 2);
+});

@@ -44,14 +44,21 @@ export async function runKnowledge({
   const outcomes = await readOutcomes(cfg, { since: EPOCH, now, ...transport });
   if (!outcomes.ok) return outcomes;
 
-  // Contributions a moderator has declined, keyed to what the declined
-  // decision was based on (the `material` segment of its event_id).
-  const declined = new Map();
+  // Contributions whose LATEST moderator outcome is "declined", keyed to what
+  // that declined decision was based on (the `material` segment of its
+  // event_id). A decline that was later overturned by an adoption is not here.
+  const lastOutcome = new Map();
   for (const row of outcomes.items) {
-    if (row.outcome !== 'declined') continue;
-    const parsed = parseEventId(row.decision_event_id);
-    if (!declined.has(row.contribution_ref)) declined.set(row.contribution_ref, new Set());
-    declined.get(row.contribution_ref).add(parsed?.material ?? row.decision_event_id);
+    const prev = lastOutcome.get(row.contribution_ref);
+    if (!prev || String(row.decided_at ?? '') >= String(prev.decided_at ?? '')) {
+      lastOutcome.set(row.contribution_ref, row);
+    }
+  }
+  const declined = new Map();
+  for (const [ref, row] of lastOutcome) {
+    if (row.outcome === 'declined') {
+      declined.set(ref, parseEventId(row.decision_event_id)?.material ?? row.decision_event_id);
+    }
   }
 
   const at = now();
@@ -69,7 +76,7 @@ export async function runKnowledge({
     // changed helpful or reuse count is not such a change.
     if (result.verdict === 'recommend_for_library' && declined.has(item.contribution_ref)) {
       const material = parseEventId(record.event_id).material;
-      if (declined.get(item.contribution_ref).has(material)) {
+      if (declined.get(item.contribution_ref) === material) {
         suppressed += 1;
         continue;
       }

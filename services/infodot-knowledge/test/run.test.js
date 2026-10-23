@@ -118,6 +118,19 @@ test('a declined contribution IS recommended again once its inputs materially ch
   }
 });
 
+test('a decline that was later overturned by an adoption does not suppress', async () => {
+  const good = item({ contribution_ref: 'good' });
+  const prior = buildDecisionRecord(good, scoreCandidate(good, NOW), NOW);
+  const outcomes = [
+    { contribution_ref: 'good', decision_event_id: prior.event_id, outcome: 'declined', decided_at: daysAgo(9) },
+    { contribution_ref: 'good', decision_event_id: prior.event_id, outcome: 'adopted', decided_at: daysAgo(2) },
+  ];
+  const w = world({ candidates: [good], outcomes });
+  const r = await run(w, { apply: true });
+  assert.equal(r.summary.suppressed_declined, 0);
+  assert.equal(r.summary.outcomes_read, 1, 'history collapses to the latest row per decision');
+});
+
 test('an adopted outcome does not suppress anything; declines only suppress recommendations', async () => {
   const good = item({ contribution_ref: 'good' });
   const prior = buildDecisionRecord(good, scoreCandidate(good, NOW), NOW);

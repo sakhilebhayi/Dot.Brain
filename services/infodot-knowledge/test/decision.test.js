@@ -84,7 +84,16 @@ test('the decision record follows the intelligence-loop envelope and carries onl
   assert.equal(rec.autonomy_level, 'recommend');
   assert.equal(rec.requires_approval, true);
   assert.ok(rec.risk >= 0 && rec.risk <= 1);
-  assert.ok(Array.isArray(rec.detail.rationale) && rec.detail.rationale.every((l) => typeof l === 'string'));
+  assert.ok(Array.isArray(rec.detail.rationale) && rec.detail.rationale.length > 0);
+  for (const entry of rec.detail.rationale) {
+    assert.deepEqual(Object.keys(entry).sort(), ['detail', 'effect', 'rule']);
+    assert.ok([entry.rule, entry.effect, entry.detail].every((v) => typeof v === 'string' && v !== ''));
+  }
+  // The flat shape Dot.Memory reads from `detail`.
+  assert.equal(rec.detail.verdict, 'recommend_for_library');
+  assert.equal(rec.detail.verdict, rec.verdict);
+  assert.equal(typeof rec.detail.rule_version, 'string');
+  assert.equal(rec.detail.rationale_rules, undefined);
   assert.equal(rec.detail.rule_version, RULE_VERSION);
   assert.match(rec.loop_id, /^knowledge-[0-9a-f]{16}$/);
 });

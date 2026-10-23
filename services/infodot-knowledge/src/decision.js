@@ -3,7 +3,7 @@
 // Turns a scoring result into the record written to Dot.Memory (contract 2),
 // and derives the idempotent event_id.
 import { createHash } from 'node:crypto';
-import { rationaleLines, resolveConfig } from './rules.js';
+import { resolveConfig } from './rules.js';
 
 export const SUBJECT_TYPE = 'infodot-contribution';
 export const SIGNATURE = 'knowledge-candidate';
@@ -79,15 +79,16 @@ export function parseEventId(id) {
 
 /**
  * The Dot.Memory decision record. Flat, like services/intelligence/src/loop.js
- * (the shape Memory's decisions endpoint already validates), plus the
- * additive `verdict` and `evidence_refs` the intelligence-loop schema calls
- * for. Carries NO content, NO url, NO author, NO email: the only handle on
+ * (the shape Memory's decisions endpoint already validates). Memory has no
+ * verdict column: it reads `detail.verdict`, `detail.rationale[]` (objects of
+ * {rule, effect, detail}) and `detail.rule_version` FLAT from `detail`, and
+ * never lists a record without a valid verdict to moderators. The top-level
+ * `verdict` and `evidence_refs` are additive. Carries NO content, NO url, NO author, NO email: the only handle on
  * the contribution is its opaque reference.
  */
 export function buildDecisionRecord(item, result, now, config = {}) {
   const ref = item.contribution_ref;
   const recommends = result.verdict === 'recommend_for_library';
-  const lines = rationaleLines(result.rationale);
 
   return {
     loop_id: `knowledge-${sha(ref, 16)}`,
@@ -114,8 +115,8 @@ export function buildDecisionRecord(item, result, now, config = {}) {
         : result.verdict === 'watch'
           ? 'Not yet: keep watching.'
           : 'Do not recommend for the Verified library.',
-      rationale: lines,
-      rationale_rules: result.rationale,
+      // Objects, not strings: Dot.Memory lists plain strings with no rule or effect.
+      rationale: result.rationale.map(({ rule, effect, detail }) => ({ rule, effect, detail })),
       rule_version: result.rule_version,
       inputs_hash: inputsHash(item, config),
     },
