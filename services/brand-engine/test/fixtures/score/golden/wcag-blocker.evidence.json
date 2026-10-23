@@ -1,0 +1,298 @@
+{
+  "evidence_version": "1.0.0",
+  "generated_at": "2026-10-23T12:00:00Z",
+  "input": {
+    "repo": "fixtures/synthetic-product",
+    "commit": "1111111111111111111111111111111111111111",
+    "scope": "golden scenario wcag-blocker"
+  },
+  "context": {
+    "assistive_technology_testing_possible": false
+  },
+  "assessors": [
+    {
+      "id": "human-reviewer",
+      "kind": "human"
+    },
+    {
+      "id": "ai-builder",
+      "kind": "ai"
+    }
+  ],
+  "automated": [
+    {
+      "check_id": "d1.copy_profile_language_lint",
+      "value": 1,
+      "artifact_ref": "artifact/d1.copy_profile_language_lint.json"
+    },
+    {
+      "check_id": "d1.purpose_statement_present",
+      "value": 1,
+      "artifact_ref": "artifact/d1.purpose_statement_present.json"
+    },
+    {
+      "check_id": "d1.product_md_consistency",
+      "value": 1,
+      "artifact_ref": "artifact/d1.product_md_consistency.json"
+    },
+    {
+      "check_id": "d2.impeccable_detect_findings",
+      "value": 1,
+      "artifact_ref": "artifact/d2.impeccable_detect_findings.json"
+    },
+    {
+      "check_id": "d2.font_palette_deny_list",
+      "value": 1,
+      "artifact_ref": "artifact/d2.font_palette_deny_list.json"
+    },
+    {
+      "check_id": "d2.token_uniqueness",
+      "value": 1,
+      "artifact_ref": "artifact/d2.token_uniqueness.json"
+    },
+    {
+      "check_id": "d3.nav_depth",
+      "value": 1,
+      "artifact_ref": "artifact/d3.nav_depth.json"
+    },
+    {
+      "check_id": "d3.field_counts",
+      "value": 1,
+      "artifact_ref": "artifact/d3.field_counts.json"
+    },
+    {
+      "check_id": "d3.heading_structure",
+      "value": 1,
+      "artifact_ref": "artifact/d3.heading_structure.json"
+    },
+    {
+      "check_id": "d3.primary_action_per_screen",
+      "value": 1,
+      "artifact_ref": "artifact/d3.primary_action_per_screen.json"
+    },
+    {
+      "check_id": "d3.task_flow_step_counts",
+      "value": 1,
+      "artifact_ref": "artifact/d3.task_flow_step_counts.json"
+    },
+    {
+      "check_id": "d4.detector_clean",
+      "value": 1,
+      "artifact_ref": "artifact/d4.detector_clean.json"
+    },
+    {
+      "check_id": "d4.spacing_type_scale_conformance",
+      "value": 1,
+      "artifact_ref": "artifact/d4.spacing_type_scale_conformance.json"
+    },
+    {
+      "check_id": "d4.reduced_motion",
+      "value": 1,
+      "artifact_ref": "artifact/d4.reduced_motion.json"
+    },
+    {
+      "check_id": "d4.responsive_overflow",
+      "value": 1,
+      "artifact_ref": "artifact/d4.responsive_overflow.json"
+    },
+    {
+      "check_id": "d5.test_pass_counts",
+      "value": 1,
+      "artifact_ref": "artifact/d5.test_pass_counts.json"
+    },
+    {
+      "check_id": "d5.route_inventory_vs_claims",
+      "value": 1,
+      "artifact_ref": "artifact/d5.route_inventory_vs_claims.json"
+    },
+    {
+      "check_id": "d5.dead_links",
+      "value": 1,
+      "artifact_ref": "artifact/d5.dead_links.json"
+    },
+    {
+      "check_id": "d5.stubs_placeholders",
+      "value": 1,
+      "artifact_ref": "artifact/d5.stubs_placeholders.json"
+    },
+    {
+      "check_id": "d6.claim_lint",
+      "value": 1,
+      "artifact_ref": "artifact/d6.claim_lint.json"
+    },
+    {
+      "check_id": "d6.privacy_terms_present",
+      "value": 1,
+      "artifact_ref": "artifact/d6.privacy_terms_present.json"
+    },
+    {
+      "check_id": "d6.consent_handling",
+      "value": 1,
+      "artifact_ref": "artifact/d6.consent_handling.json"
+    },
+    {
+      "check_id": "d6.honest_states",
+      "value": 1,
+      "artifact_ref": "artifact/d6.honest_states.json"
+    },
+    {
+      "check_id": "d7.time_to_first_result",
+      "value": 1,
+      "artifact_ref": "artifact/d7.time_to_first_result.json"
+    },
+    {
+      "check_id": "d7.empty_state_guidance",
+      "value": 1,
+      "artifact_ref": "artifact/d7.empty_state_guidance.json"
+    },
+    {
+      "check_id": "d7.value_above_fold",
+      "value": 1,
+      "artifact_ref": "artifact/d7.value_above_fold.json"
+    },
+    {
+      "check_id": "d8.token_pair_contrast",
+      "value": 1,
+      "artifact_ref": "artifact/d8.token_pair_contrast.json"
+    },
+    {
+      "check_id": "d8.axe_violations",
+      "value": 1,
+      "artifact_ref": "artifact/d8.axe_violations.json"
+    },
+    {
+      "check_id": "d8.labels_alt_lang",
+      "value": 1,
+      "artifact_ref": "artifact/d8.labels_alt_lang.json"
+    },
+    {
+      "check_id": "d8.focus_visible",
+      "value": 1,
+      "artifact_ref": "artifact/d8.focus_visible.json"
+    },
+    {
+      "check_id": "d9.token_usage_vs_profile",
+      "value": 1,
+      "artifact_ref": "artifact/d9.token_usage_vs_profile.json"
+    },
+    {
+      "check_id": "d9.shared_components",
+      "value": 1,
+      "artifact_ref": "artifact/d9.shared_components.json"
+    },
+    {
+      "check_id": "d9.principle_diff",
+      "value": 1,
+      "artifact_ref": "artifact/d9.principle_diff.json"
+    },
+    {
+      "check_id": "d10.error_path_tests",
+      "value": 1,
+      "artifact_ref": "artifact/d10.error_path_tests.json"
+    },
+    {
+      "check_id": "d10.error_pages",
+      "value": 1,
+      "artifact_ref": "artifact/d10.error_pages.json"
+    },
+    {
+      "check_id": "d10.health_endpoint",
+      "value": 1,
+      "artifact_ref": "artifact/d10.health_endpoint.json"
+    },
+    {
+      "check_id": "d10.error_copy_lint",
+      "value": 1,
+      "artifact_ref": "artifact/d10.error_copy_lint.json"
+    }
+  ],
+  "expert": [
+    {
+      "dimension": "emotional_clarity_positioning",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for emotional_clarity_positioning.",
+      "artifact_ref": "artifact/emotional_clarity_positioning-human-reviewer.json"
+    },
+    {
+      "dimension": "brand_distinctiveness",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for brand_distinctiveness.",
+      "artifact_ref": "artifact/brand_distinctiveness-human-reviewer.json"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for usability_cognitive_load.",
+      "artifact_ref": "artifact/usability_cognitive_load-human-reviewer.json"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for visual_interaction_craftsmanship.",
+      "artifact_ref": "artifact/visual_interaction_craftsmanship-human-reviewer.json"
+    },
+    {
+      "dimension": "functional_completeness",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for functional_completeness.",
+      "artifact_ref": "artifact/functional_completeness-human-reviewer.json"
+    },
+    {
+      "dimension": "trust_transparency",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for trust_transparency.",
+      "artifact_ref": "artifact/trust_transparency-human-reviewer.json"
+    },
+    {
+      "dimension": "perceived_demonstrated_value",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for perceived_demonstrated_value.",
+      "artifact_ref": "artifact/perceived_demonstrated_value-human-reviewer.json"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for accessibility_inclusion.",
+      "artifact_ref": "artifact/accessibility_inclusion-human-reviewer.json"
+    },
+    {
+      "dimension": "cross_platform_consistency",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for cross_platform_consistency.",
+      "artifact_ref": "artifact/cross_platform_consistency-human-reviewer.json"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "assessor": "human-reviewer",
+      "level": 4,
+      "rationale": "Fixture rationale for reliability_error_recovery.",
+      "artifact_ref": "artifact/reliability_error_recovery-human-reviewer.json"
+    }
+  ],
+  "observed": [],
+  "findings": [
+    {
+      "id": "wcag-1",
+      "kind": "wcag_failure",
+      "level": "AA",
+      "criterion": "1.4.3",
+      "detail": "Fixture: a text and background token pair falls below the AA contrast ratio.",
+      "artifact_ref": "artifact/axe.json"
+    }
+  ],
+  "x-fixture-notice": "Synthetic test fixture for the frozen golden tests. Not a measurement of any product.",
+  "x-golden": {
+    "profile_status": "draft",
+    "rubric_ratified": false
+  },
+  "built_by": "ai-builder"
+}

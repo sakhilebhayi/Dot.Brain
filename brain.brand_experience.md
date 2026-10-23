@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Brand Experience (Brand Feeling Engine Doctrine)
-version: 0.1.0
+version: 0.2.0
 status: proposed
 owners: [Chief Intelligence Architect, UX Agent]
 reviewing-agent: Governance Agent
@@ -13,7 +13,7 @@ review-cadence: quarterly
 
 Purpose: how a brand's intended feelings become checkable product-experience decisions across the Dot ecosystem. This document is the doctrine: what the Brand Experience Framework and the brand profiles are, what counts as evidence for them, who may change them, how they apply to a single repository, and what ranks above them. The decisions behind it are in [ADR-0021](adr/ADR-0021-brand-feeling-engine.md); the data is in [brand/](brand/README.md); the code is in [services/brand-engine](services/brand-engine/README.md). It is `proposed`: it becomes `active` only when the owner says so.
 
-> **Related documents:** [adr/ADR-0021-brand-feeling-engine.md](adr/ADR-0021-brand-feeling-engine.md) — the decision record · [brain.design.md](brain.design.md) — calm-technology standards for Brain's own surfaces (this document is the ecosystem-level counterpart for products) · [brain.dopemine.md](brain.dopemine.md) §2–3 — engagement ethics the habit and retention principles inherit · [brain.governance.md](brain.governance.md) — decision rights and the ethics gate · [brain.experiments.md](brain.experiments.md) — the only route to a validated finding · [brain.autonomy.md](brain.autonomy.md) — strategic direction is Level 3 · [brain.dkp.md](brain.dkp.md) — the field vocabulary reused (not the signed-pack machinery) · [schemas/brand-profile.schema.json](schemas/brand-profile.schema.json) · [schemas/brand-principle.schema.json](schemas/brand-principle.schema.json).
+> **Related documents:** [adr/ADR-0021-brand-feeling-engine.md](adr/ADR-0021-brand-feeling-engine.md) — the decision record · [adr/ADR-0022-bxqs-scoring-policy.md](adr/ADR-0022-bxqs-scoring-policy.md) — the scoring policy · [brand/rubrics/README.md](brand/rubrics/README.md) — the rubric, its immutability and semver policy · [brain.design.md](brain.design.md) — calm-technology standards for Brain's own surfaces (this document is the ecosystem-level counterpart for products) · [brain.dopemine.md](brain.dopemine.md) §2–3 — engagement ethics the habit and retention principles inherit · [brain.governance.md](brain.governance.md) — decision rights and the ethics gate · [brain.experiments.md](brain.experiments.md) — the only route to a validated finding · [brain.autonomy.md](brain.autonomy.md) — strategic direction is Level 3 · [brain.dkp.md](brain.dkp.md) — the field vocabulary reused (not the signed-pack machinery) · [schemas/brand-profile.schema.json](schemas/brand-profile.schema.json) · [schemas/brand-principle.schema.json](schemas/brand-principle.schema.json) · [schemas/brand-rubric.schema.json](schemas/brand-rubric.schema.json) · [schemas/brand-evidence.schema.json](schemas/brand-evidence.schema.json) · [schemas/brand-score.schema.json](schemas/brand-score.schema.json).
 
 ---
 
@@ -21,7 +21,7 @@ Purpose: how a brand's intended feelings become checkable product-experience dec
 
 It is a way to say, for any Dot product: which feelings the owner intends a user to have, at which moments, through which concrete behaviours of the interface, with what evidence, and under which non-negotiable rules. Then to check a repository against that statement and report the gaps.
 
-It is not a claim that users feel anything. A feeling in a profile is **intended**. It is labelled `intended` and `measured: false` in the data, and the validator rejects a profile that says otherwise. It is not a shared look: the ecosystem profile carries shared principles only, and every platform keeps its own functional identity. It is not a source of design output: generating a layout or copy is done by a Claude session using the design skills; the engine supplies the target and, in later increments, the measurement.
+It is not a claim that users feel anything. A feeling in a profile is **intended**. It is labelled `intended` and `measured: false` in the data, and the validator rejects a profile that says otherwise. It is not a shared look: the ecosystem profile carries shared principles only, and every platform keeps its own functional identity. It is not a source of design output: generating a layout or copy is done by a Claude session using the design skills; the engine supplies the target and the scoring; the analysers that measure a repository are a later increment.
 
 ## 2. Layers
 
@@ -32,7 +32,7 @@ flowchart TB
     B --> P[Product profile<br/>in the product's own repository]
     P --> R[Resolved profile<br/>origin recorded on every rule]
     R --> S[Claude session designs and builds<br/>using the design skills]
-    S --> M[Measure and report<br/>later increments: BXQS, analysers]
+    S --> M[Measure and report<br/>BXQS scoring built; analysers are a later increment]
     M --> PR[Proposed knowledge update<br/>a pull request the owner reviews]
 ```
 
@@ -83,18 +83,54 @@ The habit (BXP-09) and retention (BXP-10) principles define value as the outcome
 
 Version 1 covers Dot-owned and first-party products. Customer-brand profiles need tenant isolation, authentication and storage, so they need a running service and a separate ADR. Dot.Brain is public: a profile stored here must be classification `public` and contain nothing private or personal, and product profiles are refused here and belong in their own repositories.
 
-## 10. What exists and what does not
+## 10. The Brand Experience Quality Score (BXQS)
 
-| Exists (this increment) | Not yet built |
+A 100-point score over twelve dimensions, built so that it cannot be inflated. Decided in [ADR-0022](adr/ADR-0022-bxqs-scoring-policy.md); the rubric is [brand/rubrics/bxqs-1.0.0.json](brand/rubrics/bxqs-1.0.0.json) (`proposed`, not ratified); the engine is `services/brand-engine/src/score/`. It is advisory: it never blocks a deploy, and there is no model in it.
+
+**Three numbers, never one.** The *evidenced score* is the points actually earned. The *ceiling* is the most the evidence classes present and allowed could earn. The *attainment* is evidenced divided by ceiling. A report always shows all three, truncated and never rounded up.
+
+**Four evidence classes.** Automated check, expert assessment, observed behaviour, customer feedback. Each dimension caps what automated and expert evidence together can earn (`cap_without_observed_or_customer`); the rest of the weight can be earned only from observed or customer results.
+
+| # | Dimension | Weight | Cap without observed or customer |
+|---|---|---:|---:|
+| 1 | Emotional clarity and positioning | 8 | 0.50 |
+| 2 | Brand distinctiveness | 7 | 0.60 |
+| 3 | Usability and cognitive load | 12 | 0.60 |
+| 4 | Visual and interaction craftsmanship | 9 | 0.80 |
+| 5 | Functional completeness | 10 | 0.90 |
+| 6 | Trust and transparency | 10 | 0.70 |
+| 7 | Perceived and demonstrated value | 8 | 0.50 |
+| 8 | Accessibility and inclusion | 12 | 0.70 |
+| 9 | Cross-platform consistency (shared principles, not visual sameness) | 6 | 0.80 |
+| 10 | Reliability and recovery from errors | 8 | 0.80 |
+| 11 | Retention through continuing value (outcomes only) | 5 | 0 |
+| 12 | Measurable customer outcomes | 5 | 0 |
+
+**Rules the engine enforces.**
+
+- An AI-only expert assessment counts at most 50% of the expert-eligible weight, and the assessor kind is always recorded. The builder of a change is never its sole assessor (its own assessment earns no points).
+- A check or metric nobody measured counts as zero, is listed as *not measured*, and is never excluded from the denominator or given a default (the honesty rule of [brain.autonomy.md](brain.autonomy.md) section 3).
+- Dimensions 11 and 12 are `not_measured` without real observed or customer evidence. Engagement counts (opens, streaks, session time, scroll depth, notification click-through) are rejected with a finding ([brain.dopemine.md](brain.dopemine.md) section 2).
+- Confidence is High (two or more source classes including observed or customer evidence on at least half the weight), Medium (automated and expert evidence that agree, no observed or customer evidence) or Low (a single source, expert only, or disagreement of more than one level).
+- Blockers: a WCAG A or AA failure, an unsupported claim, a failing test in scope, a violated domain override, an unresolved ethics-gate flag. A blocking finding also caps its own dimension, and a brand rule can never raise a score a safety, security or accessibility finding lowers.
+- States: `build_verified` (attainment at least 90 percent, no blockers, every dimension at its floor), `release_ready` (evidenced score at least 90, no blockers, observed or customer evidence on dimensions 3, 6 and 7 and on 8 where assistive-technology testing is possible, confidence Medium or better, a ratified profile and a ratified rubric), otherwise `not_ready`. A draft or proposed profile or rubric caps the state at `build_verified`, and the report says why.
+
+**Why 90 is out of reach on automated and expert evidence alone.** The ten dimensions that can be measured without people cap out at 4 + 4.2 + 7.2 + 7.2 + 9 + 7 + 4 + 8.4 + 4.8 + 6.4 = 62.2 points. A perfect run earns 62.2: full attainment, `build_verified`, not release. With only an AI as expert it earns about 49.8, which is 80.1 percent attainment and not even `build_verified`. The other 37.8 points are reserved for what no tool can fake: whether people could use it, trusted it, got value from it and got what they came for. To reach 90 honestly, at least 27.8 of them must be earned from real observed or customer results. A small observed or customer pilot (at least five participants per result) is what unlocks it; dimensions 11 and 12 need people who have come back, so they take time.
+
+**Versioning.** A released rubric is immutable and its sha256 is recorded in every report. MAJOR: the dimension set, a weight or a cap. MINOR: checks or metrics added or changed. PATCH: wording. `compare` refuses across a major version unless both reports are for the same commit, annotates minor differences, shows per-dimension deltas and which evidence changed, and never re-bases a number. Ratifying a rubric is a separate record that names the hash it ratified; rubric changes are strategic direction and belong to the owner.
+
+## 11. What exists and what does not
+
+| Exists | Not yet built |
 |---|---|
-| Schemas for profiles and principles | The Brand Experience Quality Score (BXQS): weights, evidence rules, versioning |
-| `services/brand-engine`: validator, registry, `extends` resolution, drift check, CLI | Analysers that read a repository |
-| The 12 principles (all `draft`) | The Claude Skill that retrieves a profile and runs the workflow |
-| Profiles `dot-ecosystem`, `infodot`, `blupin` (all `draft`) | An Actions workflow |
-| CODEOWNERS routing for `brand/` | Any call to Dot.Memory or Dot.Dopemine |
-| Tests, including every shipped file validating | Customer-brand tenancy; demonstrations on example products |
+| Schemas for profiles, principles, the rubric, the evidence file and the score report | Analysers that read a repository and produce the evidence file |
+| `services/brand-engine`: validator, registry, `extends` resolution, drift check, the BXQS scoring engine, `compare`, CLI | The Claude Skill that retrieves a profile and runs the workflow |
+| The 12 principles (all `draft`) and profiles `dot-ecosystem`, `infodot`, `blupin` (all `draft`) | An Actions workflow |
+| The rubric `bxqs-1.0.0` (`proposed`, released, hash pinned) and its golden tests | Any call to Dot.Memory or Dot.Dopemine |
+| CODEOWNERS routing for `brand/`, the schemas and the scoring code | Customer-brand tenancy; demonstrations on example products |
+| Tests, including every shipped file validating and the scoring rules on hand-computed fixtures | A ratified rubric or profile, and any real observed or customer evidence |
 
-No score, no assessment of any real product and no measured feeling exists. Anything that claims otherwise is wrong.
+No real product has been scored. The only scores anywhere in this repository are test fixtures marked as such. Anything that claims otherwise is wrong.
 
 ---
 
@@ -103,13 +139,14 @@ No score, no assessment of any real product and no measured feeling exists. Anyt
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 0.1.0 | 2026-10-23 | Brand engine foundation (AI-drafted, owner to review) | Initial doctrine: layers, evidence classes, status rules, per-repo application, precedence, engagement constraint, scope, and an explicit list of what does not exist yet. |
+| 0.2.0 | 2026-10-23 | Brand engine scoring (AI-drafted, owner to review) | Added section 10, the Brand Experience Quality Score: evidenced score, ceiling and attainment; caps; AI-only 50% and builder independence; blockers, states and confidence; why 90 needs observed or customer evidence; semver policy (MAJOR: dimension set, weights or caps; MINOR: checks added or changed; PATCH: wording). Status remains `proposed`. |
 
 ## Open Questions
 
 | Question | Owner → Approver |
 |---|---|
 | Does the owner want branch protection requiring a CODEOWNERS review on `/brand/`? Without it, ratification by merge is a convention, not a control | Chief Intelligence Architect → owner |
-| BXQS: weights and the evidence each dimension needs, versioned so history stays comparable | UX Agent → owner |
+| Review the proposed numbers in `bxqs-1.0.0` (share split of each cap, floors, minimum observed sample of five, blocking-finding cap of 0.5, check and metric weights) and ratify the rubric, or ask for a new version | UX Agent → owner |
 | Which of InfoDot's conflicting design documents governs (`docs/infodot-ui-design-guide.md` versus `PRODUCT.md` and `DESIGN.md`)? The `infodot` profile records the conflict and decides neither | UX Agent → owner |
 | Should Blupin share the ecosystem principles? No product or audience has been identified, so its profile extends nothing | Chief Intelligence Architect → owner |
 | Verify the three recorded citations (WCAG 2.2, Nielsen's usability heuristics, Sweller 1988) or remove them | Knowledge Agent → Chief Knowledge Engineer |

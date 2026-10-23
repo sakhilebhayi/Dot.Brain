@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Repository Root
-version: 1.8.0
+version: 1.9.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
 last-review: 2026-10-23
@@ -129,7 +129,7 @@ dot-brain/
 ├── adr/
 │   └── ADR-0001-repository-structure.md  # This structure's decision record · Architecture Agent · engineers
 ├── schemas/                         # JSON Schemas (DKP, graph objects, brand profile and principle) · Architecture Agent · platform engineers
-├── brand/                           # Reviewed Brand Feeling Engine data: framework principles and brand profiles (public; owner-reviewed by path) · UX Agent · UX, engineers, owner
+├── brand/                           # Reviewed Brand Feeling Engine data: framework principles, brand profiles and the immutable BXQS rubric (public; owner-reviewed by path) · UX Agent · UX, engineers, owner
 ├── templates/                       # Document/ADR/DKP/incident templates · Repository Steward Agent · contributors
 ├── platforms/                       # One knowledge doc per platform · Registry Agent + platform owner · that platform
 │   ├── dot-brain.md
@@ -168,7 +168,7 @@ dot-brain/
     ├── market-research/             # Implements brain.market_intelligence.md · Business Agent · Dot.Brain itself
     ├── intervention-log/            # Implements brain.autonomy.md §8 · Business Agent · Dot.Brain itself
     ├── autonomy-score/              # Implements brain.autonomy.md §3 scoring · Business Agent · Dot.Brain itself
-    └── brand-engine/                # Implements brain.brand_experience.md: profile registry, validator, extends resolution, drift check · UX Agent · Dot.Brain itself
+    └── brand-engine/                # Implements brain.brand_experience.md: profile registry, validator, extends resolution, drift check, BXQS scoring engine · UX Agent · Dot.Brain itself
 ```
 
 All `platforms/*.md` documents follow `templates/platform-knowledge.template.md` (defined by prompt 03 — referenced here, not written here).
@@ -255,6 +255,7 @@ Followed by a one-paragraph purpose statement and a "Related documents" cross-li
 | 1.6.0 | 2026-08-08 | Autonomy Foundation sub-project | Registered `brain.autonomy.md` and `services/intervention-log/` — annotated tree, ownership matrix, document count. Registered as part of this sub-project's own deliverable, not deferred to a later reconciliation pass. |
 | 1.7.0 | 2026-08-08 | Autonomy Score sub-project | Registered `services/autonomy-score/` and `platforms/autonomy-signals.json` in the services/ tree entry. |
 | 1.8.0 | 2026-10-23 | Brand engine foundation | Registered `brain.brand_experience.md`, `brand/` and `services/brand-engine/` (tree, ownership matrix); `schemas/` now also holds the brand profile and principle schemas. All brand data is `draft`; the owner ratifies. |
+| 1.9.0 | 2026-10-23 | Brand engine scoring | `brand/` now also holds the released, immutable BXQS rubric (`brand/rubrics/`); `schemas/` holds the rubric, evidence and score schemas; `services/brand-engine` gained `score`, `compare` and `rubric` (ADR-0022). Rubric is `proposed`; no real product has been scored. |
 
 ## Open Questions
 

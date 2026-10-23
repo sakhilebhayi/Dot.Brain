@@ -130,11 +130,13 @@ One incident pack (2026-02): a corroboration-multiplier bug applied ×1.10 twice
 
 Added by [ADR-0021](../adr/ADR-0021-brand-feeling-engine.md); doctrine in [brain.brand_experience.md](../brain.brand_experience.md). What exists in this repository:
 
-- `services/brand-engine/`: a zero-dependency Node library and CLI (`profile list|show|validate|resolve`, `framework list|show`, `drift`). Read-only, offline, no LLM. Run by hand; no workflow runs it.
-- `brand/`: the 12 framework principles and the `dot-ecosystem`, `infodot` and `blupin` profiles, all `draft`, none ratified. `.github/CODEOWNERS` routes `/brand/` to the owner.
-- `schemas/brand-profile.schema.json` and `schemas/brand-principle.schema.json`. They reuse DKP's field vocabulary; the documents are not signed Knowledge Packs.
+- `services/brand-engine/`: a zero-dependency Node library and CLI (`profile list|show|validate|resolve`, `framework list|show`, `drift`, and, since 0.2.0, `score`, `compare`, `rubric show|validate`). Read-only, offline, no LLM. Run by hand; no workflow runs it.
+- `brand/`: the 12 framework principles and the `dot-ecosystem`, `infodot` and `blupin` profiles, all `draft`, none ratified, plus the released, immutable BXQS rubric `bxqs-1.0.0` (`proposed`). `.github/CODEOWNERS` routes `/brand/` to the owner.
+- `schemas/brand-profile.schema.json`, `brand-principle.schema.json`, `brand-rubric.schema.json`, `brand-evidence.schema.json` and `brand-score.schema.json`. The first two reuse DKP's field vocabulary; the documents are not signed Knowledge Packs.
 
-What it does not do: score or assess any product (no quality score exists), call Dot.Memory or Dot.Dopemine, hold any product-level or customer-brand profile, or ratify anything. Ratification of a profile or principle is strategic direction and is the owner's alone (Level 3). Because it consumes and emits no Knowledge Packs, it has no new event, pack or metric registration.
+Scoring ([ADR-0022](../adr/ADR-0022-bxqs-scoring-policy.md)) is advisory and counts only the evidence it is given.
+
+What it does not do: measure or assess any real product (no analyser exists and no real product has been scored), block a deploy, call Dot.Memory or Dot.Dopemine, hold any product-level or customer-brand profile, or ratify anything. Ratification of a profile or principle is strategic direction and is the owner's alone (Level 3). Because it consumes and emits no Knowledge Packs, it has no new event, pack or metric registration.
 
 ## Autonomy Classification (brain.autonomy.md)
 

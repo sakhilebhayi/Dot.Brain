@@ -1,0 +1,50 @@
+{
+  "evidence_version": "1.0.0",
+  "generated_at": "2026-10-23T12:00:00Z",
+  "input": {
+    "repo": "fixtures/synthetic-product",
+    "commit": "1111111111111111111111111111111111111111",
+    "scope": "golden scenario prohibited-metric"
+  },
+  "context": {
+    "assistive_technology_testing_possible": false
+  },
+  "assessors": [],
+  "automated": [],
+  "expert": [],
+  "observed": [
+    {
+      "dimension": "measurable_customer_outcomes",
+      "source_class": "observed_behaviour",
+      "metric_id": "stated_goal_achieved",
+      "value": 0.8,
+      "n": 9,
+      "method": "Fixture method: synthetic sessions.",
+      "artifact_ref": "artifact/stated_goal_achieved.json"
+    },
+    {
+      "dimension": "measurable_customer_outcomes",
+      "source_class": "customer_feedback",
+      "metric_id": "customer_reported_outcome",
+      "value": 0.8,
+      "n": 9,
+      "method": "Fixture method: synthetic sessions.",
+      "artifact_ref": "artifact/customer_reported_outcome.json"
+    },
+    {
+      "dimension": "retention_continuing_value",
+      "source_class": "observed_behaviour",
+      "metric_id": "daily_active_users",
+      "value": 1,
+      "n": 4000,
+      "method": "Fixture: an engagement count that the rubric must refuse.",
+      "artifact_ref": "artifact/dau.json"
+    }
+  ],
+  "findings": [],
+  "x-fixture-notice": "Synthetic test fixture for the frozen golden tests. Not a measurement of any product.",
+  "x-golden": {
+    "profile_status": "draft",
+    "rubric_ratified": false
+  }
+}

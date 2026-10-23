@@ -1,6 +1,6 @@
 ---
 title: ADR-0021 — Brand Feeling Engine Inside Dot.Brain: Targets and Measures, Recommends and Never Ratifies
-version: 1.0.0
+version: 1.1.0
 status: active
 owners: [Chief Architect]
 last-review: 2026-10-23
@@ -67,11 +67,12 @@ The owner asked for a "Brand Feeling Engine": a capability that turns a brand's 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | 1.0.0 | 2026-10-23 | Brand engine foundation (AI-drafted, owner to review) | Initial decision record. |
+| 1.1.0 | 2026-10-23 | Brand engine scoring (AI-drafted, owner to review) | Open question on the BXQS closed by ADR-0022; no decision above changed. |
 
 ## Open questions
 
 - **Ratification is by merge.** The validator checks the form of a ratification claim. Whether branch protection requires a CODEOWNERS review on `/brand/` is a repository setting the owner must confirm; this ADR cannot set it.
-- **The Brand Experience Quality Score (BXQS).** Dimensions are named in each principle; weights, evidence rules and versioning of the rubric are the next increment. Until then no score exists and none may be quoted.
+- **The Brand Experience Quality Score (BXQS).** Decided in [ADR-0022](ADR-0022-bxqs-scoring-policy.md): the rubric `bxqs-1.0.0` and the scoring engine exist, the rubric is proposed and not ratified, and no real product has been scored. No score of a real product may be quoted until evidence has been produced for it.
 - **Which InfoDot document governs.** `docs/infodot-ui-design-guide.md` ("control center") conflicts with InfoDot's `PRODUCT.md` and `DESIGN.md` ("The Yard", not a control room). The `infodot` profile cites both and decides neither.
 - **Blupin.** No shipping product or audience has been identified. The profile is deliberately minimal and its relationship to the ecosystem profile is undecided.
 - **Citation verification.** Three citations are recorded with `citation_verified: false`. A human verifies them or removes them.
