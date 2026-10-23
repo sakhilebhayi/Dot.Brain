@@ -12,8 +12,10 @@ offline, and has no LLM**. It decides nothing about a brand and ratifies nothing
 below. Since the workflow increment it also **analyses** a checkout, **plans** the work, **verifies** the result
 and **assembles** the evidence file (see "Workflow" below). It never runs another tool: it reads the reports
 that tools wrote. Nineteen of the rubric's automated checks run by reading a checkout (contrast, copy and claims,
-static accessibility, token consistency, structure): see [docs/static-checks.md](docs/static-checks.md). The Claude Skill
-and the Actions workflow that run those tools are later increments.
+static accessibility, token consistency, structure): see [docs/static-checks.md](docs/static-checks.md). It also
+**governs its own knowledge** (`propose`, `lint-proposal`: only a human ratifies), ships a thin Claude Skill that drives
+the commands, and a reusable GitHub workflow that assesses a repository read-only (see "Governance", "The Claude Skill"
+and "The assessment Action" below; decisions: [ADR-0024](../../adr/ADR-0024-brand-engine-governance-skill-action.md), proposed).
 
 ## Run
 
@@ -32,6 +34,10 @@ node src/cli.js analyze <path> [--profile <id|file>] [--reports <dir>] [--out <d
 node src/cli.js plan <analysis.json> [--out <dir>]
 node src/cli.js verify --before <analysis.json> <path> [--plan <plan.json>] [--claimed <ids|all>] [--reports <dir>] [--out <dir>]
 node src/cli.js evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <f>] [--observed <f>] [-o <evidence.json>]
+node src/cli.js propose init --target <profile|principle|rubric|doctrine>:<id> [--new] --author-id <id> --author-kind <human|ai> --author-name <name> --created-at <date-time> [--slug <words>] [-o <file>]
+node src/cli.js propose submit <proposal.json> --actor-id <id> --actor-kind <human|ai> --at <date-time> [-o <file>]
+node src/cli.js lint-proposal <proposal.json>... [--json]
+node src/cli.js lint-proposal --check-ratified [--json]
 ```
 
 `<id>` is a Dot.Brain profile (`infodot` or `infodot@0.1.0`). A value ending `.json`, or containing a
@@ -54,6 +60,10 @@ version). Their output is a JSON document on stdout; the reasons are on stderr.
 only: regressions, or a claimed task that did not land, `2` invalid input (usage, a malformed file or report, an
 unknown profile), `3` refused (invalid brand data, a modified rubric or document, a comparison that proves
 nothing, an inconclusive verify).
+
+`propose` and `lint-proposal`: `0` done or clean (warnings do not fail), `1` the lint refused a proposal (`propose submit` then
+writes nothing), `2` invalid input (usage, an unreadable or malformed file, a time that is not a date-time), `3` `propose submit` was given
+a proposal that is not a draft.
 
 Output is deterministic: sorted keys, no timestamps, and the CLI reads no environment variable, so
 no secret can reach it.
@@ -271,6 +281,101 @@ Findings are matched by check, file and message. A check should put a stable ide
 
 `test/checks/*.test.js` covers the built-in checks: the contrast maths against published WCAG reference values, the template, CSS and route readers, the contract (every module is a rubric check id on its rubric dimension; every rubric check is built or listed as skipped), exact findings (rule, severity, file and line) on a known-bad and a known-good synthetic checkout, the boundaries (4.5 and 3.0 contrast, heading order, `alt=""`, evidence markers, dynamic fragments, `not_measured` instead of a pass), path escape and symlinks, a read-only and no-network source scan, determinism, a 2,000-file performance check, and the whole chain through `analyze`, `assemble` and `score`.
 
+## Governance
+
+Decision record: [ADR-0024](../../adr/ADR-0024-brand-engine-governance-skill-action.md) (proposed). Data and owner steps: [brand/governance/README.md](../../brand/governance/README.md), [docs/owner-checklist.md](docs/owner-checklist.md). Code: `src/governance/` (`lint.js` the rules, `propose.js` the only writer of proposals, `targets.js` the current state of what a proposal changes, `cli.js`).
+
+A change to a profile, a framework principle, the BXQS rubric or the doctrine is a **proposal file** (`brand-proposal/1`, [schema](../../schemas/brand-proposal.schema.json)), in the DKP style: its own id, contributors, evidence classes and confidence, a changelog entry for the version it produces. It carries what changes, why, the evidence (each item one of the five classes), the affected products, the risk, the rollback, the precedence acknowledgement and a `history` of who moved it and when.
+
+```
+propose init     writes a draft from the target's current state (version, sha256, whether it is engagement-related); every text field is a TODO
+lint-proposal    checks a proposal file(s); --check-ratified checks the ratified documents on disk against the ledger
+propose submit   moves a draft to `proposed` if it passes the lint AS a proposal; writes nothing and exits 1 if not
+```
+
+### Who can do what
+
+| Step | Who | How |
+|---|---|---|
+| `draft` | anyone, human or AI | `propose init`, then edit |
+| `proposed` | anyone, human or AI | `propose submit` (the lint must pass) |
+| `ratified` | **a human owner only** | edits the file in a reviewed merge: adds a human `approver`, `ratified_at` and a `ratified` history entry. **No command, flag or code path writes `ratified`**; a test reads `propose.js` and fails if the word appears |
+
+`lint-proposal` checks the *form* of a ratification and refuses an AI actor, an approver marked AI or also listed as an AI contributor, ratification that skips `proposed`, a status that disagrees with the history, an approver on a proposal that is not ratified, and a ratified proposal whose approver is not the actor of its last history entry. It cannot prove who the approver is: that is CODEOWNERS and the owner's merge (ADR-0021). The owner approving their own proposal is a warning (`self-ratified`), not a refusal.
+
+### What the lint refuses
+
+A draft may be incomplete (gaps are warnings); from `proposed` on the same gaps are refusals. Precedence and AI-verification refusals apply to drafts too. Every refusal has a stable code, printed as `error [code] path: message`, and a test of its own.
+
+| Code | Refused when |
+|---|---|
+| `schema` | the file does not match `brand-proposal.schema.json` (or `brand-changelog.schema.json`) |
+| `ai-ratification` | an AI actor ratifies, the approver is not human, or is also an AI contributor or the AI author |
+| `bad-transition`, `history-start`, `history-order`, `status-history-mismatch` | the history does not start at draft, goes back in time, skips `proposed`, moves after ratification, or ends at a status other than the proposal's |
+| `approver-missing`, `ratified-at-missing`, `approver-mismatch`, `ratified-at-mismatch`, `premature-approver` | a ratified proposal lacks its approver or time, or they disagree with the history; or a draft or proposed one claims them |
+| `unknown-target`, `target-exists`, `doctrine-new`, `new-has-base`, `new-in-place`, `from-version-missing`, `version-mismatch`, `stale-base`, `base-missing` | the target does not exist, already exists, was written against another version, or **changed since the proposal was written** (the recorded sha256 is stale) |
+| `silent-edit` | a ratified target (or any released rubric) is edited in place instead of becoming a new version; also what `--check-ratified` reports for a ratified file whose content changed |
+| `in-place-version`, `version-not-increased`, `changelog-version-mismatch` | the version arithmetic or the changelog entry does not match |
+| `rubric-change-type-missing`, `rubric-change-type-misplaced`, `rubric-bump-mismatch`, `rubric-major-risk`, `rubric-version-exists` | a rubric change whose kind (`dimension_set_weight_or_cap` major, `checks_metrics_floors_policy` minor, `wording` patch) does not match its bump, or that re-releases a version |
+| `placeholder`, `too-thin`, `missing-change-details` | text is a TODO or a label, or no field-by-field change is listed |
+| `missing-evidence`, `evidence-class` | no evidence, or an item carries the wrong fields for its class |
+| `unverified-citation`, `verification-record-missing`, `ai-verified-citation` | research is cited without a human verification record, or an AI "verified" it |
+| `confidence-exceeds` | confidence is above what the evidence classes support (the same cap the profile validator applies) |
+| `missing-affected-products` | no product is named (`ecosystem` names all) |
+| `weakens-precedence`, `precedence-not-acknowledged`, `brand-outranks-domain` | the proposal weakens, ignores or reverses "safety, regulation, accessibility, security and functional correctness outrank brand" |
+| `ethics-review-required`, `engagement-flag-mismatch` | a change to an engagement-related principle does not take the ethics gate, or misstates the flag |
+
+### The ledger and `--check-ratified`
+
+[`brand/governance/changelog.json`](../../brand/governance/changelog.json) is the versioned changelog (`created`, `amended`, `ratified`, `superseded`). Its `ratified` entries pin each ratified version's sha256, and only the owner adds one. `lint-proposal --check-ratified` compares every ratified profile, principle and doctrine, and every released rubric, with it. It reports `ledger-missing` (ratified, not recorded; the message prints the sha256 to record), `silent-edit` (content changed, status downgraded, version rolled back, or a released rubric modified), `ratified-file-removed`, `changelog-missing`, and entry faults (`ledger-hash-missing`, `approver-missing`, `ai-ratification`, `changelog-claim`, `changelog-duplicate`, `changelog-order`, `changelog-file`). The tests run it on the shipped data, so a pull request that edits a ratified file without the owner's entry fails the `tests` workflow. Today nothing is ratified and the ledger is empty.
+
+## The Claude Skill
+
+[`skill/dot-brand-experience/`](skill/dot-brand-experience/SKILL.md) is a thin interface. The source of truth stays here: the Skill holds no rubric, weights, check ids, hashes or scoring logic (a test fails if any rubric id appears in it), and calls only this CLI (`analyze`, `plan`, `verify`, `evidence assemble`, `score`, `propose`, `lint-proposal`, and the read commands for profiles, principles and the rubric reference). It states, for the model that follows it: advisory only; evidence honesty (the builder never earns points, an AI-only expert assessment is capped, observed and customer evidence is only ever a person's); dimensions 11 and 12 are not measured without real data; safety, regulation, accessibility, security and functional correctness outrank brand; never ratify; no simulated integration (no Dot.Memory, no Dot.Dopemine, no network). Reference files: `references/commands.md` (commands, flags, exit codes) and `references/report.md` (what a report must say).
+
+**Install** (the owner's call; nothing runs it for you):
+
+```
+node skill/install.js --dry-run     # lists what it would write
+node skill/install.js               # copies the skill to ~/.claude/skills/dot-brand-experience
+node skill/install.js --dest <dir>  # somewhere else
+```
+
+It writes `SKILL.md`, `references/` and one extra file, `engine.path`, holding the path of this checkout's `src/cli.js`, so the Skill never searches the disk. It will not overwrite a file that differs unless `--force`, never deletes, ignores symlinks and makes no network call. Keep the checkout where it is; run the installer again after `git pull` or after moving the checkout. Start a new Claude Code session to load it.
+
+`test/skill.test.js` checks that the frontmatter is valid (name equals the directory, description present and under 1,024 characters), that the skill is documents only, that every command and flag it shows exists in this CLI's usage, that none of the rubric appears in it, that each required statement is present, and the installer (idempotent, no overwrite, dry run, only under the given home).
+
+## The assessment Action
+
+[`.github/workflows/brand-assess.yml`](../../.github/workflows/brand-assess.yml) is a reusable workflow (`workflow_call`) that can also be dispatched by hand (`workflow_dispatch`). Nothing triggers it on its own.
+
+```yaml
+jobs:
+  brand:
+    uses: sakhilebhayi/Dot.Brain/.github/workflows/brand-assess.yml@<commit>
+    with:
+      brain_ref: <the same commit>        # the engine to run; the workflow cannot read its own ref
+      profile: infodot                     # or empty, to use brand/profile.json in the product
+      # repository: owner/name  ref: ...   # empty means the calling repository's default
+      # reports_path: reports/axe          # committed tool reports the engine may read
+      # fail_on_blockers: true             # default false: advisory
+```
+
+What it does: checks out Dot.Brain at `brain_ref` and the product (no credentials persisted), validates every input, resolves paths inside the product (a symlink that leaves the checkout is refused), then runs `analyze`, `evidence assemble` and `score` with the output **outside** the product checkout, writes a job summary, uploads `analysis.json`, `summary.md`, `evidence.json` and `score.json` as an artifact (`artifact_name`, default `brand-assessment`, 30 days), and exposes the outputs `state`, `evidenced_score` and `blockers`.
+
+| It | Detail |
+|---|---|
+| fails only when | the engine fails (exit 2 or 3), or `fail_on_blockers` is true and the score report lists a blocker. Default: never gates |
+| never | commits, pushes, opens a pull request, writes into the product checkout, declares or reads a secret, calls a URL of its own, or posts to Dot.Memory or Dot.Dopemine (no contract exists) |
+| runs no external tool | axe, Lighthouse, the design detector and test runners are not run; the engine reads reports the product committed (`reports_path`). A check with no report is "not measured", counted as zero, listed |
+| dates the evidence | by the commit's own time (or by the `recorded_at` of a person's file), so the same commit gives the same report |
+| private repositories | uses the run's own token: call it from the private repository's own workflow. Assessing a private repository from elsewhere would need a read-only token the owner creates |
+| inputs | reach the shell only as environment variables, validated by `ci/assess.js validate` before the product is read |
+
+`ci/assess.js` is the workflow's helper (validate, prepare, summary, outputs, gate). It copies numbers from `score.json` as the engine wrote them and computes none.
+
+`test/action.test.js` pins the workflow's text (triggers, permissions, no secrets, writes or network commands, action pins that match the other workflows, no input expanded into a script, actionlint when installed) and **runs the workflow's own shell steps** in a fake runner on the synthetic e2e product (a real git repository in a temporary directory): every step passes, the product is byte-for-byte unchanged, the report is outside it, the gate fails only when asked, the same commit gives the same bytes, an engine error fails the run, invalid inputs stop it before the product is read, and a profile symlinked out of the checkout is refused.
+
 ## What it enforces
 
 - **Shape**: the two schemas in `schemas/`, interpreted directly from the files. A schema keyword the
@@ -295,12 +400,12 @@ Findings are matched by check, file and message. A check should put a stable ide
 ## What it does not do
 
 - Measure anything about how a person feels. `score` counts the evidence it is given; `analyze` produces automated evidence from files and reports, and no real product has been scored: the only scores in this repository are test fixtures marked as such.
-- Run an external tool, edit the product repository, or call a network. It reads reports other tools wrote, and writes only where `--out` and `-o` say, never inside the checkout.
+- Run an external tool, edit the product repository, or call a network. It reads reports other tools wrote, and writes only where `--out` and `-o` say, never inside the checkout. The Action runs no tool either.
 - Ratify a rubric. A rubric is ratified by the owner adding a record that names the hash, in a reviewed merge.
 - Call an LLM, Dot.Memory or Dot.Dopemine, or any network.
-- Ratify or sign anything. Profiles are not DKP packs: they reuse DKP's field names and nothing else.
+- Ratify or sign anything. `propose` reaches `proposed` at most; no command writes `ratified`. Profiles and proposals are not DKP packs: they reuse DKP's field names and nothing else.
 - Verify the recorded `commit` of a cited file (it reads a directory, not git history); the hash is the check.
-- Prove who approved a ratified document. CODEOWNERS and the owner's merge do that.
+- Prove who approved a ratified document. CODEOWNERS and the owner's merge do that (and only branch protection makes the review required: an owner setting, see [docs/owner-checklist.md](docs/owner-checklist.md)).
 
 ## Tests
 
@@ -310,6 +415,8 @@ product loaded from an arbitrary path and from temporary checkouts, drift (chang
 symlink escape, traversal), the CLI as a subprocess (exit codes, determinism, no environment value in
 any output, read-only), and that everything shipped in `brand/` validates and stays honest (twelve
 principles, none ratified, unknowns present, the Blupin claims policy, nothing private).
+
+The governance tests (`test/governance.*.test.js`, `test/_gov_helpers.js`) give every lint refusal its own test (see the table above), the accepted shapes (a draft with gaps, an AI-drafted proposal ratified by a human), the ledger against ratified fixtures in temporary copies of `brand/`, and the commands as subprocesses: exit codes, that nothing on the command line can set `ratified`, that `propose submit` writes nothing when the lint refuses, never touches a ratified file and replaces only the file it was given, that output is deterministic and carries no environment value, and that the source has no clock, environment, network or process. `test/skill.test.js` and `test/action.test.js` are described above.
 
 The scoring tests (`test/score.*.test.js`) cover: the rubric (weights sum to exactly 100, the owner's caps, shares,
 the pinned hash, every way a rubric can be wrong, release and ratification records); the arithmetic on

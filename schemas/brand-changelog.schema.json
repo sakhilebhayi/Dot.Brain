@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-changelog.schema.json",
+  "title": "Brand Governance Changelog and Ratification Ledger",
+  "description": "The versioned changelog of the governed brand documents (profiles, principles, the doctrine) and, in the entries of kind ratified, the ledger that pins the sha256 of each ratified version (ADR-0024). Only a human owner adds a ratified entry, in a reviewed merge; lint-proposal --check-ratified compares every ratified document on disk with this ledger, so a ratified file cannot be edited silently. Cross-field rules are enforced by services/brand-engine, not expressible here.",
+  "type": "object",
+  "required": ["format", "entries"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "format": { "const": "brand-changelog/1" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["doc", "version", "date", "kind", "summary", "author"],
+        "additionalProperties": false,
+        "patternProperties": { "^x-": {} },
+        "properties": {
+          "doc": { "type": "string", "pattern": "^(profile|principle|doctrine):[A-Za-z0-9._-]+$" },
+          "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+          "date": { "type": "string", "format": "date-time" },
+          "kind": { "enum": ["created", "amended", "ratified", "superseded"] },
+          "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "proposal": { "type": "string", "pattern": "^BRP-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]{2,60}$" },
+          "author": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["human", "ai"] }
+            }
+          },
+          "approver": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["human", "ai"] }
+            }
+          },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    }
+  }
+}

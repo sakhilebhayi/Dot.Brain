@@ -1,0 +1,271 @@
+name: Brand assessment
+
+# Reads a checkout of a product repository and writes a brand-experience assessment of it:
+# analysis (static checks plus any tool reports the product supplies), evidence and score,
+# from the Brand Feeling Engine in this repository (services/brand-engine, ADR-0021 to ADR-0024).
+#
+#   * ADVISORY. It fails the job only when the engine itself fails, or, if you set
+#     fail_on_blockers to true, when the score report lists a blocker. Default: it never gates.
+#   * READ-ONLY. It writes nothing into the product checkout, commits nothing, opens no pull
+#     request, and posts nothing to Dot.Memory or Dot.Dopemine (no contract for that exists yet).
+#   * NO SECRETS. It declares none and reads none. Checkout uses the run's own read-only token;
+#     a private product repository must therefore call this workflow from its own workflows.
+#   * It runs no external tool (axe, Lighthouse, the design detector, a test runner): the engine
+#     reads reports that a product already produced and committed (reports_path). A check with
+#     no report is "not measured" and counts as zero, visibly.
+#   * It states no score beyond what the engine printed. Automated evidence alone has a ceiling
+#     well below 100 (the report shows it); release readiness needs observed or customer evidence.
+#
+# Nothing triggers it: it runs only when another workflow calls it or someone dispatches it by hand.
+#
+# Call it from a product repository:
+#   jobs:
+#     brand:
+#       uses: sakhilebhayi/Dot.Brain/.github/workflows/brand-assess.yml@main
+#       with:
+#         profile: infodot        # or leave empty to use brand/profile.json in the product
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: Product repository to assess, as owner/name. Empty means the calling repository.
+        type: string
+        required: false
+        default: ''
+      ref:
+        description: Branch, tag or commit of the product to assess. Empty means its default branch.
+        type: string
+        required: false
+        default: ''
+      profile:
+        description: A Dot.Brain profile id (infodot) or a path to a product profile inside the product repository. Empty means brand/profile.json.
+        type: string
+        required: false
+        default: ''
+      built_by:
+        description: Who or what built the change being assessed. The builder never earns points for assessing their own work.
+        type: string
+        required: false
+        default: unspecified
+      themes:
+        description: Themes the contrast checks evaluate, comma separated.
+        type: string
+        required: false
+        default: light,dark
+      reports_path:
+        description: Directory inside the product repository holding committed tool reports (axe, Lighthouse, detector, JUnit, TAP). Optional.
+        type: string
+        required: false
+        default: ''
+      assessments_path:
+        description: Optional brand-assessments/1 file inside the product repository, written by a person.
+        type: string
+        required: false
+        default: ''
+      observed_path:
+        description: Optional brand-observed/1 file inside the product repository, from real sessions or feedback.
+        type: string
+        required: false
+        default: ''
+      fail_on_blockers:
+        description: Fail the job when the score report lists a blocker. Default false, which keeps the run advisory.
+        type: boolean
+        required: false
+        default: false
+      brain_ref:
+        description: Branch, tag or commit of Dot.Brain whose engine to run. Use a commit for a reproducible run.
+        type: string
+        required: false
+        default: main
+      artifact_name:
+        description: Name of the uploaded report artifact. Give each call in one run its own name.
+        type: string
+        required: false
+        default: brand-assessment
+    outputs:
+      state:
+        description: The score report's state (not_ready, build_verified or release_ready).
+        value: ${{ jobs.assess.outputs.state }}
+      evidenced_score:
+        description: The evidenced score out of 100, as the engine printed it.
+        value: ${{ jobs.assess.outputs.evidenced_score }}
+      blockers:
+        description: The number of blockers in the score report.
+        value: ${{ jobs.assess.outputs.blockers }}
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Product repository to assess, as owner/name. Empty means this repository.
+        type: string
+        required: false
+        default: ''
+      ref:
+        description: Branch, tag or commit of the product to assess. Empty means its default branch.
+        type: string
+        required: false
+        default: ''
+      profile:
+        description: A Dot.Brain profile id (infodot) or a path to a product profile inside the product repository. Empty means brand/profile.json.
+        type: string
+        required: false
+        default: ''
+      built_by:
+        description: Who or what built the change being assessed.
+        type: string
+        required: false
+        default: unspecified
+      themes:
+        description: Themes the contrast checks evaluate, comma separated.
+        type: string
+        required: false
+        default: light,dark
+      reports_path:
+        description: Directory inside the product repository holding committed tool reports. Optional.
+        type: string
+        required: false
+        default: ''
+      assessments_path:
+        description: Optional brand-assessments/1 file inside the product repository.
+        type: string
+        required: false
+        default: ''
+      observed_path:
+        description: Optional brand-observed/1 file inside the product repository.
+        type: string
+        required: false
+        default: ''
+      fail_on_blockers:
+        description: Fail the job when the score report lists a blocker. Default false (advisory).
+        type: boolean
+        required: false
+        default: false
+      brain_ref:
+        description: Branch, tag or commit of Dot.Brain whose engine to run.
+        type: string
+        required: false
+        default: main
+      artifact_name:
+        description: Name of the uploaded report artifact.
+        type: string
+        required: false
+        default: brand-assessment
+
+permissions:
+  contents: read
+
+jobs:
+  assess:
+    name: assess ${{ inputs.repository || github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      state: ${{ steps.outputs.outputs.state }}
+      evidenced_score: ${{ steps.outputs.outputs.evidenced_score }}
+      blockers: ${{ steps.outputs.outputs.blockers }}
+
+    # Inputs reach the shell only through these variables, never by expansion into a script.
+    env:
+      BRAND_ASSESS_REPOSITORY: ${{ inputs.repository }}
+      BRAND_ASSESS_REF: ${{ inputs.ref }}
+      BRAND_ASSESS_PROFILE: ${{ inputs.profile }}
+      BRAND_ASSESS_BUILT_BY: ${{ inputs.built_by }}
+      BRAND_ASSESS_THEMES: ${{ inputs.themes }}
+      BRAND_ASSESS_REPORTS_PATH: ${{ inputs.reports_path }}
+      BRAND_ASSESS_ASSESSMENTS_PATH: ${{ inputs.assessments_path }}
+      BRAND_ASSESS_OBSERVED_PATH: ${{ inputs.observed_path }}
+      BRAND_ASSESS_FAIL_ON_BLOCKERS: ${{ inputs.fail_on_blockers }}
+      BRAND_ASSESS_BRAIN_REF: ${{ inputs.brain_ref }}
+      BRAND_ASSESS_ARTIFACT_NAME: ${{ inputs.artifact_name }}
+
+    steps:
+      - name: Check out Dot.Brain (the engine)
+        uses: actions/checkout@v4
+        with:
+          repository: sakhilebhayi/Dot.Brain
+          ref: ${{ inputs.brain_ref }}
+          path: brain
+          persist-credentials: false
+
+      # The engine has no dependencies, so there is no install step and no cache.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check the inputs
+        run: node brain/services/brand-engine/ci/assess.js validate
+
+      - name: Check out the product (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          path: product
+          persist-credentials: false
+
+      - name: Resolve paths inside the product checkout
+        id: prep
+        env:
+          BRAND_ASSESS_PRODUCT_DIR: ${{ github.workspace }}/product
+        run: node brain/services/brand-engine/ci/assess.js prepare >> "$GITHUB_OUTPUT"
+
+      # --out is outside the product checkout: the engine refuses to write inside it.
+      - name: Analyse
+        env:
+          PROFILE: ${{ steps.prep.outputs.profile }}
+          REPORTS: ${{ steps.prep.outputs.reports }}
+        run: |
+          set -euo pipefail
+          args=(analyze product --profile "$PROFILE" --themes "$BRAND_ASSESS_THEMES" --out "$RUNNER_TEMP/brand-assess")
+          if [ -n "$REPORTS" ]; then args+=(--reports "$REPORTS"); fi
+          node brain/services/brand-engine/src/cli.js "${args[@]}"
+
+      - name: Assemble the evidence
+        env:
+          ASSESSMENTS: ${{ steps.prep.outputs.assessments }}
+          OBSERVED: ${{ steps.prep.outputs.observed }}
+        run: |
+          set -euo pipefail
+          args=(evidence assemble --analysis "$RUNNER_TEMP/brand-assess/analysis.json" --built-by "$BRAND_ASSESS_BUILT_BY" -o "$RUNNER_TEMP/brand-assess/evidence.json")
+          if [ -n "$ASSESSMENTS" ]; then args+=(--assessments "$ASSESSMENTS"); fi
+          if [ -n "$OBSERVED" ]; then args+=(--observed "$OBSERVED"); fi
+          if [ -z "$ASSESSMENTS" ] && [ -z "$OBSERVED" ]; then
+            # No person's file to take a date from: use the commit's own time, so the same commit gives the same report.
+            when="$(git -C product log -1 --format=%cI HEAD)"
+            if ! [[ "$when" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})$ ]]; then
+              echo "::error::could not read the commit time of the product checkout"
+              exit 1
+            fi
+            args+=(--generated-at "$when")
+          fi
+          node brain/services/brand-engine/src/cli.js "${args[@]}"
+
+      - name: Score
+        env:
+          PROFILE: ${{ steps.prep.outputs.profile }}
+        run: |
+          set -euo pipefail
+          node brain/services/brand-engine/src/cli.js score --evidence "$RUNNER_TEMP/brand-assess/evidence.json" --profile "$PROFILE" > "$RUNNER_TEMP/brand-assess/score.json"
+
+      # Always: a failed run should still say what it did get done.
+      - name: Job summary and outputs
+        id: outputs
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/brand-assess"
+          node brain/services/brand-engine/ci/assess.js summary --out-dir "$RUNNER_TEMP/brand-assess" >> "$GITHUB_STEP_SUMMARY"
+          node brain/services/brand-engine/ci/assess.js outputs --out-dir "$RUNNER_TEMP/brand-assess" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ runner.temp }}/brand-assess/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      # The only way this workflow fails on the product's quality, and only if asked to.
+      - name: Fail on blockers (only if fail_on_blockers is true)
+        run: node brain/services/brand-engine/ci/assess.js gate --out-dir "$RUNNER_TEMP/brand-assess" --fail-on-blockers "$BRAND_ASSESS_FAIL_ON_BLOCKERS"
