@@ -11,7 +11,9 @@ offline, and has no LLM**. It decides nothing about a brand and ratifies nothing
 **scores**: given an evidence file it computes the Brand Experience Quality Score (BXQS) report described
 below. Since the workflow increment it also **analyses** a checkout, **plans** the work, **verifies** the result
 and **assembles** the evidence file (see "Workflow" below). It never runs another tool: it reads the reports
-that tools wrote. The Claude Skill and the Actions workflow that run those tools are later increments.
+that tools wrote. Nineteen of the rubric's automated checks run by reading a checkout (contrast, copy and claims,
+static accessibility, token consistency, structure): see [docs/static-checks.md](docs/static-checks.md). The Claude Skill
+and the Actions workflow that run those tools are later increments.
 
 ## Run
 
@@ -192,6 +194,7 @@ finding may add `kind`, `wcag_level`, `wcag_criterion` and `principle` (see "Fro
 - `files` is read-only and confined to the checkout: no `..`, no absolute path, no symlink that leaves the root, no vendored, generated, minified, binary, oversized (1 MiB) or credential-named (`.env`, `*.pem`, `id_rsa`, ...) file, a total read budget, and a record of everything it declined to read. `read` returns the text, `null` if missing, and throws `FileAccessError` (with a `code`) for anything refused.
 - `themes` defaults to `["light", "dark"]` (`--themes`); the engine does not discover themes, it tells a check which to evaluate.
 - Each check runs in its **own worker thread** with a 30 s timeout, an empty environment and discarded console output. A check that throws, loops, runs out of memory or returns a result that breaks the contract becomes `not_measured` with an engine finding (severity `major`, `engine: true`). It is never a pass and never stops the run. Files starting `_`, `_lib/` and sub-directories are not checks; a mis-named or symlinked module is reported.
+- The built-in checks are the modules in `src/analyze/checks/` (nineteen of the thirty-seven automated checks in the rubric; the other eighteen need a browser, a test run or an external report and are listed with their reasons in [docs/static-checks.md](docs/static-checks.md)). They use `ctx.files` when it is given.
 - `--checks-dir <dir>` loads modules from another directory **inside the brand-engine package** (used by the tests). Check modules are code: they are never loaded from a product checkout.
 
 ### Adapters
@@ -265,6 +268,8 @@ Findings are matched by check, file and message. A check should put a stable ide
 ### Workflow tests
 
 `test/flow.*.test.js`: the file API (path traversal, symlink escape, huge, binary and minified files, budgets, globs), the registry (contract, auto-load, `_lib/` ignored, timeout, error isolation, an empty environment), every adapter (valid, malformed and hostile input, size caps, prohibited metrics, simulated participants), analyze (determinism, read-only, `.git` parsing, redaction, rubric cross-checks, not-measured reasons, conflicts), plan (grouping, order, precedence, engagement), verify (fixed, open, new, unverifiable, claimed-not-landed, refusals), the CLI (exit codes, no environment value in any output, atomic `-o`), the documents, and `flow.e2e.test.js`: a synthetic product (`test/fixtures/e2e`, marked fixture) with three seeded defects (a low-contrast token pair, an unsupported claim, an image with no alt text) goes through analyze, plan, a false claim (not believed), a partial fix, a real fix, verify, assemble and score. The fixture checks in `test/fixtures/e2e/checks` are stand-ins, not the built-in checks.
+
+`test/checks/*.test.js` covers the built-in checks: the contrast maths against published WCAG reference values, the template, CSS and route readers, the contract (every module is a rubric check id on its rubric dimension; every rubric check is built or listed as skipped), exact findings (rule, severity, file and line) on a known-bad and a known-good synthetic checkout, the boundaries (4.5 and 3.0 contrast, heading order, `alt=""`, evidence markers, dynamic fragments, `not_measured` instead of a pass), path escape and symlinks, a read-only and no-network source scan, determinism, a 2,000-file performance check, and the whole chain through `analyze`, `assemble` and `score`.
 
 ## What it enforces
 

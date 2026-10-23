@@ -1,0 +1,35 @@
+:root {
+  --bg: #ffffff;
+  --panel: #f4f4f4;
+  --text: #1a1a1a;
+  --muted: #999999;
+  --brand: #1d4f91;
+  --brand-ink: #ffffff;
+  --warn: #c98f12;
+  --warn-ink: #ffffff;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --font: 'Inter', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111111;
+    --panel: #1b1b1b;
+    --text: #eeeeee;
+    --muted: #777777;
+    --brand: #4f8fe0;
+  }
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: var(--text-md); }
+.badge { color: #ffffff; background: var(--warn); padding: var(--space-1); }
+.card { padding: 13px; margin: var(--space-2) 6px; font-size: 15px; transition: transform 0.2s; }
+a:focus { outline: none; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.hero { color: #123456; border: 1px solid #123457; }
+.hint { color: var(--muted); }
