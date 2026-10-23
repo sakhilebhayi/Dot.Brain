@@ -6,6 +6,8 @@
 //       2 usage error
 // Exit (score, compare, rubric; see score/cli.js):
 //       0 report produced, 2 invalid input, 3 refused
+// Exit (analyze, plan, verify, evidence assemble; see analyze/cli.js):
+//       0 done, 1 verify found regressions, 2 invalid input, 3 refused
 //
 // Read-only and offline. No environment variable is read, so there is
 // nothing secret that could reach the output.
@@ -13,6 +15,7 @@ import { checkDrift, DriftUsageError } from './drift.js';
 import { stableStringify } from './json.js';
 import { defaultBrandDir, loadBrandDir, lookupProfile } from './registry.js';
 import { SCORE_USAGE, scoreMain } from './score/cli.js';
+import { WORKFLOW_COMMANDS, WORKFLOW_USAGE, workflowMain } from './analyze/cli.js';
 
 export const USAGE = [
   'usage: brand-engine profile list [--brand-dir <dir>]',
@@ -23,6 +26,7 @@ export const USAGE = [
   '       brand-engine framework show <BXP-NN> [--brand-dir <dir>]',
   '       brand-engine drift <id|file> --root <checkout> [--repo <owner/name>] [--brand-dir <dir>]',
   SCORE_USAGE,
+  WORKFLOW_USAGE,
 ].join('\n');
 
 const FLAGS = new Set(['--brand-dir', '--root', '--repo']);
@@ -52,12 +56,17 @@ function printFindings(err, file, list, prefix = '') {
   for (const m of list) err(`${prefix}${file ? `${file}: ` : ''}${m}`);
 }
 
-/** Everything injectable, so the CLI is tested without a process. */
+/**
+ * Everything injectable, so the CLI is tested without a process. Returns the
+ * exit code, or a Promise of it for the workflow commands (analyze, plan,
+ * verify, evidence), which run checks in worker threads.
+ */
 export function main(argv, deps = {}) {
   const out = deps.out ?? ((line) => console.log(line));
   const err = deps.err ?? ((line) => console.error(line));
 
   if (['score', 'compare', 'rubric'].includes(argv[0])) return scoreMain(argv, deps);
+  if (WORKFLOW_COMMANDS.includes(argv[0])) return workflowMain(argv, deps);
 
   const args = parseArgs(argv);
   if (args.error) { err(args.error); return 2; }

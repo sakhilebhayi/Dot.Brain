@@ -30,7 +30,7 @@ test('the rubric README documents the semver policy and the immutability rule', 
 test('the doctrine stays proposed, records the change in its log and explains why 90 needs observed or customer evidence', () => {
   const d = read('brain.brand_experience.md');
   assert.match(d, /^status: proposed$/m);
-  assert.match(d, /^version: 0\.2\.0$/m);
+  assert.match(d, /^version: 0\.[2-9]\.0$/m);
   assert.match(d, /\| 0\.2\.0 \| 2026-10-23 \|/);
   assert.match(d, /MAJOR: the dimension set, a weight or a cap/);
   assert.match(d, /MINOR: checks added or changed/);

@@ -1,0 +1,17 @@
+{
+  "lighthouseVersion": "12.2.0",
+  "requestedUrl": "https://fixture.example/",
+  "finalDisplayedUrl": "https://fixture.example/?session=abc",
+  "categories": {
+    "accessibility": { "score": 0.8, "auditRefs": [{ "id": "image-alt", "weight": 10 }, { "id": "label", "weight": 10 }, { "id": "html-has-lang", "weight": 3 }, { "id": "color-contrast", "weight": 7 }, { "id": "manual-check", "weight": 0 }] },
+    "best-practices": { "score": 0.92, "auditRefs": [] },
+    "performance": { "score": 0.55, "auditRefs": [] }
+  },
+  "audits": {
+    "image-alt": { "id": "image-alt", "title": "Image elements have [alt] attributes", "score": 0, "scoreDisplayMode": "binary" },
+    "label": { "id": "label", "title": "Form elements have associated labels", "score": 1, "scoreDisplayMode": "binary" },
+    "html-has-lang": { "id": "html-has-lang", "title": "[html] element has a [lang] attribute", "score": 1, "scoreDisplayMode": "binary" },
+    "color-contrast": { "id": "color-contrast", "title": "Background and foreground colors have a sufficient contrast ratio", "score": 0, "scoreDisplayMode": "binary" },
+    "manual-check": { "id": "manual-check", "title": "Manual", "score": null, "scoreDisplayMode": "manual" }
+  }
+}

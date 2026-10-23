@@ -1,0 +1,7 @@
+/* FIXTURE: design tokens for the synthetic product. */
+:root {
+  --bg: #ffffff;
+  --text: #9a9a9a;
+  --accent: #0b5cad;
+  --on-accent: #ffffff;
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="ledger" tests="5" failures="1" errors="0" skipped="1">
+    <testcase classname="ledger.totals" name="adds two lines" time="0.01"/>
+    <testcase classname="ledger.totals" name="rounds to cents" time="0.01"/>
+    <testcase classname="ledger.errors" name="[error-path] rejects a negative quantity" time="0.02"/>
+    <testcase classname="ledger.errors" name="[error-path] reports a missing file" file="tests/ledger_test.js" time="0.02">
+      <failure message="expected an error &amp; got none" type="AssertionError">trace</failure>
+    </testcase>
+    <testcase classname="ledger.sync" name="syncs later" time="0"><skipped/></testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-plan.schema.json",
+  "title": "Brand Experience Plan",
+  "description": "The output of `brand-engine plan`: ranked, implementation-ready tasks made from an analysis. The engine never edits the product repository; a plan is instructions for whoever does, and `verify` checks the result. `tasks` are proposed, in rank order; `needs_human` (engagement-related, never proposed) and `withheld` (would conflict with a domain override) are listed apart. Effort and points are estimates for ordering only. `integrity.sha256` is the canonical hash of the rest of the document.",
+  "type": "object",
+  "required": ["plan_version", "engine_version", "source", "note", "tasks", "needs_human", "withheld", "engine_issues", "not_measured", "counts", "integrity"],
+  "additionalProperties": false,
+  "properties": {
+    "plan_version": { "const": "1.0.0" },
+    "engine_version": { "type": "string", "minLength": 1, "maxLength": 20 },
+    "source": {
+      "type": "object",
+      "required": ["analysis_sha256", "repo", "commit", "profile", "rubric"],
+      "additionalProperties": false,
+      "properties": {
+        "analysis_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "repo": { "description": "A string, or null when unknown (checked by the loader)." },
+        "commit": { "description": "A string, or null when unknown (checked by the loader)." },
+        "profile": {
+          "type": "object",
+          "required": ["id", "version", "effective_status"],
+          "additionalProperties": false,
+          "properties": { "id": { "type": "string" }, "version": { "type": "string" }, "effective_status": { "enum": ["draft", "proposed", "ratified", "superseded"] } }
+        },
+        "rubric": {
+          "type": "object",
+          "required": ["id", "version", "sha256"],
+          "additionalProperties": false,
+          "properties": { "id": { "type": "string" }, "version": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+        }
+      }
+    },
+    "note": { "type": "string", "maxLength": 500 },
+    "tasks": { "type": "array", "items": { "$ref": "#/$defs/task" } },
+    "needs_human": { "type": "array", "items": { "$ref": "#/$defs/task" } },
+    "withheld": { "type": "array", "items": { "$ref": "#/$defs/task" } },
+    "engine_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "check_id", "message", "fix_hint"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" }, "check_id": { "type": "string" },
+          "message": { "type": "string", "maxLength": 500 }, "fix_hint": { "type": "string", "maxLength": 500 }
+        }
+      }
+    },
+    "not_measured": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "dimension", "reason"],
+        "additionalProperties": true,
+        "properties": { "check_id": { "type": "string" }, "dimension": { "type": "string" }, "reason": { "type": "string" } }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": ["proposed", "needs_human", "withheld", "blockers", "findings"],
+      "additionalProperties": false,
+      "properties": {
+        "proposed": { "type": "integer", "minimum": 0 }, "needs_human": { "type": "integer", "minimum": 0 },
+        "withheld": { "type": "integer", "minimum": 0 }, "blockers": { "type": "integer", "minimum": 0 },
+        "findings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["sha256"],
+      "additionalProperties": false,
+      "properties": { "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "required": ["id", "title", "check_id", "severity", "blocker", "why", "findings", "files", "locations", "fix_hints", "acceptance", "effort", "expected_points", "points_per_effort", "risk", "domain_notes", "needs_human"],
+      "additionalProperties": false,
+      "properties": {
+        "rank": { "type": "integer", "minimum": 1 },
+        "id": { "type": "string", "pattern": "^T-[0-9a-f]{8}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "check_id": { "type": "string", "pattern": "^d[0-9]{1,2}\\.[a-z0-9_]+$" },
+        "severity": { "enum": ["blocker", "major", "minor"] },
+        "blocker": { "type": "boolean" },
+        "why": {
+          "type": "object",
+          "required": ["dimension", "dimension_name", "principle", "principle_title", "rubric_check", "profile_ref", "profile_standards", "statement"],
+          "additionalProperties": false,
+          "properties": {
+            "dimension": { "type": "string" }, "dimension_name": { "type": "string" },
+            "principle": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+            "principle_title": { "description": "A string, or null when unknown (checked by the loader)." },
+            "rubric_check": { "type": "string" }, "profile_ref": { "type": "string" },
+            "profile_standards": { "type": "array", "items": { "type": "string" } },
+            "statement": { "type": "string", "maxLength": 800 }
+          }
+        },
+        "findings": { "type": "array", "items": { "type": "string" } },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "lines"],
+            "additionalProperties": false,
+            "properties": { "file": { "type": "string", "maxLength": 300 }, "lines": { "type": "array", "items": { "type": "integer", "minimum": 1 } } }
+          }
+        },
+        "locations": { "type": "integer", "minimum": 1 },
+        "fix_hints": { "type": "array", "items": { "type": "string", "maxLength": 500 } },
+        "acceptance": {
+          "type": "object",
+          "required": ["check_id", "finding_ids", "rule", "re_run"],
+          "additionalProperties": false,
+          "properties": {
+            "check_id": { "type": "string", "pattern": "^d[0-9]{1,2}\\.[a-z0-9_]+$" },
+            "finding_ids": { "type": "array", "items": { "type": "string" } },
+            "rule": { "type": "string", "maxLength": 300 },
+            "re_run": { "type": "string", "maxLength": 300 }
+          }
+        },
+        "effort": { "enum": ["S", "M", "L"] },
+        "expected_points": { "type": "number", "minimum": 0 },
+        "points_per_effort": { "type": "number", "minimum": 0 },
+        "risk": {
+          "type": "object",
+          "required": ["level", "notes"],
+          "additionalProperties": false,
+          "properties": { "level": { "enum": ["low", "medium", "high"] }, "notes": { "type": "array", "items": { "type": "string", "maxLength": 800 } } }
+        },
+        "domain_notes": { "type": "array", "items": { "type": "string", "maxLength": 800 } },
+        "needs_human": { "type": "boolean" },
+        "needs_human_reason": { "type": "string", "maxLength": 500 },
+        "withheld": {
+          "type": "object",
+          "required": ["principle", "yields_to", "reason", "blocked_by", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "principle": { "type": "string" }, "yields_to": { "type": "string" }, "reason": { "type": "string", "maxLength": 800 },
+            "blocked_by": { "type": "array", "items": { "type": "string" } }, "text": { "type": "string", "maxLength": 500 }
+          }
+        }
+      }
+    }
+  }
+}

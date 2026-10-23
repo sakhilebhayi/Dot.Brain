@@ -11,7 +11,7 @@ import { validateEvidenceShape } from './schemas.js';
 
 // Shapes of credentials. Evidence is public-by-default (it ends up in a
 // report in a repository), so a file that carries one is refused outright.
-const SECRET_SHAPES = [
+export const SECRET_SHAPES = [
   /gh[pousr]_[A-Za-z0-9]{20,}/,
   /github_pat_[A-Za-z0-9_]{20,}/,
   /AKIA[0-9A-Z]{16}/,
