@@ -148,7 +148,14 @@ test('timeouts: a hanging request is aborted and reported, not waited on forever
     signal.addEventListener('abort', () => reject(signal.reason));
   });
   const started = Date.now();
-  const r = await pullCandidates({ ...base, fetchImpl, timeoutMs: 20, delaysMs: [] });
+  // AbortSignal.timeout's timer is unref'd (a real socket would keep the loop alive); hold it open here.
+  const keepAlive = setInterval(() => {}, 1000);
+  let r;
+  try {
+    r = await pullCandidates({ ...base, fetchImpl, timeoutMs: 20, delaysMs: [] });
+  } finally {
+    clearInterval(keepAlive);
+  }
   assert.equal(r.ok, false);
   assert.equal(r.kind, 'network');
   assert.ok(Date.now() - started < 2000);
