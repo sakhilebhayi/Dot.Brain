@@ -6,8 +6,13 @@
 //   design-md a DESIGN.md `components` entry with backgroundColor + textColor (blocker if it fails)
 //   naming    X and X-ink / X-foreground / X-fg / on-X                         (major if it fails)
 //   ground    a plain text token (--text, --muted, ...) on a ground/panel token (--bg, --panel, ...) (major)
-//   focus     a focus-indicator token (--focus, --ring) or the colour of an outline in a :focus rule, against the
-//             ground/panel tokens, at 3:1 (WCAG 1.4.11 non-text contrast) (major)
+//   focus     a focus-indicator token (--focus, --ring) or the colour of an outline in a :focus rule, at 3:1
+//             (WCAG 1.4.11 non-text contrast) (major). The ring is paired with the background behind it:
+//             for an outline (drawn outside the box) the nearest ancestor in the selector that declares a background, for an
+//             inset ring (negative outline-offset) the element's own. When none is declared (a bare `:focus-visible`, a token)
+//             the ring could sit on any ground the stylesheet declares, and the page ground is NOT assumed: it is judged only
+//             when every ground agrees (all pass or all fail); when they disagree the ring is not measured, and the detail
+//             says how many.
 // Pairs it cannot resolve to two opaque colours are counted as undetermined and never as passes. With no
 // determinable pair the check is not_measured.
 import { defineCheck } from './_lib/define.js';
@@ -36,6 +41,9 @@ const isGroundName = (name) => {
   if (NOT_GROUND.test(name.slice(2)) || segs.some((seg) => COMPONENT_WORDS.has(seg))) return false;
   return segs.some((seg) => GROUND_WORDS.has(seg));
 };
+
+/** A selector without its focus pseudo-classes: the element the ring is drawn on. */
+const baseSelector = (sel) => sel.replace(/:(?:focus-visible|focus-within|focus)(?![\w-])/g, '').replace(/\s+/g, ' ').trim();
 
 function isLarge(rule, tokens) {
   const size = rule.decls.find((d) => d.prop === 'font-size');
@@ -70,7 +78,7 @@ function pairsFromTokens(tokens, names, themeNames, source, where, usedAsText = 
   }
   const grounds = names.filter(isGroundName);
   for (const f of names.filter((n) => FOCUS_TOKEN.test(n))) {
-    for (const g of grounds.filter((x) => together(f, x))) pairs.push({ fg: `var(${f})`, bg: `var(${g})`, source: 'focus', themes: themeNames, where: where(f), selector: null, large: false, role: 'ui' });
+    for (const g of grounds.filter((x) => together(f, x))) pairs.push({ fg: `var(${f})`, bg: `var(${g})`, source: 'focus', themes: themeNames, where: where(f), selector: null, large: false, role: 'ui', group: `token|${where(f)?.file ?? ''}|${f}` });
   }
   const texts = names.filter((n) => PLAIN_TEXT.test(n) && !partnered.has(n) && usedAsText(n));
   for (const t of texts) {
@@ -94,6 +102,7 @@ export default defineCheck({
     const scopes = sheets.map((s) => ({ all: [...fileSheets.filter((x) => x !== s), s], own: [s] }));
     const pairs = [];
     let anyDark = false;
+    let unresolvedRings = 0; // rings for a particular element whose surround is not declared
 
     for (const scope of scopes) {
       if (scope.own.length === 0) continue;
@@ -123,14 +132,52 @@ export default defineCheck({
             for (const d of rule.decls.filter((x) => x.prop === 'outline' || x.prop === 'outline-color')) {
               const expr = d.prop === 'outline-color' ? firstColorExpr(d.value) : /(var\((?:[^()]|\([^()]*\))*\)|#[0-9a-f]{3,8}\b|(?:rgba?|hsla?|oklch)\([^()]*\))/i.exec(d.value)?.[1];
               if (!expr) continue;
-              // the grounds declared beside the outline colour (or beside the rule, for a literal colour)
+              // The ground BEHIND the ring. An outline is drawn outside the border box, so it sits on what surrounds the element,
+              // not on the element's own background; only a negative outline-offset draws it inside the box. So: an inset ring
+              // is judged against the element's own background (its rule, else the rule for the same selector without :focus);
+              // an outside ring against the nearest ancestor in the selector (`.top .search input:focus` -> `.top .search`, then
+              // `.top`) whose rule declares a background. A ring that belongs to no particular element (a bare `:focus-visible`,
+              // `a:focus`, a ring token) can be drawn on any declared ground and is judged with all of them (below). A ring
+              // for a particular element (a class, an id, an attribute) whose surround is not declared is NOT measured: the
+              // page ground is not assumed.
+              const sel = rule.selector.replace(/\s+/g, ' ').slice(0, 60);
+              const bgOf = (r) => r.decls.filter((x) => x.prop === 'background-color' || x.prop === 'background').pop();
+              const offset = rule.decls.find((x) => x.prop === 'outline-offset');
+              const inset = Boolean(offset) && (lengthPx(offset.value) ?? 0) < 0;
+              const focusParts = splitTop(rule.selector, ',').filter((p) => /:focus/.test(p)).map((p) => baseSelector(p));
+              const sameSelector = (r, wanted) => !r.keyframes && !r.fontFace && r !== rule && splitTop(r.selector, ',').some((p) => wanted.includes(p.replace(/\s+/g, ' ').trim()) ) && Boolean(bgOf(r));
+              let groundDecl = null;
+              if (inset) {
+                groundDecl = bgOf(rule) ?? bgOf(sheet.rules.filter((r) => sameSelector(r, focusParts)).pop() ?? { decls: [] });
+              } else {
+                const chains = focusParts.map((part) => {
+                  const tokens = part.split(/\s*[>+~]\s*|\s+/).filter(Boolean);
+                  const prefixes = [];
+                  for (let n = tokens.length - 1; n >= 1; n -= 1) prefixes.push(tokens.slice(0, n).join(' '));
+                  return prefixes;
+                });
+                const depth = Math.max(0, ...chains.map((c) => c.length));
+                for (let i = 0; i < depth && !groundDecl; i += 1) {
+                  const wanted = chains.map((c) => c[i]).filter(Boolean);
+                  const r = sheet.rules.filter((x) => sameSelector(x, wanted)).pop();
+                  if (r) groundDecl = bgOf(r);
+                }
+              }
+              const generic = focusParts.every((part) => /^(?:\*|[a-z][a-z0-9]*|\[tabindex[^\]]*\])?$/i.test(part));
+              if (!groundDecl && !generic) { unresolvedRings += 1; continue; }
+              if (groundDecl) {
+                // a background that cannot be read (a gradient, an unresolved var) leaves the pair undetermined
+                const bgExpr = firstColorExpr(splitTop(groundDecl.value, ',').pop() ?? '');
+                pairs.push({ fg: expr, bg: bgExpr ?? 'unresolved', source: 'focus', themes: themeNames, where: { file: sheet.file, line: d.line }, selector: sel, large: false, role: 'ui', scope: themes });
+                continue;
+              }
               const gs = names.filter(isGroundName);
               const m = /^var\(\s*(--[\w-]+)/.exec(expr);
               const home = m ? where(m[1])?.file : sheet.file;
               let pool = gs.filter((g) => where(g)?.file === home);
               if (!pool.length) pool = gs.filter((g) => where(g)?.file === sheet.file);
               if (!pool.length) pool = gs;
-              for (const g of pool) pairs.push({ fg: expr, bg: `var(${g})`, source: 'focus', themes: themeNames, where: { file: sheet.file, line: d.line }, selector: rule.selector.replace(/\s+/g, ' ').slice(0, 60), large: false, role: 'ui', scope: themes });
+              for (const g of pool) pairs.push({ fg: expr, bg: `var(${g})`, source: 'focus', themes: themeNames, where: { file: sheet.file, line: d.line }, selector: sel, large: false, role: 'ui', scope: themes, group: `rule|${sheet.file}|${d.line}|${expr}` });
             }
           }
           if (SKIP_STATE.test(rule.selector)) continue;
@@ -176,6 +223,7 @@ export default defineCheck({
     const scopeIds = new Map();
     for (const p of pairs) if (p.scope && !scopeIds.has(p.scope)) scopeIds.set(p.scope, scopeIds.size);
     const results = new Map();
+    const grouped = new Map(); // a ring with no declared ground: its candidates are judged together
     let undetermined = 0;
     // When the same pair is reached from several sources, the strongest evidence of use wins.
     const PRIORITY = { usage: 0, 'design-md': 1, naming: 2, ground: 3, focus: 4 };
@@ -192,8 +240,28 @@ export default defineCheck({
         const threshold = p.role === 'ui' || p.large ? LARGE : NORMAL;
         const ratio = contrastRatio(fg, bg);
         const key = `${p.scope ? scopeIds.get(p.scope) : 'd'}|${theme}|${nameOf(p.fg)}|${nameOf(p.bg)}|${threshold}`;
+        const entry = { key, theme, p, ratio, threshold, fg, bg, pass: ratio >= threshold };
+        if (p.group) {
+          const gk = `${p.scope ? scopeIds.get(p.scope) : 'd'}|${theme}|${p.group}`;
+          if (!grouped.has(gk)) grouped.set(gk, []);
+          grouped.get(gk).push(entry);
+          continue;
+        }
         if (results.has(key)) continue;
-        results.set(key, { theme, p, ratio, threshold, fg, bg, pass: ratio >= threshold });
+        results.set(key, entry);
+      }
+    }
+    // A ring whose own background is not declared could be drawn on any ground the stylesheet declares. It is judged only
+    // when they all agree: every ground passes (a pass) or every ground fails (a failure whatever the page looks like).
+    // Mixed means the answer depends on where the ring is drawn, which a stylesheet does not say: not measured.
+    let ringsNotMeasured = 0;
+    for (const list of [...grouped.values()]) {
+      const allPass = list.every((e) => e.pass);
+      const allFail = list.every((e) => !e.pass);
+      if (!allPass && !allFail) { ringsNotMeasured += 1; continue; }
+      for (const e of list) {
+        if (results.has(e.key)) continue;
+        results.set(e.key, { ...e, everyGround: !allPass && list.length > 1 });
       }
     }
 
@@ -201,7 +269,7 @@ export default defineCheck({
     if (all.length === 0) {
       return {
         notMeasured: pairs.length === 0
-          ? 'no foreground/background colour pairs are declared (no rule sets both color and background, no -ink/on- token pairs, no text and ground tokens)'
+          ? `no foreground/background colour pairs are declared (no rule sets both color and background, no -ink/on- token pairs, no text and ground tokens)${unresolvedRings ? `; ${unresolvedRings} focus ring(s) of particular elements have no background declared behind them and were not measured (the page ground is not assumed)` : ''}`
           : `${pairs.length} pair(s) were found but none resolved to two opaque colours (var() chains, color-mix() or gradients cannot be read statically)`,
       };
     }
@@ -218,7 +286,7 @@ export default defineCheck({
         kind: 'wcag_failure',
         level: 'AA',
         criterion: r.threshold === LARGE && r.p.role === 'ui' ? '1.4.11' : '1.4.3',
-        message: `Contrast ${floor2(r.ratio)}:1 on the ${r.theme} theme is below ${r.threshold}:1 for ${label(r.p.fg, r.fg)} on ${label(r.p.bg, r.bg)}; source: ${r.p.source}${r.p.selector ? `, ${r.p.selector}` : ''}.`,
+        message: `Contrast ${floor2(r.ratio)}:1 on the ${r.theme} theme is below ${r.threshold}:1 for ${label(r.p.fg, r.fg)} on ${label(r.p.bg, r.bg)}; source: ${r.p.source}${r.p.selector ? `, ${r.p.selector}` : ''}${r.everyGround ? '; the ring has no declared background and fails on every ground the stylesheet declares' : ''}.`,
         file: w.file,
         line: w.line,
         hint: `Adjust one of the two tokens until the pair reaches ${r.threshold}:1 on the ${r.theme} theme, or stop using them together.`,
@@ -230,7 +298,7 @@ export default defineCheck({
     for (const r of all) bySource[r.p.source] = (bySource[r.p.source] ?? 0) + 1;
     return {
       value: passed / all.length,
-      detail: `${passed} of ${all.length} pair/theme combinations meet their threshold (4.5:1 text; 3:1 large text and focus indicators); themes evaluated: ${themeNames.join(', ')}; pair sources: ${Object.entries(bySource).sort().map(([k, v]) => `${k} ${v}`).join(', ')}; ${undetermined} combination(s) undetermined and not counted; translucent backgrounds are undetermined; panel backgrounds are tokens named bg/panel/surface/card/sunken.`,
+      detail: `${passed} of ${all.length} pair/theme combinations meet their threshold (4.5:1 text; 3:1 large text and focus indicators); themes evaluated: ${themeNames.join(', ')}; pair sources: ${Object.entries(bySource).sort().map(([k, v]) => `${k} ${v}`).join(', ')}; ${undetermined} combination(s) undetermined and not counted${ringsNotMeasured ? `; ${ringsNotMeasured} focus ring(s)/theme(s) not measured because no background is declared behind the ring and the declared grounds disagree` : ''}${unresolvedRings ? `; ${unresolvedRings} focus ring(s) of particular elements not measured because no background is declared behind them (the page ground is not assumed)` : ''}; translucent backgrounds are undetermined; panel backgrounds are tokens named bg/panel/surface/card/sunken.`,
       artifact: all.find((r) => r.p.where?.file)?.p.where.file,
       findings,
     };

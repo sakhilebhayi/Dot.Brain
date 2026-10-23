@@ -30,9 +30,9 @@ node src/cli.js drift <id|file> --root <checkout> [--repo <owner/name>]
 node src/cli.js score --evidence <file> --profile <id|file> [--rubric bxqs-1.0.0] [--built-by <id>]
 node src/cli.js compare <baseline-report.json> <candidate-report.json>
 node src/cli.js rubric show|validate [bxqs-1.0.0]
-node src/cli.js analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>]
+node src/cli.js analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--scope <path-prefix[,..]>]
 node src/cli.js plan <analysis.json> [--out <dir>]
-node src/cli.js verify --before <analysis.json> <path> [--plan <plan.json>] [--claimed <ids|all>] [--reports <dir>] [--out <dir>]
+node src/cli.js verify --before <analysis.json> <path> [--plan <plan.json>] [--claimed <ids|all>] [--reports <dir>] [--scope <path-prefix[,..]>] [--out <dir>]
 node src/cli.js evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <f>] [--observed <f>] [-o <evidence.json>]
 node src/cli.js propose init --target <profile|principle|rubric|doctrine>:<id> [--new] --author-id <id> --author-kind <human|ai> --author-name <name> --created-at <date-time> [--slug <words>] [-o <file>]
 node src/cli.js propose submit <proposal.json> --actor-id <id> --actor-kind <human|ai> --at <date-time> [-o <file>]
@@ -117,7 +117,7 @@ participants per result) is what unlocks it.
 - **The builder is never the sole assessor.** `built_by` (the evidence field, or `--built-by`) names who built the change. That assessor's own assessment is recorded and never earns points; if it is the only assessment of a dimension the expert component of that dimension is empty and the report says so. Without `built_by`, independence cannot be verified, which stops `release_ready`.
 - **Dimensions 11 and 12** are `not_measured` unless real observed or customer results are supplied. A metric on the prohibited engagement list (`session_time`, `app_opens`, `scroll_depth`, `notification_click_through`, `streak_length`, `variable_reward_effectiveness`, `time_to_return`, and aliases) is rejected with a finding, flagged for human review, and never scored. A metric the rubric does not define is invalid input.
 - **Minimum sample.** An observed or customer result with fewer than five participants is rejected.
-- **Confidence.** High: two or more source classes, including observed or customer evidence, on at least 50 points of weight. Medium: automated and expert evidence together on at least 50 points of weight. Low: anything less. A disagreement of more than one level (between the automated result mapped to 0-4 and an assessor, or between assessors) makes the band Low.
+- **Confidence.** High: two or more source classes, including observed or customer evidence, on at least 50 points of weight. Medium: automated and expert evidence together on at least 50 points of weight. Low: anything less. A disagreement of more than one level (between the automated result mapped to 0-4 and an assessor, or between assessors) makes the band Low. A saturated automated result is a floor, not a level, so it is left out of that comparison and is listed as a confidence reason.
 - **Blockers.** `wcag_failure` at level A or AA, `unsupported_claim`, `failing_test`, `domain_override_violation`, and an unresolved `ethics_gate_flag`. A blocker means `not_ready`, and caps the affected dimension at half its weight.
 - **Precedence.** Dimensions are scored independently, so nothing a brand rule earns offsets a dimension a safety, security or accessibility finding lowered. The profile's `domain_overrides` are copied into the report.
 - **States.** `build_verified`: attainment at least 90 percent, no blockers, every dimension at or above its floor. `release_ready`: evidenced score at least 90, no blockers, every `build_verified` condition, observed or customer evidence on dimensions 3, 6 and 7 (and 8 if `assistive_technology_testing_possible`), confidence Medium or better, `built_by` declared, and a **ratified profile and a ratified rubric**. A draft, proposed or superseded profile or rubric caps the state at `build_verified`; `release_ready_unmet` lists exactly what is missing.
@@ -144,7 +144,17 @@ JSON, [`schemas/brand-evidence.schema.json`](../../schemas/brand-evidence.schema
 }
 ```
 
-`value` is 0 to 1, higher is better, normalised by the producer. `x-` fields are ignored. A file that contains a
+`value` is 0 to 1, higher is better, normalised by the producer. `x-` fields are ignored.
+
+**Versions.** `evidence_version` is `1.0.0` or `1.1.0`, and a file names the **lowest** version that can describe it, so a file that uses nothing new is exactly what `1.0.0` always was and stays valid. `1.1.0` adds two optional things. `automated[].saturated: true` marks a result whose value is a floor (the source reached its ceiling: see "Saturation" below). `assessors[].declaration` is what an assessor says about itself (see "Declarations"). A `1.0.0` file that carries either is refused. The analysis (`analysis_version` `1.0.0` or `1.1.0`, new field `evidence[].saturated`) and the report (`report_version` `1.0.0` or `1.1.0`, new fields `header.assessors[].declaration`, entry `saturated`, `components.automated_check.checks_saturated`) follow the same rule.
+
+#### Saturation
+
+An external source that counts against a fixed ceiling (the design detector reads 0 at ten hits) reports a **floor** once it gets there: ten hits and 191 hits both read 0.00. The detector adapter says so: the evidence `detail` starts `SATURATED:` and the row carries `saturated: true`. `score` then does three things and nothing else. The value is scored exactly as given (no new scoring, no invented number). The result is left out of the comparison between the automated level and expert levels, because a floor is not a level, and a dimension whose only automated results are saturated does not count as having an automated source for the Medium band. And the report lists a confidence reason (`saturated_left_out`) and marks the entry, so the reader sees it. How the detector should be scaled is a rubric question: it is written up as a proposal, [`BRP-2026-10-24-detector-ceiling-and-third-party-origins`](../../brand/proposals/BRP-2026-10-24-detector-ceiling-and-third-party-origins.proposal.json) (status `proposed`, not ratified).
+
+#### Declarations
+
+An assessor may carry `declaration: { built_the_change?, fresh_reviewer?, ai_only?, statement? }`: whether it built the change, whether it is a fresh reviewer (took no part in building or earlier assessing this change and saw no earlier conclusions), whether it is AI only (no person wrote or edited its levels and notes), and a statement of up to 700 characters in its own words. A declaration is **recorded and never counted**: no scoring path reads it, so it cannot lift a number, and the builder never earns points and an AI-only expert is still capped, whatever it says. It can only add refusals: `ai_only` must equal "kind is ai"; `built_the_change` and `fresh_reviewer` cannot both be true; an assessor that declares it built the change must be the `built_by`, and the `built_by` cannot declare it did not or that it is a fresh reviewer. A file that contains a
 credential-shaped string is refused. Nothing in the file is read from the environment or the clock.
 
 ### The report
@@ -182,13 +192,14 @@ product checkout --> analyze --> analysis.json --> plan --> plan.json / plan.md
 
 ### analyze
 
-`analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--rubric <ref>]`
+`analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--scope <path-prefix[,..]>] [--rubric <ref>]`
 
 - **Profile.** `--profile` (a Brain profile id or a path), else `<path>/brand/profile.json`, else exit 2. The profile is resolved and handed to every check as `ctx.profile`.
 - **Checks.** Every module in `src/analyze/checks/` runs (registry below). **Reports.** Every file in `--reports` is routed to an adapter (below).
 - **Output.** Without `--out`, `analysis.json` on stdout. With `--out <dir>`: `analysis.json` and `summary.md` (and the summary on stdout). `--out` inside the checkout is refused (exit 2).
 - **Identity.** The commit and `owner/name` come from `<path>/.git` (HEAD, refs, `packed-refs`, `config`) read directly; git is never run and the remote URL is never output. `--repo` and `--commit` fill in a checkout that is not a git repository, and may not contradict one that is.
 - **Deterministic and read-only.** No clock, no absolute path, no environment value; the same checkout, profile and reports give the same bytes; a test checksums the checkout before and after.
+- **Scope.** `--scope resources/views/knowledge,resources/css` limits the static checks to one surface of a checkout. A scope is a short list of repo-relative **path prefixes** (a directory or one file; never a glob), each confined to the checkout: relative, `/`-separated, no `..`, and a prefix that is a symlink out of the checkout is refused. A prefix that names nothing the engine can read is exit 2. The label (sorted, de-duplicated, comma-joined) is recorded as `input.scope` in `analysis.json`, the evidence file and the score report, so two scopes of one repository are two documents that say what they are about, and neither inherits the other's blockers. A scope limits the files a check **lists as a surface** (templates, stylesheets, language files); it does not hide support files, so a link in an in-scope template is still resolved against the application's `routes/`, wherever they are, and "is this view mounted?" still looks at the whole checkout. Include the stylesheets a surface uses in its scope or they are not judged. `verify` keeps the baseline's scope by default and **refuses** (exit 3) a different one.
 - **Not measured.** Every rubric automated check without counted evidence is listed in `not_measured` with a reason: `no_check_registered`, `no_report_supplied`, `report_had_no_data`, `not_applicable`, `check_not_measured`, `check_errored`, `conflicting_sources`. The score counts each as zero and says so.
 - `analysis.json` is validated against [`schemas/brand-analysis.schema.json`](../../schemas/brand-analysis.schema.json) and ends with `integrity.sha256`.
 
@@ -213,7 +224,7 @@ finding may add `kind`, `wcag_level`, `wcag_criterion` and `principle` (see "Fro
 
 | Tool and file | Adapter | Evidence (rubric check) | Findings |
 |---|---|---|---|
-| Design detector, `impeccable detect --json` (`*detect*.json`, `*impeccable*.json`): an array of `{ antipattern, name, description, severity, category, file, line, snippet }` | `detector` | `d2.impeccable_detect_findings` (identity: category `slop`) and `d4.detector_clean` (everything else, motion rules included): `1 - n / 10`, n = distinct counted hits; advisory hits are listed, not counted | one per hit, severity `minor` (`info` for advisory) |
+| Design detector, `impeccable detect --json` (`*detect*.json`, `*impeccable*.json`): an array of `{ antipattern, name, description, severity, category, file, line, snippet }` | `detector` | `d2.impeccable_detect_findings` (identity: category `slop`) and `d4.detector_clean` (everything else, motion rules included): `1 - n / 10`, n = distinct counted hits, **`saturated` at 10 or more** (the value is then a floor; see Saturation); advisory hits are listed, not counted. A hit's `file` that is a URL becomes the opaque `url:<path>` (scheme, credentials, port, query and fragment dropped, and the host too when it is local or private), never a mangled path | one per hit, severity `minor` (`info` for advisory) |
 | axe-core results (`*axe*.json`; one object or an array of pages) | `axe` | `d8.axe_violations`: passing rules / (passing + failing), pooled over pages | one per violated rule per page; WCAG level A or AA: `blocker`, kind `wcag_failure`, criterion from the `wcagNNN` tag |
 | Lighthouse JSON (`*lighthouse*.json`) | `lighthouse` | `d8.axe_violations` from the accessibility audits (audit level; axe wins if both). Best-practices and performance are **noted, never scored** (no rubric check measures them) | failed audits, `major`, no WCAG level invented |
 | JUnit XML (`*junit*.xml`, or any XML with a `<testsuite>`) and TAP (`*.tap`) | `tests` | `d5.test_pass_counts`: passed / (passed + failed), skipped and TODO not counted, pooled over files; `d10.error_path_tests` over tests tagged `[error-path]` or `@error-path` | one per failed test: `blocker`, kind `failing_test` |
@@ -223,13 +234,16 @@ Every adapter parses strictly (JSON and TAP with limits; XML with a small reader
 ### The two files a person writes (`evidence assemble --assessments / --observed`)
 
 ```json
-{ "format": "brand-assessments/1", "recorded_at": "2026-10-23T12:00:00Z",
-  "assessors": [{ "id": "jane", "kind": "human" }],
+{ "format": "brand-assessments/2", "recorded_at": "2026-10-23T12:00:00Z",
+  "assessors": [{ "id": "jane", "kind": "human" },
+                { "id": "ai-reviewer", "kind": "ai",
+                  "declaration": { "ai_only": true, "fresh_reviewer": true, "built_the_change": false,
+                                   "statement": "AI only. Did not build this change and saw no earlier conclusions." } }],
   "assessments": [{ "dimension": "usability_cognitive_load", "assessor": "jane", "level": 3,
                     "notes": "up to 700 characters, in the assessor's words", "artifact_ref": "notes/jane.md" }] }
 ```
 
-The level must be 0 to 4 and the dimension one the rubric allows an expert to assess; the engine records the **rubric anchor** for that level beside the notes. `kind` is recorded as written (`ai` assessments are scored at the policy's reduced credit by `score`).
+The level must be 0 to 4 and the dimension one the rubric allows an expert to assess; the engine records the **rubric anchor** for that level beside the notes. `kind` is recorded as written (`ai` assessments are scored at the policy's reduced credit by `score`). `brand-assessments/1` files are still valid and unchanged; `brand-assessments/2` adds the optional per-assessor `declaration` (see Declarations above), which a `/1` file may not carry. `evidence assemble` checks every declaration against `--built-by` and writes `evidence_version` `1.1.0` only when a file uses one.
 
 ```json
 { "format": "brand-observed/1", "recorded_at": "2026-10-23T12:30:00Z",
@@ -280,6 +294,8 @@ Findings are matched by check, file and message. A check should put a stable ide
 `test/flow.*.test.js`: the file API (path traversal, symlink escape, huge, binary and minified files, budgets, globs), the registry (contract, auto-load, `_lib/` ignored, timeout, error isolation, an empty environment), every adapter (valid, malformed and hostile input, size caps, prohibited metrics, simulated participants), analyze (determinism, read-only, `.git` parsing, redaction, rubric cross-checks, not-measured reasons, conflicts), plan (grouping, order, precedence, engagement), verify (fixed, open, new, unverifiable, claimed-not-landed, refusals), the CLI (exit codes, no environment value in any output, atomic `-o`), the documents, and `flow.e2e.test.js`: a synthetic product (`test/fixtures/e2e`, marked fixture) with three seeded defects (a low-contrast token pair, an unsupported claim, an image with no alt text) goes through analyze, plan, a false claim (not believed), a partial fix, a real fix, verify, assemble and score. The fixture checks in `test/fixtures/e2e/checks` are stand-ins, not the built-in checks.
 
 `test/checks/*.test.js` covers the built-in checks: the contrast maths against published WCAG reference values, the template, CSS and route readers, the contract (every module is a rubric check id on its rubric dimension; every rubric check is built or listed as skipped), exact findings (rule, severity, file and line) on a known-bad and a known-good synthetic checkout, the boundaries (4.5 and 3.0 contrast, heading order, `alt=""`, evidence markers, dynamic fragments, `not_measured` instead of a pass), path escape and symlinks, a read-only and no-network source scan, determinism, a 2,000-file performance check, and the whole chain through `analyze`, `assemble` and `score`.
+
+`test/flow.scope.test.js`, `test/flow.phase1.test.js`, `test/score.phase1.test.js` and `test/checks/regressions.test.js` are the regression tests for the Phase 1 demonstrations (an engine run over three product codebases). Each reproduces a reported defect from a small synthetic checkout and pins what replaced it: `--scope` (two surfaces of one repository, confinement, `verify` and the recorded scope), URL `file` values, saturation (the flag, the version, the left-out comparison, the unchanged points), declarations (no number depends on one; every contradiction is refused), `Route::has` guards, Jetstream's terms and privacy pages, unmounted templates and everything that keeps a blocker a blocker, focus rings and their grounds, and the checks that now say "not measured" instead of 1.00.
 
 ## Governance
 

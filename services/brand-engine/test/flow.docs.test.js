@@ -36,7 +36,7 @@ test('the usage text, the README and the ADR document every command, flag and ex
   const readme = read('services/brand-engine/README.md');
   for (const cmd of ['analyze', 'plan', 'verify', 'evidence assemble']) assert.ok(WORKFLOW_USAGE.includes(`brand-engine ${cmd}`) && readme.includes(`node src/cli.js ${cmd}`), cmd);
   for (const heading of ['## Workflow: analyse, plan, verify, assemble', '### analyze', '### Adapters', '### plan', '### verify', '### evidence assemble', '### The check registry and the file API', '### The two files a person writes']) assert.ok(readme.includes(heading), heading);
-  for (const flag of ['--profile', '--reports', '--out', '--before', '--plan', '--claimed', '--assessments', '--observed', '--built-by', '--generated-at', '--checks-dir', '--themes', '-o']) assert.ok(readme.includes(flag), flag);
+  for (const flag of ['--profile', '--reports', '--out', '--before', '--plan', '--claimed', '--assessments', '--observed', '--built-by', '--generated-at', '--checks-dir', '--themes', '--scope', '-o']) assert.ok(readme.includes(flag), flag);
   assert.match(readme, /`1` verify\s+only: regressions, or a claimed task that did not land/);
   assert.match(readme, /`3` refused/);
   for (const phrase of ['brand-assessments/1', 'brand-observed/1', 'claimed_not_landed', 'needs_human', 'withheld', 'x-provenance', 'reads reports', 'never runs']) assert.ok(readme.toLowerCase().includes(phrase.toLowerCase()), phrase);

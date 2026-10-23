@@ -130,8 +130,8 @@ export async function loadChecks(dir = DEFAULT_CHECKS_DIR, { timeoutMs = CHECK_L
  * where evidence/findings are normalised (bounded, scrubbed) and `error` is
  * present exactly when the check could not be trusted.
  */
-export async function runCheck(file, { root, profile, themes, timeoutMs = CHECK_LIMITS.timeoutMs, sink } = {}) {
-  const m = await runWorker({ mode: 'run', file, root, profile, themes }, timeoutMs);
+export async function runCheck(file, { root, profile, themes, scope = [], timeoutMs = CHECK_LIMITS.timeoutMs, sink } = {}) {
+  const m = await runWorker({ mode: 'run', file, root, profile, themes, scope }, timeoutMs);
   switch (m.kind) {
     case 'timeout': return errorOutcome(file, m.meta, 'timeout', `exceeded the ${timeoutMs} ms limit`, root, sink);
     case 'oom': return errorOutcome(file, m.meta, 'out_of_memory', 'exceeded its memory limit', root, sink);

@@ -97,7 +97,7 @@ test('a different rubric, or the same version with a different hash, is refused'
 test('different commits, profiles and engine versions are annotated, never hidden', () => {
   const b = withCommit(B(), '2'.repeat(40));
   b.header.profile.sha256 = 'e'.repeat(64);
-  b.header.engine_version = '0.3.0';
+  b.header.engine_version = '0.9.0'; // any version other than the current one
   const codes = compareReports(A(), b).annotations.map((x) => x.code);
   assert.deepEqual(codes, ['rubric_identical', 'profile_differs', 'engine_differs', 'commit_differs', 'not_rebased']);
 });

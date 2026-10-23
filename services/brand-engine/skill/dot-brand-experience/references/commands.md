@@ -19,14 +19,14 @@ node "$ENGINE" rubric show
 ## The loop
 
 ```
-node "$ENGINE" analyze <path> --profile <id|file> [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark]
+node "$ENGINE" analyze <path> --profile <id|file> [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--scope <path-prefix[,..]>]
 node "$ENGINE" plan <analysis.json> [--out <dir>]
-node "$ENGINE" verify --before <analysis.json> <path> [--profile <id|file>] [--reports <dir>] [--plan <plan.json>] [--claimed <ids|all>] [--out <dir>]
+node "$ENGINE" verify --before <analysis.json> <path> [--profile <id|file>] [--reports <dir>] [--plan <plan.json>] [--claimed <ids|all>] [--scope <path-prefix[,..]>] [--out <dir>]
 node "$ENGINE" evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <file>] [--observed <file>] [--generated-at <date-time>] [--assistive-tech true|false] [-o <evidence.json>]
 node "$ENGINE" score --evidence <evidence.json> --profile <id|file> [--built-by <id>]
 ```
 
-The assessments file (`brand-assessments/1`) and the observed file (`brand-observed/1`) are written by people. Do not write one on a person's behalf. An assessment you write yourself is recorded as `kind: ai`, and the builder's own is recorded and earns nothing.
+The assessments file (`brand-assessments/2`, or the older `/1`) and the observed file (`brand-observed/1`) are written by people. Do not write one on a person's behalf. An assessment you write yourself is recorded as `kind: ai`, and the builder's own is recorded and earns nothing. In a `/2` file you may declare, for yourself only, that you are AI only, whether you are a fresh reviewer and whether you built the change; a declaration is recorded and never lifts a number, and the engine refuses one that contradicts `--built-by`. `--scope` limits the static checks to one surface of a repository (path prefixes inside it); report it, and use the same scope when you verify.
 
 ## Governance
 

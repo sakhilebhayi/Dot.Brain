@@ -175,6 +175,60 @@ function neutralise(src, { blade, twig, braces }) {
   return { text: out, exprs };
 }
 
+// ---- Route::has() guards ---------------------------------------------------------------------------
+
+/** Route names a Blade condition proves exist when it is true: Route::has('x') joined by && only, never negated or or-ed. */
+function guardedRoutes(cond) {
+  if (/\|\||\bor\b/.test(cond)) return [];
+  const names = [];
+  for (const m of cond.matchAll(/(!\s*)?(?:\\?[A-Za-z_][\w\\]*\\)?Route::has\(\s*(['"])([^'"]+)\2\s*\)/g)) if (!m[1]) names.push(m[3]);
+  return names;
+}
+
+/**
+ * The line ranges inside which a route is known to exist because the template asked first:
+ * `@if (Route::has('contact')) ... @endif` (and the matching @elseif branch). Returns [{names, from, to}] with
+ * 1-based inclusive lines. A block that is never closed guards nothing.
+ */
+export function bladeRouteGuards(src) {
+  const guards = [];
+  const starts = [0];
+  for (let p = src.indexOf('\n'); p !== -1; p = src.indexOf('\n', p + 1)) starts.push(p + 1);
+  const lineOf = (pos) => {
+    let lo = 0;
+    let hi = starts.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid] <= pos) lo = mid; else hi = mid - 1; }
+    return lo + 1;
+  };
+  const stack = [];
+  const close = (block, to) => { if (block && block.names.length) guards.push({ names: block.names, from: block.from, to }); };
+  const re = /@(if|elseif|else|endif|unless|endunless)(?![A-Za-z0-9_])/g;
+  for (let m = re.exec(src); m !== null; m = re.exec(src)) {
+    if (src[m.index - 1] === '@') continue; // @@if is an escaped literal
+    const word = m[1];
+    let cond = '';
+    if (word === 'if' || word === 'elseif' || word === 'unless') {
+      let k = re.lastIndex;
+      while (src[k] === ' ' || src[k] === '\t') k += 1;
+      if (src[k] === '(') {
+        const end = scanBalanced(src, k);
+        if (end !== -1) { cond = src.slice(k + 1, end - 1); re.lastIndex = end; }
+      }
+    }
+    const line = lineOf(m.index);
+    if (word === 'if') stack.push({ names: guardedRoutes(cond), from: line });
+    else if (word === 'unless') stack.push({ names: [], from: line });
+    else if (word === 'elseif' || word === 'else') {
+      const top = stack[stack.length - 1];
+      if (top) { close(top, line); top.names = word === 'elseif' ? guardedRoutes(cond) : []; top.from = line; }
+    } else {
+      const top = stack.pop();
+      close(top, line);
+    }
+  }
+  return guards;
+}
+
 // ---- tokeniser / tree ----------------------------------------------------------------------------
 
 const NAME_BIND = /^(?:v-bind:|x-bind:|bind:|:)(.+)$/;
@@ -247,6 +301,7 @@ export function parseTemplate(source, kind) {
   }
   src = blank(src, /@php\b[\s\S]*?@endphp/g);
   src = blank(src, /@verbatim\b[\s\S]*?@endverbatim/g);
+  const routeGuards = kind === 'blade' ? bladeRouteGuards(src) : [];
 
   const { text: neutral, exprs } = neutralise(src, { blade: kind === 'blade' || kind === 'html', twig: kind === 'twig', braces: kind === 'jsx' || kind === 'svelte' });
 
@@ -383,6 +438,7 @@ export function parseTemplate(source, kind) {
     evidenceMarkers,
     exprs,
     kind,
+    routeGuards,
     isDocument: elements.some((e) => e.tag === 'html'),
   };
 }

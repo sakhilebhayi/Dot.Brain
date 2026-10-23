@@ -24,12 +24,17 @@ import { indexRubric } from '../score/rubric.js';
 import { canonicalHash } from '../score/util.js';
 import { ingestReports, adaptersFor } from './adapters/index.js';
 import { DEFAULT_CHECKS_DIR, runChecks } from './registry.js';
+import { createFiles } from './files.js';
 import { readGitInfo } from './git.js';
+import { ScopeError, assertScopeUsable, parseScope } from './scope.js';
 import { CHECK_LIMITS, TEXT_LIMITS } from './limits.js';
 import { orderOfCheck } from './tables.js';
 import { byText } from './text.js';
 
 export const ANALYSIS_VERSION = '1.0.0';
+// 1.1.0 adds one optional field, `evidence[].saturated`. A document names the LOWEST version that can describe it,
+// so an analysis that uses nothing new stays byte-identical to what 1.0.0 produced.
+export const ANALYSIS_VERSION_SATURATION = '1.1.0';
 export const DEFAULT_THEMES = Object.freeze(['light', 'dark']);
 const SEVERITY_RANK = { blocker: 0, major: 1, minor: 2, info: 3 };
 
@@ -71,6 +76,7 @@ function engineErrorFinding(meta, problems) {
  * @param {object} o.rubricBundle   from loadRubric
  * @param {string} [o.reportsDir]
  * @param {string} [o.checksDir]
+ * @param {string} [o.scope]         comma-separated repo-relative path prefixes; limits the surface the static checks list
  */
 export async function analyze({
   root, profile, profileInfo = { source: 'registry' }, rubricBundle, reportsDir, checksDir = DEFAULT_CHECKS_DIR,
@@ -87,6 +93,21 @@ export async function analyze({
   const idx = indexRubric(rubric);
   const sink = { redactions: 0, root: realRoot };
 
+  // ----- scope (D1): which surface of the checkout the static checks are about -----
+  let scopePrefixes = [];
+  let scopeLabel;
+  if (scope !== undefined) {
+    try {
+      const parsed = parseScope(scope);
+      assertScopeUsable(parsed.prefixes, realRoot, createFiles(realRoot).api.list(['**/*']));
+      scopePrefixes = parsed.prefixes;
+      scopeLabel = parsed.label;
+    } catch (error) {
+      if (error instanceof ScopeError) throw new AnalyzeError(error.message);
+      throw error;
+    }
+  }
+
   // ----- the checkout's identity -----
   const git = readGitInfo(realRoot);
   if (commit !== undefined && git.commit && commit !== git.commit) throw new AnalyzeError(`--commit ${commit} contradicts the checkout's HEAD ${git.commit}`);
@@ -95,11 +116,11 @@ export async function analyze({
     repo: repo ?? git.repo ?? null,
     commit: git.commit ?? commit ?? null,
     commit_source: git.commit ? 'git' : commit ? 'flag' : 'none',
-    ...(scope ? { scope } : {}),
+    ...(scopeLabel ? { scope: scopeLabel } : {}),
   };
 
   // ----- checks -----
-  const { outcomes, loadErrors } = await runChecks(checksDir, { root: realRoot, profile, themes: [...themes], timeoutMs, sink });
+  const { outcomes, loadErrors } = await runChecks(checksDir, { root: realRoot, profile, themes: [...themes], scope: scopePrefixes, timeoutMs, sink });
   const checks = [];
   const evidenceRows = [];
   const findingRows = [];
@@ -208,7 +229,7 @@ export async function analyze({
   for (const f of findings) counts.by_severity[f.severity] += 1;
 
   const doc = {
-    analysis_version: ANALYSIS_VERSION,
+    analysis_version: evidence.some((e) => e.saturated === true) ? ANALYSIS_VERSION_SATURATION : ANALYSIS_VERSION,
     engine_version: ENGINE_VERSION,
     input,
     rubric: { id: rubric.id, version: rubric.version, sha256: rubricBundle.sha256 },

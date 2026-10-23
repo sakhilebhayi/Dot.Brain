@@ -3,8 +3,13 @@
 // <title>, buttons and links with no accessible name, iframes with no title, a missing viewport meta,
 // zoom disabled, and ARIA/keyboard misuse that is visible in markup. Dynamic fragments and components are
 // opaque: an element carrying one is skipped, never reported.
+// A finding that would be a blocker (a WCAG A or AA failure in markup) is downgraded to a major, with a note, when the Blade
+// template it sits in is provably not mounted: nothing in the checkout renders it (see _lib/views.js), so no visitor meets it.
+// A blocker caps a dimension and stops the state, and an orphan file should not do that. When reachability cannot be
+// established the finding stays a blocker.
 import { defineCheck } from './_lib/define.js';
 import { templates } from './_lib/sources.js';
+import { viewReach } from './_lib/views.js';
 import { DYN, closest, descendants, textOf } from './_lib/markup.js';
 
 const ID = 'd8.labels_alt_lang';
@@ -49,13 +54,29 @@ export default defineCheck({
     let images = 0; let imagesOk = 0;
     let docs = 0; let docsOk = 0;
     const skippedOpaque = { dynamic: 0 };
+    let downgraded = 0;
+    const reach = () => viewReach(repo);
 
     for (const t of templates(repo)) {
       const labelFor = new Set();
       for (const el of t.elements) {
         if ((el.tag === 'label' || (el.component && /label/i.test(el.rawTag))) && present(el, 'for')) labelFor.add(val(el, 'for'));
       }
-      const add = (rule, severity, el, message, hint, extra = {}) => findings.push({ rule, severity, message, file: t.rel, line: el.line, hint, ...extra });
+      const add = (rule, severity, el, message, hint, extra = {}) => {
+        let sev = severity;
+        let msg = message;
+        let rest = extra;
+        if (severity === 'blocker' && t.kind === 'blade') {
+          const why = reach().unmountedWhy(t.rel);
+          if (why) {
+            sev = 'major';
+            msg = `${message} ${why}`;
+            rest = Object.fromEntries(Object.entries(extra).filter(([k]) => k !== 'kind')); // a major carries no kind: it can never become a score blocker
+            downgraded += 1;
+          }
+        }
+        findings.push({ rule, severity: sev, message: msg, file: t.rel, line: el.line, hint, ...rest });
+      };
 
       if (t.isDocument) {
         const html = t.elements.find((e) => e.tag === 'html');
@@ -151,7 +172,7 @@ export default defineCheck({
     if (total === 0) return { notMeasured: 'no form fields, images or full documents (<html>) were found in static markup (components and dynamic fragments are not inspected)', findings };
     return {
       value: (controlsOk + imagesOk + docsOk) / total,
-      detail: `${controlsOk}/${controls} form fields labelled (reusable component files are skipped: their consumer supplies the label), ${imagesOk}/${images} images with alt, ${docsOk}/${docs} documents with lang; ${skippedOpaque.dynamic} element(s) with dynamic attributes and all components were skipped. Title, name, iframe, viewport and ARIA findings do not change this share.`,
+      detail: `${controlsOk}/${controls} form fields labelled (reusable component files are skipped: their consumer supplies the label), ${imagesOk}/${images} images with alt, ${docsOk}/${docs} documents with lang; ${skippedOpaque.dynamic} element(s) with dynamic attributes and all components were skipped. Title, name, iframe, viewport and ARIA findings do not change this share.${downgraded ? ` ${downgraded} would-be blocker(s) sit in templates nothing mounts and were downgraded to major.` : ''}`,
       findings,
     };
   },

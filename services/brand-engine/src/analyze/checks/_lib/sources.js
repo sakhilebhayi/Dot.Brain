@@ -9,17 +9,24 @@ import { isShippedStyle, isShippedTemplate, kindOf, safeRel } from './repo.js';
 
 // ---- templates -----------------------------------------------------------------------------------
 
+function parsedTemplate(repo, rel) {
+  const cache = repo.memo('parsedTemplates', () => new Map());
+  if (!cache.has(rel)) {
+    const source = repo.read(rel);
+    const kind = kindOf(rel);
+    cache.set(rel, source === null ? null : { rel, kind, source, ...parseTemplate(source, kind) });
+  }
+  return cache.get(rel);
+}
+
+/** The templates under analysis: all of them, or those under the --scope prefixes. */
 export function templates(repo) {
-  return repo.memo('templates', () => {
-    const out = [];
-    for (const rel of repo.list((r) => isShippedTemplate(r))) {
-      const source = repo.read(rel);
-      if (source === null) continue;
-      const kind = kindOf(rel);
-      out.push({ rel, kind, source, ...parseTemplate(source, kind) });
-    }
-    return out;
-  });
+  return repo.memo('templates', () => repo.list((r) => isShippedTemplate(r)).map((rel) => parsedTemplate(repo, rel)).filter(Boolean));
+}
+
+/** Every shipped template of the checkout, in scope or not: for reference scans ("is this view mounted?"), never for judging. */
+export function allTemplates(repo) {
+  return repo.memo('allTemplates', () => repo.listAll((r) => isShippedTemplate(r)).map((rel) => parsedTemplate(repo, rel)).filter(Boolean));
 }
 
 // ---- stylesheets ---------------------------------------------------------------------------------

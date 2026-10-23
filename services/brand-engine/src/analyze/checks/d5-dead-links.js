@@ -2,6 +2,9 @@
 // routes/*.php, a named route, or a file in the checkout. A link that static analysis cannot judge (a
 // variable, a package-provided route, an asset that is built at deploy time, a client-side router) is
 // counted as unverifiable and left out of the share; the detail says how many.
+// A link to a named route that the template itself guards with `@if (Route::has('name'))` is not dead: if the route is
+// missing the link is not rendered. Such links are counted apart ("guarded") and left out of the share. Pages that Jetstream
+// registers (terms and privacy policy) resolve through the framework's own route names and paths (see routes.js).
 import { defineCheck } from './_lib/define.js';
 import { templates } from './_lib/sources.js';
 import { routeTable, pathMatches } from './_lib/routes.js';
@@ -15,13 +18,14 @@ const PACKAGE_PATH = /^\/(?:login|logout|register|forgot-password|reset-password
 const PACKAGE_NAME = /^(?:login|logout|register|password\.|verification\.|two-factor\.|profile\.|sanctum\.|livewire\.|current-team\.|teams\.|api-tokens\.|terms\.|policy\.|filament\.|nova\.|passport\.|cashier\.|dashboard$)/;
 
 function classify(link, t, table, repo) {
-  // link: { value, exprs }
+  // link: { value, exprs, line }
   let { value } = link;
   if (value.split('#')[0].split('?')[0] === DYN) {
     // the whole target is one expression: read route('name') and url('/path'); anything else is a variable
     const body = (link.exprs[0] ?? '').trim().replace(/^\{\{\s*|\s*\}\}$/g, '').replace(/^\{!!\s*|\s*!!\}$/g, '');
     const rn = /^route\(\s*(['"])([\w.\-]+)\1/.exec(body);
     if (rn) {
+      if (t.routeGuards?.some((g) => g.names.includes(rn[2]) && g.from <= link.line && link.line <= g.to)) return { guarded: true };
       if (table.names.has(rn[2])) return { ok: true };
       if (table.packageRoutes && PACKAGE_NAME.test(rn[2])) return { unverifiable: true };
       return { dead: `route('${rn[2]}') names a route that is not defined in routes/*.php` };
@@ -72,7 +76,7 @@ export default defineCheck({
   measure(repo) {
     const table = routeTable(repo);
     const findings = [];
-    let ok = 0; let dead = 0; let unverifiable = 0;
+    let ok = 0; let dead = 0; let unverifiable = 0; let guarded = 0;
     for (const t of templates(repo)) {
       if (t.kind === 'jsx' || t.kind === 'vue' || t.kind === 'svelte') {
         // client-side routers: links cannot be matched to a server route table
@@ -83,8 +87,9 @@ export default defineCheck({
         if (el.component) continue;
         const a = el.tag === 'a' ? el.attrs.get('href') : el.tag === 'form' ? el.attrs.get('action') : null;
         if (!a || (a.dynamic && !a.value.includes(DYN))) { if (a) unverifiable += 1; continue; }
-        const r = classify({ value: a.value.trim(), exprs: a.exprs }, t, table, repo);
+        const r = classify({ value: a.value.trim(), exprs: a.exprs, line: a.line }, t, table, repo);
         if (r.skip) continue;
+        if (r.guarded) { guarded += 1; continue; }
         if (r.ok) ok += 1;
         else if (r.dead) {
           dead += 1;
@@ -95,7 +100,7 @@ export default defineCheck({
     if (ok + dead === 0) return { notMeasured: `no internal link could be checked statically (${unverifiable} unverifiable: variables, package routes, client-side routers or build output)` };
     return {
       value: ok / (ok + dead),
-      detail: `${ok} of ${ok + dead} checkable internal links resolve; ${unverifiable} link(s) could not be judged statically and are not counted. ${table.hasRoutes ? `${table.routes.length} route(s) read from ${table.files.length} file(s) in routes/` : 'No routes/ directory: links were matched to files'}${table.packageRoutes ? '; package-provided routes (login, register, ...) are treated as unverifiable' : ''}.`,
+      detail: `${ok} of ${ok + dead} checkable internal links resolve; ${unverifiable} link(s) could not be judged statically and are not counted${guarded ? `; ${guarded} link(s) sit inside a Route::has() guard for the route they name and are not counted either` : ''}. ${table.hasRoutes ? `${table.routes.length - table.provided} route(s) read from ${table.files.length} file(s) in routes/${table.provided ? ` plus ${table.provided} page(s) the framework registers (Jetstream terms and privacy)` : ''}` : 'No routes/ directory: links were matched to files'}${table.packageRoutes ? '; package-provided routes (login, register, ...) are treated as unverifiable' : ''}.`,
       findings,
     };
   },

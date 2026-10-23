@@ -22,10 +22,21 @@
 // "advisory" or "info" are listed as info findings and never counted.
 // A hit with an unknown category is counted in d4 (it is not an identity rule
 // the rubric names), and the count of such hits is stated in the evidence detail.
+//
+// SATURATION. The value is a floor, not a measurement, once n reaches the ceiling:
+// 10 hits and 191 hits both read 0.00. The evidence says so (detail starts with
+// "SATURATED" and the row carries `saturated: true`) so the score can leave it out of the
+// automated-versus-expert comparison instead of presenting a floor as a level. The VALUE
+// and the ceiling are unchanged: normalising by scanned pages is a rubric-side change and
+// is written up as a proposal (brand/proposals), never decided here.
+//
+// FILE VALUES. A hit's `file` is usually an absolute path, made relative to the checkout.
+// A detector run against a served page reports a URL instead: that becomes the opaque
+// identifier `url:<path>` (scheme, host, port, query and fragment dropped; see urlIdentifier).
 import { DETECTOR_CEILING, REPORT_LIMITS, TEXT_LIMITS } from '../limits.js';
 import { DIMENSION_BY_ORDER } from '../tables.js';
 import { safeText } from '../text.js';
-import { AdapterError, isObject, parseJson, refName, relativeTo } from './common.js';
+import { AdapterError, isObject, parseJson, refName, relativeTo, urlIdentifier } from './common.js';
 
 export const NAME = 'detector';
 export const PRIORITY = 10;
@@ -35,6 +46,16 @@ const MOTION_RULES = new Set(['bounce-easing', 'animate-bounce']);
 const IDENTITY_CATEGORIES = new Set(['slop']);
 const KNOWN_CATEGORIES = new Set(['slop', 'quality']);
 const ANTIPATTERN = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
+function locate(root, raw, sink) {
+  const id = urlIdentifier(raw, sink);
+  if (id !== null) return id;
+  let path = raw;
+  if (/^file:\/\//i.test(path)) {
+    try { path = decodeURIComponent(new URL(path).pathname); } catch { /* keep the raw value; relativeTo makes it safe */ }
+  }
+  return relativeTo(root, path, sink);
+}
 
 export const matchesName = (name) => /(?:detect|impeccable)[^/]*\.json$/i.test(name);
 export const sniff = (value) => Array.isArray(value) && value.length > 0 && isObject(value[0]) && typeof value[0].antipattern === 'string';
@@ -59,7 +80,7 @@ export function ingest(inputs, { root, sink, ceiling = DETECTOR_CEILING }) {
       if (e.line !== undefined && !(Number.isInteger(e.line) && e.line >= 0 && e.line < 1e7)) throw new AdapterError(NAME, input.name, `entry ${i} has an invalid line`);
       if (e.severity !== undefined && typeof e.severity !== 'string') throw new AdapterError(NAME, input.name, `entry ${i} has an invalid severity`);
       if (e.category !== undefined && typeof e.category !== 'string') throw new AdapterError(NAME, input.name, `entry ${i} has an invalid category`);
-      const file = relativeTo(root, e.file, sink);
+      const file = locate(root, e.file, sink);
       const line = e.line > 0 ? e.line : undefined;
       const snippet = safeText(e.snippet ?? '', 200, sink);
       const key = `${e.antipattern}|${file}|${line ?? 0}|${snippet}`;
@@ -99,12 +120,19 @@ export function ingest(inputs, { root, sink, ceiling = DETECTOR_CEILING }) {
   }
 
   const ref = sources.length === 1 ? sources[0] : `${sources[0]}+${sources.length - 1}`;
-  const evidence = Object.entries(counted).map(([check_id, n]) => ({
-    check_id,
-    value: Math.max(0, 1 - n / ceiling),
-    detail: `${n} distinct detector finding(s) counted against a ceiling of ${ceiling}; advisory hits are listed and not counted${check_id === 'd4.detector_clean' && unknownCategory ? `; ${unknownCategory} hit(s) had a category the rubric does not name and were counted here` : ''}.`,
-    artifact_ref: ref,
-    origin: `adapter:${NAME}`,
-  }));
+  const evidence = Object.entries(counted).map(([check_id, n]) => {
+    const saturated = n >= ceiling;
+    const body = `${n} distinct detector finding(s) counted against a ceiling of ${ceiling}; advisory hits are listed and not counted${check_id === 'd4.detector_clean' && unknownCategory ? `; ${unknownCategory} hit(s) had a category the rubric does not name and were counted here` : ''}.`;
+    return {
+      check_id,
+      value: Math.max(0, 1 - n / ceiling),
+      detail: saturated
+        ? `SATURATED: ${body} The value 0 is a floor: ${ceiling} and ${n > ceiling ? n : 'more'} hits read the same, so it says the product is at or past the ceiling, not how far past. It is left out of the comparison with expert levels.`
+        : body,
+      ...(saturated ? { saturated: true } : {}),
+      artifact_ref: ref,
+      origin: `adapter:${NAME}`,
+    };
+  });
   return { evidence, findings, notes: [] };
 }

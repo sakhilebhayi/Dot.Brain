@@ -29,19 +29,20 @@ import { DocError, readBounded, readEngineDocument } from './docs.js';
 import { plan } from './plan.js';
 import { DEFAULT_CHECKS_DIR } from './registry.js';
 import { renderAnalysis, renderPlan, renderVerification } from './render.js';
+import { ScopeError, parseScope } from './scope.js';
 import { sha256Hex } from '../score/util.js';
 import { VerifyRefused, verify } from './verify.js';
 
 export const WORKFLOW_COMMANDS = ['analyze', 'plan', 'verify', 'evidence'];
 
 export const WORKFLOW_USAGE = [
-  'usage: brand-engine analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--rubric bxqs-1.0.0] [--brand-dir <dir>]',
+  'usage: brand-engine analyze <path> [--profile <id|file>] [--reports <dir>] [--out <dir>] [--repo <owner/name>] [--commit <sha>] [--themes light,dark] [--scope <path-prefix[,..]>] [--rubric bxqs-1.0.0] [--brand-dir <dir>]',
   '       brand-engine plan <analysis.json> [--out <dir>] [--brand-dir <dir>]',
-  '       brand-engine verify --before <analysis.json> <path> [--profile <id|file>] [--reports <dir>] [--plan <plan.json>] [--claimed <T-id,...|all>] [--out <dir>] [--brand-dir <dir>]',
+  '       brand-engine verify --before <analysis.json> <path> [--profile <id|file>] [--reports <dir>] [--scope <path-prefix[,..]>] [--plan <plan.json>] [--claimed <T-id,...|all>] [--out <dir>] [--brand-dir <dir>]',
   '       brand-engine evidence assemble --analysis <analysis.json> --built-by <id> [--assessments <file>] [--observed <file>] [--generated-at <date-time>] [--repo <owner/name>] [--commit <sha>] [--assistive-tech true|false] [-o <evidence.json>] [--brand-dir <dir>]',
 ].join('\n');
 
-const COMMON = ['--profile', '--reports', '--out', '--repo', '--commit', '--themes', '--rubric', '--brand-dir', '--checks-dir', '--timeout-ms'];
+const COMMON = ['--profile', '--reports', '--out', '--repo', '--commit', '--themes', '--scope', '--rubric', '--brand-dir', '--checks-dir', '--timeout-ms'];
 const FLAGS = {
   analyze: new Set(COMMON),
   plan: new Set(['--out', '--brand-dir']),
@@ -124,6 +125,12 @@ function analyzeOptions(args, err) {
     const themes = args.flags['--themes'].split(',').map((t) => t.trim());
     if (themes.some((t) => !/^[a-z][a-z0-9_-]{0,39}$/.test(t)) || new Set(themes).size !== themes.length) { err('--themes must be a comma-separated list of distinct names such as light,dark'); return null; }
     o.themes = themes;
+  }
+  if (args.flags['--scope'] !== undefined) {
+    try { o.scope = parseScope(args.flags['--scope']).label; } catch (error) {
+      if (error instanceof ScopeError) { err(error.message); return null; }
+      throw error;
+    }
   }
   if (args.flags['--repo'] !== undefined) {
     if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(args.flags['--repo'])) { err('--repo must look like owner/name'); return null; }
@@ -245,6 +252,9 @@ export async function workflowMain(argv, deps = {}) {
       // The baseline fixes the methodology: same rubric, same profile, same themes unless told otherwise.
       opts.themes ??= before.themes;
       opts.repo ??= before.input.repo ?? undefined;
+      // The scope is part of the methodology too: a different surface is a different baseline, not a fix.
+      if (opts.scope !== undefined && opts.scope !== (before.input.scope ?? undefined)) { err(`refused: --scope ${opts.scope} differs from the baseline's scope (${before.input.scope ?? 'the whole checkout'}); re-run analyze for a new baseline instead of comparing across scopes`); return EXIT.REFUSED; }
+      opts.scope ??= before.input.scope;
       const ctx = context(args, { err, root: realRoot, profileFallback: before.profile.source === 'registry' ? before.profile.id : undefined, rubricRef: `${before.rubric.id}-${before.rubric.version}` });
       if (ctx.code !== undefined) return ctx.code;
 

@@ -57,6 +57,6 @@ test('performance: a 2,000-file checkout is analysed by all checks in a few seco
   const t0 = process.hrtime.bigint();
   const results = all(root);
   const seconds = Number(process.hrtime.bigint() - t0) / 1e9;
-  assert.ok(results.filter((r) => r.status === 'measured').length >= 15, 'the checks actually measured');
+  assert.ok(results.filter((r) => r.status === 'measured').length >= 13, 'the checks actually measured');
   assert.ok(seconds < 10, `took ${seconds.toFixed(1)}s`);
 });

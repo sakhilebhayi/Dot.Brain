@@ -18,7 +18,7 @@ import { createFiles } from './files.js';
 const post = (message) => parentPort.postMessage(message);
 
 try {
-  const { mode, file, root, profile, themes } = workerData;
+  const { mode, file, root, profile, themes, scope } = workerData;
   const imported = await import(pathToFileURL(file).href);
   const mod = imported.default;
   const problems = validateCheckModule(mod, basename(file));
@@ -28,7 +28,7 @@ try {
     post({ kind: 'meta', meta: { id: mod.id, dimension: mod.dimension, title: mod.title } });
   } else {
     const files = createFiles(root);
-    const ctx = Object.freeze({ root: files.root, profile, files: files.api, themes: Object.freeze([...themes]) });
+    const ctx = Object.freeze({ root: files.root, profile, files: files.api, themes: Object.freeze([...themes]), scope: Object.freeze([...(scope ?? [])]) });
     const meta = { id: mod.id, dimension: mod.dimension, title: mod.title };
     post({ kind: 'ready', meta }); // so a timeout or crash can still be attributed to this check
     if (!(await mod.appliesTo(ctx))) post({ kind: 'not_applicable', meta, skipped: files.skipped() });

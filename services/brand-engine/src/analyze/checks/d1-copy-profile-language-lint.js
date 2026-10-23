@@ -14,6 +14,9 @@ export default defineCheck({
   measure(repo, ctx) {
     const facts = profileFacts(ctx.profile);
     if (!facts.present) return { notMeasured: 'no profile was resolved, so the banned phrases and claims policy are unknown' };
+    // With no phrase to look for, the lint has nothing to measure. Its other half (claim patterns) is scored once, by
+    // d6.claim_lint; counting those hits here would score them twice, and a 1.00 for "no phrase matched an empty list" is not a pass.
+    if (facts.bannedPhrases.length === 0) return { notMeasured: `the resolved profile (${facts.id}) lists no banned phrases, so there is nothing to lint for; claim patterns are scored by d6.claim_lint` };
     const { units, hits: banned } = bannedScan(repo, facts.bannedPhrases);
     if (units.length === 0) return { notMeasured: 'no static user-facing text (template text, attributes or language files) was found to scan' };
     const claimHits = claimScan(repo).hits.filter((h) => h.evidence?.exists !== true);
@@ -37,7 +40,7 @@ export default defineCheck({
     const failing = bad.size + markup.length;
     return {
       value: (total - failing) / total,
-      detail: `${total} user-facing string(s) scanned against ${facts.bannedPhrases.length} banned phrase(s) of profile ${facts.id}${facts.bannedPhrases.length === 0 ? ' (the profile lists none)' : ''}; ${bad.size} string(s) trip a banned phrase or an unsupported-claim pattern${markup.length ? ` and ${markup.length} markup claim(s)` : ''} (claim hits are listed under d6.claim_lint).`,
+      detail: `${total} user-facing string(s) scanned against ${facts.bannedPhrases.length} banned phrase(s) of profile ${facts.id}; ${bad.size} string(s) trip a banned phrase or an unsupported-claim pattern${markup.length ? ` and ${markup.length} markup claim(s)` : ''} (claim hits are listed under d6.claim_lint).`,
       findings,
     };
   },

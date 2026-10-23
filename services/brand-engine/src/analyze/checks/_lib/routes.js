@@ -238,9 +238,33 @@ export function composerPackages(repo) {
   });
 }
 
+/**
+ * Pages a package registers on its own. Today: Jetstream's terms and privacy pages (`/terms-of-service`, `/privacy-policy`,
+ * route names `terms.show` and `policy.show`), whose text lives in resources/markdown/terms.md and policy.md. They exist
+ * when config/jetstream.php enables `Features::termsAndPrivacyPolicy()`; with no config file in the checkout the markdown
+ * files are taken as the sign that they are in use. A config that does not enable the feature registers nothing, so a link
+ * to those pages is still reported.
+ */
+export function frameworkPages(repo) {
+  return repo.memo('frameworkPages', () => {
+    const pages = [];
+    if (!composerPackages(repo).has('laravel/jetstream')) return pages;
+    const cfg = repo.read('config/jetstream.php');
+    const enabled = cfg === null
+      ? repo.exists('resources/markdown/terms.md') || repo.exists('resources/markdown/policy.md')
+      : /\bFeatures::termsAndPrivacyPolicy\s*\(/.test(stripPhpComments(cfg));
+    if (!enabled) return pages;
+    pages.push(
+      { method: 'GET', path: '/terms-of-service', name: 'terms.show', line: 1, view: null, file: 'config/jetstream.php', provider: 'laravel/jetstream', markdown: 'resources/markdown/terms.md' },
+      { method: 'GET', path: '/privacy-policy', name: 'policy.show', line: 1, view: null, file: 'config/jetstream.php', provider: 'laravel/jetstream', markdown: 'resources/markdown/policy.md' },
+    );
+    return pages;
+  });
+}
+
 export function routeTable(repo) {
   return repo.memo('routes', () => {
-    const files = repo.list((rel) => /^routes\/[^/]+\.php$/.test(rel));
+    const files = repo.listAll((rel) => /^routes\/[^/]+\.php$/.test(rel));
     const routes = [];
     let usesAuthRoutes = false;
     for (const f of files) {
@@ -251,8 +275,10 @@ export function routeTable(repo) {
     }
     const pkgs = composerPackages(repo);
     const packageRoutes = ROUTE_PACKAGES.some((p) => pkgs.has(p)) || usesAuthRoutes;
+    const provided = frameworkPages(repo);
+    routes.push(...provided);
     const names = new Set(routes.map((r) => r.name).filter(Boolean));
-    return { files, routes, names, packageRoutes, hasRoutes: files.length > 0 };
+    return { files, routes, names, packageRoutes, hasRoutes: files.length > 0, provided: provided.length };
   });
 }
 

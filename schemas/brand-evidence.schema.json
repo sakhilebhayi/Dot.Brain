@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "patternProperties": { "^x-": {} },
   "properties": {
-    "evidence_version": { "const": "1.0.0" },
+    "evidence_version": { "enum": ["1.0.0", "1.1.0"], "description": "1.1.0 adds assessors[].declaration and automated[].saturated. A file names the lowest version that can describe it; a 1.0.0 file is still valid." },
     "generated_at": { "type": "string", "format": "date-time" },
     "input": {
       "type": "object",
@@ -37,7 +37,18 @@
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "minLength": 1, "maxLength": 100 },
-          "kind": { "enum": ["human", "ai"] }
+          "kind": { "enum": ["human", "ai"] },
+          "declaration": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "evidence_version 1.1.0. What the assessor says about itself. Recorded in the report and never read by the scoring arithmetic: it cannot raise a number. Contradictions (with the assessor's kind, with another flag, with built_by) are refused by services/brand-engine.",
+            "properties": {
+              "built_the_change": { "type": "boolean", "description": "The assessor says it built the change under assessment. Must agree with built_by." },
+              "fresh_reviewer": { "type": "boolean", "description": "The assessor says it took no part in building or earlier assessing this change and saw no earlier conclusions about it." },
+              "ai_only": { "type": "boolean", "description": "No person wrote or edited this assessor's levels and notes. Must equal (kind is ai)." },
+              "statement": { "type": "string", "minLength": 1, "maxLength": 700 }
+            }
+          }
         }
       }
     },
@@ -51,7 +62,8 @@
           "check_id": { "type": "string", "pattern": "^d[0-9]{1,2}\\.[a-z0-9_]+$" },
           "value": { "type": "number", "minimum": 0, "maximum": 1 },
           "detail": { "$ref": "#/$defs/text" },
-          "artifact_ref": { "$ref": "#/$defs/artifactRef" }
+          "artifact_ref": { "$ref": "#/$defs/artifactRef" },
+          "saturated": { "const": true, "description": "evidence_version 1.1.0. The value is a floor: the source reached its ceiling. It is scored as given and left out of the automated-versus-expert comparison." }
         }
       }
     },

@@ -65,12 +65,14 @@ export default defineCheck({
 
     const total = claimBearing.size;
     const bad = violating.size;
+    // Nothing claim-bearing is not a pass: the patterns find what they know, and a share of zero strings is not 1.00.
+    if (total === 0) return { notMeasured: `${units.length} user-facing string(s) were scanned and none carries a claim or figure the patterns know, so there is no share to measure (this is not proof that the copy is accurate)`, findings };
     const policyIdsMapped = new Set(CLAIM_RULES.flatMap((r) => policyRulesFor(r.category, facts)));
     const unmapped = facts.forbidden.filter((r) => !policyIdsMapped.has(r.id)).map((r) => r.id);
-    const value = total === 0 ? 1 : (total - bad) / total;
+    const value = (total - bad) / total;
     return {
       value,
-      detail: `${units.length} user-facing string(s) scanned; ${total} carry a claim or figure and ${bad} of them are unsupported${total === 0 ? ' (none found: this is the absence of a violation, not proof of accuracy)' : ''}. ${facts.present ? `Profile ${facts.id}: ${facts.forbidden.length} claims_policy rule(s), ${unmapped.length} with no pattern detector (${unmapped.slice(0, 6).join(', ') || 'none'}).` : 'No profile was resolved, so only the generic patterns ran.'}`,
+      detail: `${units.length} user-facing string(s) scanned; ${total} carry a claim or figure and ${bad} of them are unsupported. ${facts.present ? `Profile ${facts.id}: ${facts.forbidden.length} claims_policy rule(s), ${unmapped.length} with no pattern detector (${unmapped.slice(0, 6).join(', ') || 'none'}).` : 'No profile was resolved, so only the generic patterns ran.'}`,
       findings,
     };
   },

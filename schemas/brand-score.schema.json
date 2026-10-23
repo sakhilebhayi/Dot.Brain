@@ -7,7 +7,7 @@
   "required": ["report_version", "header", "headline", "state", "state_reasons", "release_ready_unmet", "confidence", "dimensions", "blockers", "findings_recorded", "rejected_evidence", "missing_evidence", "domain_overrides"],
   "additionalProperties": false,
   "properties": {
-    "report_version": { "const": "1.0.0" },
+    "report_version": { "enum": ["1.0.0", "1.1.0"], "description": "1.1.0 adds header.assessors[].declaration, entries[].saturated and components.automated_check.checks_saturated. A report names the lowest version that can describe it." },
     "header": {
       "type": "object",
       "required": ["rubric", "engine_version", "profile", "input", "generated_at", "assessors"],
@@ -61,7 +61,18 @@
             "additionalProperties": false,
             "properties": {
               "id": { "type": "string", "minLength": 1 },
-              "kind": { "enum": ["human", "ai"] }
+              "kind": { "enum": ["human", "ai"] },
+              "declaration": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "report_version 1.1.0. What the assessor declared about itself, copied from the evidence. Recorded only: no number in this report depends on it.",
+                "properties": {
+                  "built_the_change": { "type": "boolean" },
+                  "fresh_reviewer": { "type": "boolean" },
+                  "ai_only": { "type": "boolean" },
+                  "statement": { "type": "string", "minLength": 1, "maxLength": 700 }
+                }
+              }
             }
           }
         }
@@ -251,7 +262,8 @@
                 "points_possible": { "$ref": "#/$defs/points" },
                 "points_earned": { "$ref": "#/$defs/points" },
                 "checks_total": { "type": "integer", "minimum": 0 },
-                "checks_measured": { "type": "integer", "minimum": 0 }
+                "checks_measured": { "type": "integer", "minimum": 0 },
+                "checks_saturated": { "type": "integer", "minimum": 1, "description": "report_version 1.1.0. How many measured checks reached their ceiling (the value is a floor)." }
               }
             },
             "expert_assessment": {
@@ -302,7 +314,8 @@
         "disposition": { "enum": ["counted", "corroborating", "recorded_not_counted", "rejected", "not_measured"] },
         "reason_code": { "type": "string", "minLength": 1 },
         "detail": { "type": "string", "minLength": 1 },
-        "artifact_ref": { "type": "string", "minLength": 1 }
+        "artifact_ref": { "type": "string", "minLength": 1 },
+        "saturated": { "const": true, "description": "report_version 1.1.0. Counted as given; left out of the comparison with expert levels." }
       }
     }
   }

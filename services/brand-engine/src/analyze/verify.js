@@ -49,6 +49,9 @@ export function assertComparable(before, after, plan) {
   if (before.input.repo && after.input.repo && before.input.repo !== after.input.repo) {
     throw new VerifyRefused(`the baseline is for ${before.input.repo}, this checkout is ${after.input.repo}`);
   }
+  if ((before.input.scope ?? null) !== (after.input.scope ?? null)) {
+    throw new VerifyRefused(`the scope differs (${before.input.scope ?? 'the whole checkout'} vs ${after.input.scope ?? 'the whole checkout'}): findings of another surface would read as fixed or new`);
+  }
   if (plan) {
     const pb = integrityProblems(plan);
     if (pb.length) throw new VerifyRefused(`--plan: ${pb[0]}`);

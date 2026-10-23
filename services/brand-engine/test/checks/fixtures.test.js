@@ -138,7 +138,8 @@ test('good fixture: every measurable check measures, and nothing is better than 
   const values = {};
   for (const [id] of checks) {
     const r = runOn(checks, id, GOOD);
-    if (id === 'd6.honest_states') { assert.equal(r.status, 'not_measured'); continue; }
+    // never a value (honest_states), or an empty set (nothing claim-bearing; no outline removed): not a pass at 1.00
+    if (['d6.honest_states', 'd6.claim_lint', 'd8.focus_visible'].includes(id)) { assert.equal(r.status, 'not_measured', id); assert.deepEqual(r.evidence, [], id); continue; }
     assert.equal(r.status, 'measured', `${id}: ${reasonOf(r)}`);
     values[id] = r.evidence[0].result;
   }

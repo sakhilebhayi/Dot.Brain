@@ -14,6 +14,7 @@ export function renderAnalysis(a) {
   L.push('# Brand experience analysis');
   L.push('');
   L.push(`- Repository: ${a.input.repo ?? 'unknown'}; commit: ${a.input.commit ?? 'unknown'} (${a.input.commit_source})`);
+  L.push(`- Scope: ${a.input.scope ?? 'the whole checkout'}`);
   L.push(`- Profile: ${a.profile.id}@${a.profile.version} (${a.profile.effective_status}); rubric ${a.rubric.id}@${a.rubric.version}`);
   L.push(`- Checks run: ${a.counts.checks}; evidence rows: ${a.counts.evidence}; findings: ${a.counts.findings} (${a.counts.by_severity.blocker} blocker, ${a.counts.by_severity.major} major, ${a.counts.by_severity.minor} minor, ${a.counts.by_severity.info} info)`);
   L.push(`- Not measured: ${a.counts.not_measured} rubric check(s); these count as zero in the score and are listed below.`);

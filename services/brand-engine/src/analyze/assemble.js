@@ -22,6 +22,9 @@ import { toScoreFinding } from './finding-kinds.js';
 import { byText } from './text.js';
 
 export const EVIDENCE_VERSION = '1.0.0';
+// 1.1.0 adds assessors[].declaration and automated[].saturated. The file names the LOWEST version that can describe it,
+// so an assembly that uses neither stays byte-identical to what 1.0.0 produced.
+export const EVIDENCE_VERSION_DECLARATIONS = '1.1.0';
 const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
 
 export class AssembleError extends Error {
@@ -72,16 +75,19 @@ export function assemble({ analysis, rubric, assessments, observed, builtBy, gen
     rubric: `${analysis.rubric.id}@${analysis.rubric.version}`,
   };
 
+  const assessorList = assessments ? assessments.assessors : [];
+  const usesNewFeatures = assessorList.some((a) => a.declaration !== undefined) || analysis.evidence.some((e) => e.saturated === true);
   const evidence = {
-    evidence_version: EVIDENCE_VERSION,
+    evidence_version: usesNewFeatures ? EVIDENCE_VERSION_DECLARATIONS : EVIDENCE_VERSION,
     generated_at: stamp,
     input: { repo: useRepo, commit: useCommit, ...(analysis.input.scope ? { scope: analysis.input.scope } : {}) },
     ...(builtBy !== undefined ? { built_by: builtBy } : {}),
     context: { assistive_technology_testing_possible: assistiveTechnologyTestingPossible },
-    assessors: assessments ? assessments.assessors : [],
+    assessors: assessorList,
     automated: analysis.evidence.map((e) => ({
       check_id: e.check_id, value: e.value, ...(e.detail ? { detail: e.detail } : {}),
       artifact_ref: `${e.origin}:${e.artifact_ref}`.replace(/\s+/g, '_').slice(0, 300),
+      ...(e.saturated === true ? { saturated: true } : {}),
     })),
     expert: assessments ? assessments.expert : [],
     observed: observed ? observed.observed : [],

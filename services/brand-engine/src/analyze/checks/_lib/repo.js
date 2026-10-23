@@ -19,6 +19,7 @@
 // with the same rules. A Repo is cached per ctx (WeakMap).
 import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { isAbsolute, join, posix, sep } from 'node:path';
+import { inScope } from '../../scope.js';
 
 export const MAX_BYTES = 1024 * 1024; // the same cap as the analyzer's file API
 export const MAX_TOTAL_BYTES = 32 * 1024 * 1024;
@@ -94,6 +95,10 @@ export class Repo {
     this._totalRead = 0;
     this.entries = [];
     this._all = new Set();
+    // --scope: path prefixes that limit which files list() offers as a surface. exists()/read() and
+    // listAll() still see the whole checkout, because a link in an in-scope template is resolved
+    // against routes that live elsewhere.
+    this.scope = Array.isArray(ctx?.scope) ? ctx.scope.map(safeRel).filter((p) => p !== null) : [];
     try {
       const rootPath = ctx?.root;
       if (typeof rootPath !== 'string' || rootPath === '') throw new Error('no root');
@@ -198,8 +203,18 @@ export class Repo {
     return this.entries.some((e) => e.rel.startsWith(prefix));
   }
 
-  /** Relative paths of scanned files matching a predicate on (rel, kind), sorted. */
+  /** True when the path is part of the surface under analysis (always true without a scope). */
+  inScope(rel) {
+    return inScope(this.scope, rel);
+  }
+
+  /** Relative paths of the SURFACE files (those in scope) matching a predicate on (rel, kind), sorted. */
   list(pred = () => true) {
+    return this.entries.filter((e) => this.inScope(e.rel) && pred(e.rel, e.kind)).map((e) => e.rel);
+  }
+
+  /** Like list(), but over the whole checkout: for inventories of what exists (routes, handlers), never for what is judged. */
+  listAll(pred = () => true) {
     return this.entries.filter((e) => pred(e.rel, e.kind)).map((e) => e.rel);
   }
 

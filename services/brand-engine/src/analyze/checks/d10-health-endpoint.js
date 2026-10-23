@@ -30,7 +30,7 @@ export default defineCheck({
       exists = true;
       where = { file: 'bootstrap/app.php', line: lineIndex(bootstrap)(builtIn.index) };
       how = `framework health route ${builtIn[1]}`;
-      const listener = repo.list((r) => /^app\/.+\.php$/.test(r)).some((r) => /DiagnosingHealth/.test(repo.read(r) ?? ''));
+      const listener = repo.listAll((r) => /^app\/.+\.php$/.test(r)).some((r) => /DiagnosingHealth/.test(repo.read(r) ?? ''));
       failure = listener;
       if (!listener) how += ' with no DiagnosingHealth listener (it answers 200 whenever the app boots)';
     }
@@ -45,7 +45,7 @@ export default defineCheck({
       let handlerSrc = window;
       const cls = /\[\s*([A-Z]\w+)::class/.exec(window)?.[1] ?? /([A-Z]\w+)::class/.exec(window)?.[1];
       if (cls) {
-        const file = repo.list((p) => p.endsWith(`/${cls}.php`) && p.startsWith('app/'))[0];
+        const file = repo.listAll((p) => p.endsWith(`/${cls}.php`) && p.startsWith('app/'))[0];
         if (file) handlerSrc += `\n${repo.read(file) ?? ''}`;
       }
       if (FAILURE.test(handlerSrc)) failure = true;

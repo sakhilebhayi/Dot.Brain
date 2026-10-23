@@ -1125,7 +1125,7 @@
         "kind": "human"
       }
     ],
-    "engine_version": "0.2.0",
+    "engine_version": "0.3.0",
     "generated_at": "2026-10-23T12:00:00Z",
     "input": {
       "built_by": "ai-builder",

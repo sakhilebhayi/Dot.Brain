@@ -12,7 +12,7 @@ export const SKIPPED = Object.freeze({
   'd3.primary_action_per_screen': 'needs a rendered page: which action is visually primary is not in the markup',
   'd3.task_flow_step_counts': 'needs scripted task flows run in a browser',
   'd4.detector_clean': 'needs an adapter for the report of `impeccable detect`; the detector is an external tool',
-  'd4.responsive_overflow': 'needs a browser at 375, 768 and 1280 pixels to see horizontal overflow',
+  'd4.responsive_overflow': 'needs a browser at 375, 768 and 1280 pixels to see horizontal overflow. A static guess (a fixed-width sidebar) is not this check, which counts tested widths; a measurement file from a browser run is the honest input, through an adapter, not a new check',
   'd5.test_pass_counts': 'needs a test-run report from an adapter; these checks never run tests',
   'd6.consent_handling': 'needs a browser to observe what happens before and after consent',
   'd7.time_to_first_result': 'needs a scripted run in a browser against a declared budget',

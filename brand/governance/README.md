@@ -4,7 +4,7 @@ How changes to the brand knowledge are recorded and kept honest ([ADR-0024](../.
 
 ```
 changelog.json        the versioned changelog, and in its `ratified` entries the ledger that pins each ratified version's sha256
-../proposals/         (absent until the first one) proposals, one file each: BRP-<date>-<slug>.proposal.json
+../proposals/         proposals, one file each: BRP-<date>-<slug>.proposal.json (the first, a proposed rubric change, is BRP-2026-10-24-detector-ceiling-and-third-party-origins)
 ```
 
 ## The changelog and the ledger

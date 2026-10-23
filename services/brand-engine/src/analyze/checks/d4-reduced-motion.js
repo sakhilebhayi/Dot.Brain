@@ -99,11 +99,11 @@ export default defineCheck({
     }
 
     const covered = total - uncovered.length - utilityUncovered.length;
+    // No motion declared means no share to compute: 1.00 would be a pass for an empty set.
+    if (total === 0) return { notMeasured: 'no animation, transition or smooth scrolling is declared in the scanned stylesheets or utility classes, so there is nothing to cover (motion from JavaScript is not scanned)' };
     return {
-      value: total === 0 ? 1 : covered / total,
-      detail: total === 0
-        ? 'no animation, transition or smooth scrolling declared in the scanned stylesheets or utility classes, so there is nothing to reduce.'
-        : `${covered} of ${total} motion declarations are covered by prefers-reduced-motion (${globalOverride ? 'a global override exists' : 'no global override'}); utility classes counted per element. Motion from JavaScript is not scanned.`,
+      value: covered / total,
+      detail: `${covered} of ${total} motion declarations are covered by prefers-reduced-motion (${globalOverride ? 'a global override exists' : 'no global override'}); utility classes counted per element. Motion from JavaScript is not scanned.`,
       findings,
     };
   },
