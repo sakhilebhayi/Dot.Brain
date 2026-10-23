@@ -1,0 +1,82 @@
+{
+  "id": "BXP-03",
+  "slug": "differentiation-recognisability",
+  "title": "Differentiation and recognisability",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "A product has a small set of deliberate, documented signature decisions (type, colour, structure, vocabulary, interaction) that make it recognisable without its logo. They are decided from its own purpose and users, not from category defaults.",
+  "intended_outcome": "A screen from the product is attributable to it and not interchangeable with a generic template, and every signature decision serves a user job.",
+  "applicable_contexts": [
+    "visual identity",
+    "layout and navigation",
+    "naming",
+    "marketing pages",
+    "empty and error states"
+  ],
+  "implementation_guidance": [
+    "Record signature decisions in the product's own design file (DESIGN.md or equivalent) and cite that file from the profile visual_direction.source_refs by path and sha256. Do not copy tokens into Dot.Brain.",
+    "For each signature element, state the user job it serves. Mark elements that serve none as decorative and remove them.",
+    "Compare rendered screens against the product's own prohibited list and report each match as a finding.",
+    "Run the design tooling's anti-pattern scan in the Claude session and record its findings. The engine records the result; it does not run the scan.",
+    "Where convention carries meaning (form controls, error colours, destructive actions), keep the convention. Differentiate elsewhere."
+  ],
+  "validation_method": {
+    "automated": [
+      "Drift check: cited design files still match their recorded sha256."
+    ],
+    "expert_review": [
+      "Design critique against the product's own DESIGN.md prohibitions."
+    ],
+    "observed_behaviour": [
+      "Blind attribution test with the logo removed, with real participants (n and method recorded). Without participants this is expert opinion."
+    ],
+    "customer_feedback": []
+  },
+  "limitations": [
+    "Recognisability depends on exposure and category. A new product has little.",
+    "Distinctiveness is not a goal in itself. The engine cannot tell novelty that helps from novelty that hinders."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that each Dot platform keeps its own functional identity and that one generic interface must not be imposed on every product.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Documented signature decisions make it harder for a build to drift to a generic default.",
+      "rationale": "Based on the observation that unstated decisions are the first to be lost in a rebuild; not measured."
+    }
+  ],
+  "rubric_dimensions": [
+    "brand_distinctiveness",
+    "cross_platform_consistency"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-principle.schema.json",
+  "title": "Brand Experience Framework Principle",
+  "description": "One principle of the Brand Experience Framework (brain.brand_experience.md). Evidence uses the same field vocabulary as DKP (confidence, provenance, contributors) but a principle is NOT a signed Knowledge Pack. Cross-field rules (evidence-class requirements, status/approver, engagement review) are enforced by services/brand-engine, not expressible here.",
+  "type": "object",
+  "required": ["id", "slug", "title", "version", "status", "contributors", "definition", "intended_outcome", "applicable_contexts", "implementation_guidance", "validation_method", "limitations", "evidence", "rubric_dimensions", "engagement_related", "provenance", "confidence"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "id": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "version": { "$ref": "#/$defs/semver" },
+    "status": { "enum": ["draft", "proposed", "ratified", "superseded"] },
+    "supersedes": { "$ref": "#/$defs/idVersion" },
+    "contributors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/contributor" } },
+    "approver": { "$ref": "#/$defs/approver" },
+    "ratified_at": { "type": "string", "format": "date-time" },
+    "definition": { "type": "string", "minLength": 1 },
+    "intended_outcome": { "type": "string", "minLength": 1 },
+    "applicable_contexts": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "implementation_guidance": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "validation_method": {
+      "type": "object",
+      "required": ["automated", "expert_review", "observed_behaviour", "customer_feedback"],
+      "additionalProperties": false,
+      "properties": {
+        "automated": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "expert_review": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "observed_behaviour": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "customer_feedback": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidenceItem" } },
+    "rubric_dimensions": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "$ref": "#/$defs/rubricDimension" }
+    },
+    "engagement_related": { "type": "boolean" },
+    "dopemine_constraint": { "type": "string", "minLength": 1 },
+    "requires_human_review": { "type": "boolean" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "confidence": { "$ref": "#/$defs/confidence" }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "idVersion": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9-]*@\\d+\\.\\d+\\.\\d+$" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "rubricDimension": {
+      "enum": [
+        "emotional_clarity_positioning", "brand_distinctiveness", "usability_cognitive_load",
+        "visual_interaction_craftsmanship", "functional_completeness", "trust_transparency",
+        "perceived_demonstrated_value", "accessibility_inclusion", "cross_platform_consistency",
+        "reliability_error_recovery", "retention_continuing_value", "measurable_customer_outcomes"
+      ]
+    },
+    "contributor": {
+      "type": "object",
+      "required": ["id", "kind", "display_name"],
+      "additionalProperties": false,
+      "patternProperties": { "^x-": {} },
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["human", "ai"] },
+        "display_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "approver": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "human" },
+        "display_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidenceItem": {
+      "type": "object",
+      "required": ["class", "summary"],
+      "additionalProperties": false,
+      "patternProperties": { "^x-": {} },
+      "properties": {
+        "class": { "enum": ["documented_research", "observed_behaviour", "internal_hypothesis", "validated_finding", "declared_intent"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "citation": { "type": "string", "minLength": 1 },
+        "citation_verified": { "type": "boolean" },
+        "n": { "type": "integer", "minimum": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "experiment_ref": { "type": "string", "minLength": 1 },
+        "declared_by": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["sources", "transformations", "published_by"],
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["kind", "uri", "observed_at"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["system", "dataset", "sensor", "discussion", "model_run", "document", "human_observation"] },
+              "uri": { "type": "string", "minLength": 1 },
+              "observed_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "transformations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step", "tool", "tool_version", "actor"],
+            "additionalProperties": false,
+            "properties": {
+              "step": { "type": "string", "minLength": 1 },
+              "tool": { "type": "string", "minLength": 1 },
+              "tool_version": { "type": "string", "minLength": 1 },
+              "actor": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "published_by": { "type": "string", "minLength": 1 },
+        "notes": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

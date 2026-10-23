@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain — Platform Knowledge (Self-Referential)
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [Chief Intelligence Architect, Governance Agent, Registry Agent]
 platform-id: dot-brain
@@ -126,6 +126,16 @@ One incident pack (2026-02): a corroboration-multiplier bug applied ×1.10 twice
 3. **PR back (decay adjustment):** domain-volatility-indexed decay schedules (trading edges decay ~2× faster than agronomy edges); confidence 0.85, impact `brain.calibration_error` −30% predicted in volatile domains, guards: no edge's decay slows (strictly conservative change), verification-rate tracking per domain for two quarters, Governance Board acknowledgment obtained before threshold effect.
 4. **Outcome:** `dkp:brain:out:2026-07-30:0001` — calibration error −36% in trading/logistics bands verified, stable domains unaffected. The Brain's stated confidence now means the same thing in every domain — the loop, having run twenty-one times through twenty-one platforms, finally ran once through itself.
 
+## 14. Brand Feeling Engine (facts, 2026-10-23)
+
+Added by [ADR-0021](../adr/ADR-0021-brand-feeling-engine.md); doctrine in [brain.brand_experience.md](../brain.brand_experience.md). What exists in this repository:
+
+- `services/brand-engine/`: a zero-dependency Node library and CLI (`profile list|show|validate|resolve`, `framework list|show`, `drift`). Read-only, offline, no LLM. Run by hand; no workflow runs it.
+- `brand/`: the 12 framework principles and the `dot-ecosystem`, `infodot` and `blupin` profiles, all `draft`, none ratified. `.github/CODEOWNERS` routes `/brand/` to the owner.
+- `schemas/brand-profile.schema.json` and `schemas/brand-principle.schema.json`. They reuse DKP's field vocabulary; the documents are not signed Knowledge Packs.
+
+What it does not do: score or assess any product (no quality score exists), call Dot.Memory or Dot.Dopemine, hold any product-level or customer-brand profile, or ratify anything. Ratification of a profile or principle is strategic direction and is the owner's alone (Level 3). Because it consumes and emits no Knowledge Packs, it has no new event, pack or metric registration.
+
 ## Autonomy Classification (brain.autonomy.md)
 
 Per [brain.autonomy.md](../brain.autonomy.md) §2. Audited against Dot.Brain's own real repository on 2026-08-08 — not aspirational.
@@ -170,6 +180,7 @@ For Dot.Brain to have its first real Level 1 process, something in this reposito
 |---|---|---|---|
 | 1.0.0 | 2026-08-01 | Platform Integrator (prompt 05, AI) | Initial self-referential integration package: registry self-knowledge OQ answered (yes, under stricter-than-tenant rules — human verification only, no self-grading, unsuppressable drift channel), custody-not-ownership tenancy, no trust self-score (Governance Board attestation instead), 3 domain metrics, calibration round-trip. Completes F-06 at 21 of 21 |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
+| 1.2.0 | 2026-10-23 | Brand engine foundation | Added §14, the Brand Feeling Engine (facts only): service, data, schemas, and what it does not do |
 
 ## Open Questions
 

@@ -1,0 +1,85 @@
+{
+  "id": "BXP-11",
+  "slug": "accessibility-inclusive-design",
+  "title": "Accessibility and inclusive design",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "People with different abilities, devices, connections, languages and levels of experience can complete the product's tasks. Accessibility is a baseline requirement and outranks brand expression.",
+  "intended_outcome": "Primary tasks can be completed with a keyboard alone, with a screen reader, with zoom and with reduced motion; text contrast is sufficient in every theme; language is plain.",
+  "applicable_contexts": [
+    "all user interfaces",
+    "documents and exports",
+    "email",
+    "motion and colour decisions"
+  ],
+  "implementation_guidance": [
+    "Target WCAG 2.2 level AA for every product screen. Text contrast is at least 4.5:1 (3:1 for large text) in every theme, evaluated on the actual background tokens.",
+    "All functionality works by keyboard with visible focus and a logical order. No keyboard traps.",
+    "Use semantic HTML and real labels first, ARIA only to fill gaps, and announce dynamic changes.",
+    "Respect prefers-reduced-motion. Never carry information by colour alone.",
+    "Support narrow viewports and 200 percent zoom without loss of content, and size touch targets for fingers.",
+    "Use plain language and locale-aware formats.",
+    "An accessibility defect is a finding that cannot be traded against a brand rule (the precedence rule, ADR-0021)."
+  ],
+  "validation_method": {
+    "automated": [
+      "Automated accessibility checks in the product CI (contrast computed from tokens, rule-based DOM checks), with results recorded.",
+      "Keyboard-only end-to-end tests of primary tasks."
+    ],
+    "expert_review": [
+      "Manual screen-reader pass over the primary tasks."
+    ],
+    "observed_behaviour": [],
+    "customer_feedback": [
+      "Feedback from users with access needs, with their consent."
+    ]
+  },
+  "limitations": [
+    "Automated tools detect only part of the issues WCAG covers.",
+    "Meeting WCAG is not a claim that the product works for all disabled users.",
+    "The engine cannot certify legal accessibility compliance."
+  ],
+  "evidence": [
+    {
+      "class": "documented_research",
+      "summary": "Normative success criteria for accessible web content. Supports the guidance items (contrast, keyboard, focus, target size); says nothing about commercial effect.",
+      "citation": "W3C, Web Content Accessibility Guidelines (WCAG) 2.2, W3C Recommendation (w3.org/TR/WCAG22/).",
+      "citation_verified": false
+    },
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that the brand framework must never override accessibility.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    }
+  ],
+  "rubric_dimensions": [
+    "accessibility_inclusion"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.5
+}

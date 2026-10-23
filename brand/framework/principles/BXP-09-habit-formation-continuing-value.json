@@ -1,0 +1,91 @@
+{
+  "id": "BXP-09",
+  "slug": "habit-formation-continuing-value",
+  "title": "Habit formation through continuing value",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "Return visits come from the product continuing to deliver outcomes the user chose (a decision supported, a task completed, progress made), not from mechanics designed to bring them back.",
+  "intended_outcome": "A returning user can say what they returned for, and the product helps them finish and leave.",
+  "applicable_contexts": [
+    "notifications, reminders and digests",
+    "progress displays",
+    "streak or reward proposals",
+    "recurring workflows"
+  ],
+  "implementation_guidance": [
+    "Define value as outcomes against the user's stated goal: task completed, progress made, decision supported. App opens, session time, scroll depth, streak length and notification click-through are never targets (brain.dopemine.md section 2). They may be guard metrics only.",
+    "Reminders and notifications are opt-in, state the decision or task waiting and why now, are rate-limited and are easy to turn off. Copy names the decision needed, not just the event (brain.design.md section 2).",
+    "Progress displays show progress toward the user's declared goal. Breaking continuity carries no in-app penalty and no loss framing.",
+    "Apply the acid test of brain.dopemine.md section 2 to every proposed metric: describe a user for whom it improves while their life gets worse. If that user is easy to imagine, drop the metric or add a guard.",
+    "Every engagement-related recommendation this engine produces is flagged requires_human_review and goes through the Dopamine gate (brain.governance.md section 5) before adoption."
+  ],
+  "validation_method": {
+    "automated": [
+      "Metric-proposal check against the prohibited-target list in brain.dopemine.md section 2 (a list lookup; proxy laundering still needs human review)."
+    ],
+    "expert_review": [
+      "Dopamine-gate review of any proposed mechanic, with the proxy trace of brain.dopemine.md section 3."
+    ],
+    "observed_behaviour": [
+      "Return behaviour tied to an outcome event, as telemetry for diagnosis only."
+    ],
+    "customer_feedback": [
+      "Ask returning users what they came back for."
+    ]
+  },
+  "limitations": [
+    "Outcome-defined return is harder to measure than visits.",
+    "No claim that this produces habit is established for Dot products. This principle is a constraint plus a hypothesis, not a growth recipe.",
+    "Automated checks cannot detect proxy laundering."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "brain.dopemine.md section 2 prohibits raw session time, app-open counts, scroll depth, notification click-through as a terminal goal and streak length for its own sake as optimisation targets.",
+      "declared_by": "brain.dopemine.md section 2 (repository policy)"
+    },
+    {
+      "class": "declared_intent",
+      "summary": "Dot Intelligence Manifesto non-negotiable rule 3: ethical engagement only; never optimise for addiction or screen time.",
+      "declared_by": "Dot Intelligence Manifesto (CLAUDE.md), rule 3"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Return driven by delivered outcomes is more durable and less harmful than return driven by prompts.",
+      "rationale": "A design stance, not a finding; no Dot measurement exists."
+    }
+  ],
+  "rubric_dimensions": [
+    "retention_continuing_value",
+    "measurable_customer_outcomes"
+  ],
+  "engagement_related": true,
+  "dopemine_constraint": "Value is defined by user outcomes. Streaks, app opens, session time, scroll depth and notification click-through must not be optimised as targets (brain.dopemine.md section 2); proxies are traced per section 3; every engagement-related recommendation requires human review before adoption.",
+  "requires_human_review": true,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

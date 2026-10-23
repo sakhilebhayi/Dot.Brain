@@ -39,6 +39,7 @@ jobs:
           - revenue-intelligence
           - platform-collector
           - infodot-knowledge
+          - brand-engine
 
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +67,7 @@ jobs:
       - name: Fail if a service has tests but no job in this matrix
         run: |
           set -euo pipefail
-          covered="guardian intelligence autonomy-score market-research intervention-log guardian-trigger insight-delivery revenue-reader revenue-intelligence platform-collector infodot-knowledge"
+          covered="guardian intelligence autonomy-score market-research intervention-log guardian-trigger insight-delivery revenue-reader revenue-intelligence platform-collector infodot-knowledge brand-engine"
           missing=""
           for pkg in services/*/package.json; do
             name=$(basename "$(dirname "$pkg")")

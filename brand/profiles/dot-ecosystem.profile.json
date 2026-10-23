@@ -1,0 +1,446 @@
+{
+  "id": "dot-ecosystem",
+  "kind": "ecosystem",
+  "version": "0.1.0",
+  "status": "draft",
+  "classification": "public",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "purpose": {
+    "text": "Make sophisticated business technology feel coherent, dependable and accessible across the Dot platforms, while each platform keeps its own functional identity. This profile carries shared principles and non-negotiables only.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Section 3: the ecosystem should communicate coherence, intelligence, dependability and operational capability; platforms preserve their own functional identities.",
+        "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+      }
+    ]
+  },
+  "audience": [
+    {
+      "segment": "unknown",
+      "identified": false,
+      "description": "The ecosystem spans platforms for different users (see platforms/*.md). No single ecosystem-wide audience is asserted here. Audiences belong in brand and product profiles.",
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "The ecosystem profile states shared principles only; audiences are set per brand and product.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "positioning": {
+    "text": "Coherence, intelligence, dependability and operational capability, communicated through shared experience principles and not through a shared look. There is no shared visual identity.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Section 3, \"The Dot Ecosystem\", and \"Do not impose one generic interface on every product\".",
+        "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+      }
+    ]
+  },
+  "emotional_promise": [
+    {
+      "feeling": "coherence",
+      "text": "Moving between Dot platforms feels like using one dependable system, not unrelated products.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3: the ecosystem should communicate coherence.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "intelligence",
+      "text": "The system is informed and helpful, and says plainly what it knows and does not know.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3: the ecosystem should communicate intelligence.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "dependability",
+      "text": "The user can rely on the platform to behave predictably and to tell the truth about its state.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3: the ecosystem should communicate dependability.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "operational capability",
+      "text": "The user feels equipped to run real operations with the tools at hand.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3: the ecosystem should communicate operational capability.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "behavioural_principles": [
+    {
+      "id": "honest-states",
+      "text": "Every data-dependent view shows distinct loading, empty, partial, stale and error states in plain language. Success is shown only after the server confirms it.",
+      "principle": "BXP-04",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: honest states.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "error-recovery",
+      "text": "Every error offers a retry, an undo, an alternative or a named human route. Destructive actions are reversible or state their consequence.",
+      "principle": "BXP-04",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: error recovery.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "accessibility-baseline",
+      "text": "WCAG 2.2 level AA is the baseline on every platform and outranks brand expression.",
+      "principle": "BXP-11",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: accessibility.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "consistent-naming",
+      "text": "Identical concepts carry identical names, units and status words across platforms.",
+      "principle": "BXP-12",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: naming.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "no-dark-patterns",
+      "text": "No dark patterns. Value is defined by user outcomes; streaks, opens and session time are not targets (brain.dopemine.md section 2).",
+      "principle": "BXP-09",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: no dark patterns.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "token-interoperability",
+      "text": "Each platform publishes its design tokens in a machine-readable file so another platform can link to or embed it without recolouring.",
+      "principle": "BXP-12",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ecosystem non-negotiable: token interoperability.",
+          "declared_by": "owner decision (Dot.Brain build instructions, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "own-functional-identity",
+      "text": "Each platform keeps its own functional identity and information hierarchy. No platform copies another platform's identity to look coherent.",
+      "principle": "BXP-03",
+      "non_negotiable": true,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3: individual platforms must preserve their own functional identities; do not impose one generic interface.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "brand-yields-to-domain",
+      "text": "Domain safety, regulation, accessibility, security and functional correctness outrank every brand rule (ADR-0021).",
+      "non_negotiable": true,
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 5: never allow the brand framework to override domain-specific safety, regulatory requirements, accessibility, security or functional correctness.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "visual_direction": {
+    "source_refs": [],
+    "constraints": [
+      "No shared visual identity is defined or implied at ecosystem level.",
+      "Each platform defines its own identity in its own repository.",
+      "The only thing shared visually is token interoperability: machine-readable tokens per product."
+    ],
+    "prohibited": [
+      "Imposing one generic interface on every product.",
+      "Copying another platform's colour, type or layout identity as a shortcut to coherence."
+    ]
+  },
+  "language": {
+    "voice": {
+      "text": "Plain, specific and calm. States what the system did, what it knows and what it does not know.",
+      "confidence": 0.4,
+      "evidence": [
+        {
+          "class": "internal_hypothesis",
+          "summary": "A calm, factual register fits the intended feelings of dependability and intelligence.",
+          "rationale": "Derived from the intended feelings and the calm-technology principles of brain.design.md section 1; those principles were written for Brain surfaces and are not shown to fit every platform."
+        }
+      ]
+    },
+    "banned_phrases": [
+      "game-changing",
+      "revolutionary",
+      "world-class",
+      "cutting-edge",
+      "unlock the power of",
+      "seamless"
+    ],
+    "claims_policy": {
+      "forbidden": [
+        {
+          "id": "no-invented-numbers",
+          "rule": "Do not state customer counts, usage figures, testimonials, awards, partner logos or compliance and certification claims unless sourced from real, current data and cited."
+        },
+        {
+          "id": "no-unbuilt-features",
+          "rule": "Do not advertise or link features that do not work today."
+        },
+        {
+          "id": "no-certainty-theatre",
+          "rule": "Do not present estimates, predictions or machine-generated output as certain; label them."
+        },
+        {
+          "id": "no-unevidenced-feelings",
+          "rule": "Do not claim that users feel a particular way without evidence of an observing class."
+        }
+      ],
+      "evidence_required": [
+        "any numeric claim",
+        "any comparison with another product",
+        "any security, privacy or compliance statement"
+      ]
+    }
+  },
+  "experience_standards": [
+    {
+      "principle": "BXP-01",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Each platform declares its own intended feelings in its product profile. This profile names only the ecosystem-level ones: coherence, intelligence, dependability, operational capability.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-02",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Users act in their own business vocabulary and can hand outputs to third parties unchanged, on every platform.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-03",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Each platform documents its own signature decisions and keeps its own functional identity.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-04",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Honest states, sourced figures, recoverable errors and no invented proof on every platform.",
+      "non_negotiable": true
+    },
+    {
+      "principle": "BXP-05",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Benefits are shown as results the user can check, never only asserted.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-06",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Each platform specifies and tests its own states, spacing, motion and tokens.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-07",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "One question and one next action per screen. Density is for trained operators and is grouped by decision relevance.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-08",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Each product defines and instruments its own first meaningful result.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-09",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "No dark patterns. Return is driven by delivered outcomes. Engagement recommendations need human review (brain.dopemine.md).",
+      "non_negotiable": true
+    },
+    {
+      "principle": "BXP-10",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Export and cancellation are honest and easy. Retention is observed and understood, not forced.",
+      "non_negotiable": true
+    },
+    {
+      "principle": "BXP-11",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "WCAG 2.2 AA is the baseline on every platform and outranks brand expression.",
+      "non_negotiable": true
+    },
+    {
+      "principle": "BXP-12",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Shared concepts share names and machine-readable tokens. Layouts and identities are not shared.",
+      "non_negotiable": true
+    }
+  ],
+  "domain_overrides": [
+    {
+      "principle": "BXP-01",
+      "yields_to": "domain_safety",
+      "reason": "A calm or reassuring tone must never soften a safety, regulatory or loss-of-money alert. The alert wins."
+    },
+    {
+      "principle": "BXP-03",
+      "yields_to": "accessibility",
+      "reason": "Distinctive colour, type and motion yield to contrast, visible focus and reduced motion."
+    },
+    {
+      "principle": "BXP-05",
+      "yields_to": "functional_correctness",
+      "reason": "Demonstrated value never overrides correctness: a polished wrong figure is worse than no figure."
+    },
+    {
+      "principle": "BXP-08",
+      "yields_to": "security",
+      "reason": "A faster first result must not skip identity verification, consent or security steps."
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "u-evidence",
+      "question": "No behavioural or customer evidence about how users feel about any Dot platform is held in this repository. Every emotional_promise item is intended, not measured.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-token-format",
+      "question": "Which interoperability tokens must each platform publish, and in what format? No shared token format exists in this repository today.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-glossary",
+      "question": "Where does the shared entity glossary live and who owns it? indexes/GLOSSARY.md is Dot.Brain's own glossary, not a platform-wide interface glossary.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-control-room",
+      "question": "InfoDot's PRODUCT.md refers to a dark control-room look used by Dot.Memory, Dot.Central and Dot.Projects. Whether that is an ecosystem direction or three platforms' own choices is not documented in this repository.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-platform-audiences",
+      "question": "Per-platform audiences are not asserted here. Brand and product profiles must establish them, with evidence.",
+      "blocks_ratification": false
+    }
+  ],
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "repo:sakhilebhayi/Dot.Brain/brain.dopemine.md",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "repo:sakhilebhayi/Dot.Brain/brain.design.md",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5",
+    "notes": [
+      "Draft authored by an AI session from the owner's brief. Ratification is the owner's alone."
+    ]
+  },
+  "confidence": 0.5
+}

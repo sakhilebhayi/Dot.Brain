@@ -1,0 +1,85 @@
+{
+  "id": "BXP-04",
+  "slug": "trust-transparency-reliability",
+  "title": "Trust, transparency, privacy and reliability",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "The product tells the truth about its state, data, limits and failures, collects and shows only what it needs, and behaves predictably, so a user can rely on it and can see why it did what it did.",
+  "intended_outcome": "Users are not surprised by what the product knows, does or claims, and can recover from a failure with clear information.",
+  "applicable_contexts": [
+    "all products",
+    "money, safety and personal data",
+    "automated recommendations and AI output",
+    "navigation and marketing claims",
+    "error handling"
+  ],
+  "implementation_guidance": [
+    "Honest states: every data-dependent view renders distinct loading, empty, partial, stale and error states with a plain-language cause and next step. Never show success before the server confirms it.",
+    "Show source and freshness for derived figures, and label estimates and machine-generated content as such.",
+    "Navigation and marketing show only what works today. An unfinished feature is absent, not teased.",
+    "Data minimisation: each collected field has a stated purpose at the point of collection; no personal data in URLs or logs; visibility is enforced server-side, not by hiding UI.",
+    "No invented proof: counts, testimonials, certifications and partner logos appear only when sourced from real data. Encode the rule in the profile claims_policy.",
+    "Every error offers a retry, an undo, an alternative or a named human route. Destructive actions are reversible or confirm with the consequence stated."
+  ],
+  "validation_method": {
+    "automated": [
+      "Component or route tests assert that each data view renders loading, empty and error states.",
+      "Static scan of templates for hard-coded numeric claims and testimonial markup, as a finding list for human review.",
+      "Security and privacy tests belong to the product; the engine records pass or fail."
+    ],
+    "expert_review": [
+      "Honesty audit: trace every claim on a screen to data or remove it."
+    ],
+    "observed_behaviour": [
+      "Incident and error-rate history from product telemetry where it exists."
+    ],
+    "customer_feedback": []
+  },
+  "limitations": [
+    "Trust is earned by reliability over time. A repository snapshot shows mechanisms and intent, not earned trust.",
+    "Privacy compliance is a legal question. This principle does not certify compliance with any law."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "Dot Intelligence Manifesto principle 2: every improvement is explainable; if a human cannot understand why, it does not ship.",
+      "declared_by": "Dot Intelligence Manifesto (CLAUDE.md), principle 2"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Honest states and sourced figures reduce support load and unwarranted reliance.",
+      "rationale": "Plausible from general operational experience; not measured as a user effect on Dot products."
+    }
+  ],
+  "rubric_dimensions": [
+    "trust_transparency",
+    "reliability_error_recovery"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}
