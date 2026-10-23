@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 // Shared test data. Lives in test/ so it is not shipped; node --test runs it as an empty file.
 export const NOW = new Date('2026-10-23T12:00:00Z');
 export const DAY = 86_400_000;
@@ -26,8 +28,9 @@ export function item(overrides = {}) {
   };
 }
 
-export const SECRET = 'knowledge-secret-for-tests-xyz';
-export const TOKEN = 'memory-token-for-tests-abc';
+// Random per run: no credential-looking literal is committed, and a leak test can never pass by accident.
+export const SECRET = `s-${randomBytes(12).toString('hex')}`;
+export const TOKEN = `t-${randomBytes(12).toString('hex')}`;
 
 export const CFG = {
   infodotUrl: 'https://infodot.test',
