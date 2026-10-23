@@ -91,8 +91,17 @@ test('an unknown parent, a version mismatch and a kind violation are errors', ()
   assert.match(resolveProfile(brandOnBrand.profiles.get('infodot'), brandOnBrand).errors.join('\n'), /kind brand\) cannot extend blupin@0\.1\.0 \(kind brand\)/);
 });
 
-test('the chain depth is bounded', () => {
+test('the chain depth is bounded: eight profiles resolve, a ninth is an error', () => {
+  const chainOf = (n) => mem((r) => {
+    for (let i = 0; i < n; i += 1) {
+      r.profiles.set(`p${i}`, { ...clone(r.profiles.get('infodot')), id: `p${i}`, extends: i + 1 < n ? `p${i + 1}@0.1.0` : undefined });
+    }
+  });
   assert.equal(MAX_DEPTH, 8);
+  const ok = chainOf(MAX_DEPTH);
+  assert.doesNotMatch(resolveProfile(ok.profiles.get('p0'), ok).errors.join('\n'), /deeper than/);
+  const deep = chainOf(MAX_DEPTH + 1);
+  assert.match(resolveProfile(deep.profiles.get('p0'), deep).errors.join('\n'), /extends chain deeper than 8/);
 });
 
 test('replacing an inherited value without an override entry is an error naming the field', () => {
