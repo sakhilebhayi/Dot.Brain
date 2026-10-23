@@ -1,1 +1,4 @@
 .superpowers/
+
+# Wrangler local cache (contains the Cloudflare account id and name)
+.wrangler/
