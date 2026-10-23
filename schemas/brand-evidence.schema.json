@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-evidence.schema.json",
+  "title": "Brand Experience Quality Score Evidence",
+  "description": "The input to `brand-engine score`: what the analysers (a later increment), human assessors and any pilot measured, and nothing else. The engine never invents a value: it counts what is here, shows what is not, and takes every free-text field from here. `generated_at` is supplied by the producer because the engine never reads a clock (same input gives a byte-identical report). Cross-field rules (known check and metric ids, one entry per check or metric, assessors declared, builder independence, secrets) are enforced by services/brand-engine, not expressible here.",
+  "type": "object",
+  "required": ["evidence_version", "generated_at", "input", "context", "assessors", "automated", "expert", "observed", "findings"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "evidence_version": { "const": "1.0.0" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "input": {
+      "type": "object",
+      "required": ["repo", "commit"],
+      "additionalProperties": false,
+      "properties": {
+        "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 300 }
+      }
+    },
+    "built_by": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "context": {
+      "type": "object",
+      "required": ["assistive_technology_testing_possible"],
+      "additionalProperties": false,
+      "properties": {
+        "assistive_technology_testing_possible": { "type": "boolean" }
+      }
+    },
+    "assessors": {
+      "type": "array", "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "kind": { "enum": ["human", "ai"] }
+        }
+      }
+    },
+    "automated": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "value", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "check_id": { "type": "string", "pattern": "^d[0-9]{1,2}\\.[a-z0-9_]+$" },
+          "value": { "type": "number", "minimum": 0, "maximum": 1 },
+          "detail": { "$ref": "#/$defs/text" },
+          "artifact_ref": { "$ref": "#/$defs/artifactRef" }
+        }
+      }
+    },
+    "expert": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "assessor", "level", "rationale", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": { "type": "string", "pattern": "^[a-z][a-z_]*$" },
+          "assessor": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "level": { "type": "integer", "minimum": 0, "maximum": 4 },
+          "rationale": { "$ref": "#/$defs/text" },
+          "artifact_ref": { "$ref": "#/$defs/artifactRef" }
+        }
+      }
+    },
+    "observed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "source_class", "metric_id", "value", "n", "method", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": { "type": "string", "pattern": "^[a-z][a-z_]*$" },
+          "source_class": { "enum": ["observed_behaviour", "customer_feedback"] },
+          "metric_id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_. -]*$", "maxLength": 100 },
+          "value": { "type": "number", "minimum": 0, "maximum": 1 },
+          "n": { "type": "integer", "minimum": 1 },
+          "method": { "$ref": "#/$defs/text" },
+          "detail": { "$ref": "#/$defs/text" },
+          "artifact_ref": { "$ref": "#/$defs/artifactRef" }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "detail", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9_.-]{1,80}$" },
+          "kind": { "enum": ["wcag_failure", "unsupported_claim", "failing_test", "domain_override_violation", "ethics_gate_flag"] },
+          "dimension": { "type": "string", "pattern": "^[a-z][a-z_]*$" },
+          "level": { "enum": ["A", "AA", "AAA"] },
+          "criterion": { "type": "string", "pattern": "^[0-9]\\.[0-9]{1,2}\\.[0-9]{1,2}$" },
+          "principle": { "type": "string", "pattern": "^BXP-[0-9]{2}$" },
+          "resolved": { "type": "boolean" },
+          "detail": { "$ref": "#/$defs/text" },
+          "artifact_ref": { "$ref": "#/$defs/artifactRef" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "artifactRef": { "type": "string", "pattern": "^[^\\s]{1,300}$" }
+  }
+}

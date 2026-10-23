@@ -1,14 +1,18 @@
 // services/brand-engine/src/main.js
 //
-// Exit: 0 ok
+// Exit (profile, framework, drift):
+//       0 ok
 //       1 findings: invalid data, an unresolvable profile, or drift
 //       2 usage error
+// Exit (score, compare, rubric; see score/cli.js):
+//       0 report produced, 2 invalid input, 3 refused
 //
 // Read-only and offline. No environment variable is read, so there is
 // nothing secret that could reach the output.
 import { checkDrift, DriftUsageError } from './drift.js';
 import { stableStringify } from './json.js';
 import { defaultBrandDir, loadBrandDir, lookupProfile } from './registry.js';
+import { SCORE_USAGE, scoreMain } from './score/cli.js';
 
 export const USAGE = [
   'usage: brand-engine profile list [--brand-dir <dir>]',
@@ -18,6 +22,7 @@ export const USAGE = [
   '       brand-engine framework list [--brand-dir <dir>]',
   '       brand-engine framework show <BXP-NN> [--brand-dir <dir>]',
   '       brand-engine drift <id|file> --root <checkout> [--repo <owner/name>] [--brand-dir <dir>]',
+  SCORE_USAGE,
 ].join('\n');
 
 const FLAGS = new Set(['--brand-dir', '--root', '--repo']);
@@ -51,6 +56,8 @@ function printFindings(err, file, list, prefix = '') {
 export function main(argv, deps = {}) {
   const out = deps.out ?? ((line) => console.log(line));
   const err = deps.err ?? ((line) => console.error(line));
+
+  if (['score', 'compare', 'rubric'].includes(argv[0])) return scoreMain(argv, deps);
 
   const args = parseArgs(argv);
   if (args.error) { err(args.error); return 2; }

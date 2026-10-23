@@ -1,0 +1,57 @@
+{
+  "evidence_version": "1.0.0",
+  "generated_at": "2026-10-23T12:00:00Z",
+  "input": {
+    "repo": "fixtures/synthetic-product",
+    "commit": "1111111111111111111111111111111111111111",
+    "scope": "golden scenario builder-sole-assessor"
+  },
+  "context": {
+    "assistive_technology_testing_possible": false
+  },
+  "assessors": [
+    {
+      "id": "ai-builder",
+      "kind": "ai"
+    }
+  ],
+  "automated": [
+    {
+      "check_id": "d5.test_pass_counts",
+      "value": 1,
+      "artifact_ref": "artifact/d5.test_pass_counts.json"
+    },
+    {
+      "check_id": "d5.route_inventory_vs_claims",
+      "value": 1,
+      "artifact_ref": "artifact/d5.route_inventory_vs_claims.json"
+    },
+    {
+      "check_id": "d5.dead_links",
+      "value": 1,
+      "artifact_ref": "artifact/d5.dead_links.json"
+    },
+    {
+      "check_id": "d5.stubs_placeholders",
+      "value": 1,
+      "artifact_ref": "artifact/d5.stubs_placeholders.json"
+    }
+  ],
+  "expert": [
+    {
+      "dimension": "functional_completeness",
+      "assessor": "ai-builder",
+      "level": 4,
+      "rationale": "Fixture rationale for functional_completeness.",
+      "artifact_ref": "artifact/functional_completeness-ai-builder.json"
+    }
+  ],
+  "observed": [],
+  "findings": [],
+  "x-fixture-notice": "Synthetic test fixture for the frozen golden tests. Not a measurement of any product.",
+  "x-golden": {
+    "profile_status": "draft",
+    "rubric_ratified": false
+  },
+  "built_by": "ai-builder"
+}

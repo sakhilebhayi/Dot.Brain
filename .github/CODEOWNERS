@@ -6,4 +6,11 @@
 /brand/ @sakhilebhayi
 /schemas/brand-profile.schema.json @sakhilebhayi
 /schemas/brand-principle.schema.json @sakhilebhayi
+/schemas/brand-rubric.schema.json @sakhilebhayi
+/schemas/brand-evidence.schema.json @sakhilebhayi
+/schemas/brand-score.schema.json @sakhilebhayi
 /services/brand-engine/src/rules.js @sakhilebhayi
+# Scoring: the rules that turn evidence into a score, and the frozen golden reports
+# that pin every released score. A change to either is a methodology change.
+/services/brand-engine/src/score/ @sakhilebhayi
+/services/brand-engine/test/fixtures/score/golden/ @sakhilebhayi

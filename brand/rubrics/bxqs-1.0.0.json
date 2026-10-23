@@ -1,0 +1,1099 @@
+{
+  "id": "bxqs",
+  "version": "1.0.0",
+  "title": "Brand Experience Quality Score",
+  "description": "A 100-point rubric of twelve dimensions. Every point comes from one of four evidence classes (automated check, expert assessment, observed behaviour, customer feedback). Automated and expert evidence together can earn at most the sum of weight x cap_without_observed_or_customer; the rest is reserved for observed or customer evidence. Unmeasured points count as zero and are shown. This file is IMMUTABLE once released: a change is a new version.",
+  "released_at": "2026-10-23T00:00:00Z",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "policy": {
+    "total_points": 100,
+    "release_evidenced_minimum": 90,
+    "build_verified_attainment_minimum": 90,
+    "ai_only_expert_credit": 0.5,
+    "expert_level_max": 4,
+    "observed_minimum_n": 5,
+    "disagreement_levels": 1,
+    "confidence_minimum_weight": 50
+  },
+  "dimensions": [
+    {
+      "id": "emotional_clarity_positioning",
+      "order": 1,
+      "name": "Emotional clarity and positioning",
+      "weight": 8,
+      "description": "Whether the product states a clear purpose and audience and expresses the profile's INTENDED feelings through copy and behaviour. This dimension rates whether the intent is expressed; it never asserts that anyone feels it.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.5,
+      "floor": 0.5,
+      "shares": {
+        "automated_check": 0.15,
+        "expert_assessment": 0.35,
+        "observed_or_customer": 0.5
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d1.copy_profile_language_lint",
+              "measures": "Share of user-facing strings that avoid the resolved profile's banned phrases and stay inside its claims policy (1 = no violations).",
+              "weight": 40
+            },
+            {
+              "id": "d1.purpose_statement_present",
+              "measures": "A purpose statement exists on the entry surface within length bounds and uses the profile's purpose terms (existence and term check only).",
+              "weight": 30
+            },
+            {
+              "id": "d1.product_md_consistency",
+              "measures": "Entry-surface copy contains the audience and purpose terms declared in the product's PRODUCT.md and none of its listed contradictions.",
+              "weight": 30
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "No purpose or audience can be found on the entry surface, or what is shown contradicts the profile."
+            },
+            {
+              "level": 1,
+              "anchor": "A purpose can be inferred but is generic, and no behaviour of the interface reflects the profile's intended feelings."
+            },
+            {
+              "level": 2,
+              "anchor": "Purpose is stated; the profile's intended feelings are reflected on some screens or in some copy but not in the main flow."
+            },
+            {
+              "level": 3,
+              "anchor": "Purpose and audience are clear on the entry surface and the main flow reflects the intended feelings, with minor inconsistencies."
+            },
+            {
+              "level": 4,
+              "anchor": "Purpose, audience and the intended feelings are expressed consistently through copy and behaviour in every main flow, and nothing contradicts the profile."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "first_screen_purpose_comprehension",
+              "measures": "Share of participants whose own words state the product's purpose after the first screen, matching the declared purpose (coded by a person).",
+              "weight": 40
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "described_feeling_matches_intent",
+              "measures": "Share of participants whose own words for the experience include any of the profile's intended feelings (coded by a person; the profile's feelings stay \"intended\" until this exists).",
+              "weight": 60
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "brand_distinctiveness",
+      "order": 2,
+      "name": "Brand distinctiveness",
+      "weight": 7,
+      "description": "Whether the product has an identity of its own rather than a generic template look, within the shared principles the ecosystem profile sets. Distinct does not mean different from the other Dot products: platforms keep their own functional identities.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.6,
+      "floor": 0.5,
+      "shares": {
+        "automated_check": 0.25,
+        "expert_assessment": 0.35,
+        "observed_or_customer": 0.4
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d2.impeccable_detect_findings",
+              "measures": "`impeccable detect` findings in the identity categories (typography, colour, layout templates) on the shipped UI, scaled so that 1 = no findings and 0 = findings at or above the configured ceiling.",
+              "weight": 40
+            },
+            {
+              "id": "d2.font_palette_deny_list",
+              "measures": "Share of fonts and palette values that are not on the deny-list of generic defaults held by the profile and the design skill.",
+              "weight": 30
+            },
+            {
+              "id": "d2.token_uniqueness",
+              "measures": "Share of design tokens whose values differ from the framework or template defaults.",
+              "weight": 30
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "The interface is indistinguishable from a framework default or template."
+            },
+            {
+              "level": 1,
+              "anchor": "A few customisations exist but typography, colour and layout are default or interchangeable with other products."
+            },
+            {
+              "level": 2,
+              "anchor": "Some deliberate choices are visible but they are not applied consistently across the main screens."
+            },
+            {
+              "level": 3,
+              "anchor": "A deliberate, consistent identity is visible across the main screens, with minor generic areas."
+            },
+            {
+              "level": 4,
+              "anchor": "A deliberate identity is consistent across every main screen, is recorded in the product's DESIGN.md, and every choice traces to the profile or a written reason."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "unlabelled_screen_attribution",
+              "measures": "Share of participants who attribute an unlabelled screen to the correct product when shown it among alternatives.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "distinctiveness_rating",
+              "measures": "Participants' own rating of how much the product looks and reads like itself, normalised to 0 to 1.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "usability_cognitive_load",
+      "order": 3,
+      "name": "Usability and cognitive load",
+      "weight": 12,
+      "description": "How directly a person can complete the product's main tasks, and how much the interface asks them to hold in mind while they do.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.6,
+      "floor": 0.6,
+      "shares": {
+        "automated_check": 0.3,
+        "expert_assessment": 0.3,
+        "observed_or_customer": 0.4
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d3.nav_depth",
+              "measures": "Steps from the entry point to each primary destination against the bound set in the profile or product (1 = all within bound).",
+              "weight": 20
+            },
+            {
+              "id": "d3.field_counts",
+              "measures": "Share of forms whose field count is within the bound and which ask for nothing the task does not need.",
+              "weight": 20
+            },
+            {
+              "id": "d3.heading_structure",
+              "measures": "Share of screens with exactly one level-one heading and no skipped heading levels.",
+              "weight": 15
+            },
+            {
+              "id": "d3.primary_action_per_screen",
+              "measures": "Share of screens with exactly one visually primary action.",
+              "weight": 20
+            },
+            {
+              "id": "d3.task_flow_step_counts",
+              "measures": "Share of scripted task flows that complete within their declared step budget.",
+              "weight": 25
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "A main task cannot be completed, or the interface actively obstructs it."
+            },
+            {
+              "level": 1,
+              "anchor": "Main tasks can be completed only with substantial effort, hidden steps or repeated errors."
+            },
+            {
+              "level": 2,
+              "anchor": "Main tasks can be completed, but several screens carry unclear actions, long forms or avoidable memory demands."
+            },
+            {
+              "level": 3,
+              "anchor": "Main tasks are direct and clear, with minor friction on secondary screens."
+            },
+            {
+              "level": 4,
+              "anchor": "Every main task is direct, each screen has one clear next step, and nothing asks the person to remember what the interface could show."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "task_completion_rate",
+              "measures": "Share of observed attempts at the main tasks completed without help.",
+              "weight": 35
+            },
+            {
+              "id": "errors_per_task",
+              "measures": "Observed errors per task attempt, normalised so 1 = none.",
+              "weight": 25
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "ease_rating",
+              "measures": "Participants' own rating of how easy the main tasks were, normalised to 0 to 1.",
+              "weight": 40
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "visual_interaction_craftsmanship",
+      "order": 4,
+      "name": "Visual and interaction craftsmanship",
+      "weight": 9,
+      "description": "The precision of the visual and interaction detail: spacing, type scale, states, motion and behaviour across screen sizes.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.8,
+      "floor": 0.6,
+      "shares": {
+        "automated_check": 0.5,
+        "expert_assessment": 0.3,
+        "observed_or_customer": 0.2
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d4.detector_clean",
+              "measures": "`impeccable detect` findings in the detail categories (spacing, states, motion, interaction), counted apart from d2 so no finding scores twice (1 = none).",
+              "weight": 25
+            },
+            {
+              "id": "d4.spacing_type_scale_conformance",
+              "measures": "Share of spacing and font-size values that lie on the product's declared scales.",
+              "weight": 25
+            },
+            {
+              "id": "d4.reduced_motion",
+              "measures": "Every animation or transition is disabled or reduced under prefers-reduced-motion (1 = all).",
+              "weight": 20
+            },
+            {
+              "id": "d4.responsive_overflow",
+              "measures": "Share of tested widths (375, 768 and 1280 pixels) at which no page has horizontal overflow.",
+              "weight": 30
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "Layout breaks, states are missing, or interaction behaves unpredictably on the main screens."
+            },
+            {
+              "level": 1,
+              "anchor": "The main screens work but spacing, alignment, type or states are visibly inconsistent."
+            },
+            {
+              "level": 2,
+              "anchor": "Craft is consistent on the main screens but secondary screens, states or breakpoints are uneven."
+            },
+            {
+              "level": 3,
+              "anchor": "Spacing, type, states and motion are consistent across screens and breakpoints, with minor roughness."
+            },
+            {
+              "level": 4,
+              "anchor": "Spacing, type, states, motion and responsive behaviour are consistent and deliberate everywhere reviewed, with nothing a reviewer would flag."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "interaction_error_rate",
+              "measures": "Observed mis-taps, mis-clicks and abandoned interactions per task, normalised so 1 = none.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "craft_rating",
+              "measures": "Participants' own rating of how polished and precise the interface is, normalised to 0 to 1.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "functional_completeness",
+      "order": 5,
+      "name": "Functional completeness",
+      "weight": 10,
+      "description": "Whether what the product claims to do works: tests pass, every claimed feature has a working route, nothing is a stub.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.9,
+      "floor": 0.7,
+      "shares": {
+        "automated_check": 0.7,
+        "expert_assessment": 0.2,
+        "observed_or_customer": 0.1
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d5.test_pass_counts",
+              "measures": "Share of in-scope tests that pass, with the counts recorded in the detail.",
+              "weight": 30
+            },
+            {
+              "id": "d5.route_inventory_vs_claims",
+              "measures": "Share of features claimed in product copy or PRODUCT.md that have a working route.",
+              "weight": 25
+            },
+            {
+              "id": "d5.dead_links",
+              "measures": "Share of internal links that resolve (1 = none dead).",
+              "weight": 20
+            },
+            {
+              "id": "d5.stubs_placeholders",
+              "measures": "Share of shipped surfaces free of stub, TODO and placeholder content (1 = none found).",
+              "weight": 25
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "Core features claimed by the product do not work."
+            },
+            {
+              "level": 1,
+              "anchor": "Some core features work; several claimed features are missing or stubbed."
+            },
+            {
+              "level": 2,
+              "anchor": "Core features work; some secondary features are missing, stubbed or unreachable."
+            },
+            {
+              "level": 3,
+              "anchor": "All claimed features work, with minor gaps in secondary paths."
+            },
+            {
+              "level": 4,
+              "anchor": "Every claimed feature works end to end, and nothing claimed is missing, stubbed or unreachable."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "feature_task_coverage",
+              "measures": "Share of the product's claimed tasks that observed participants could carry out end to end.",
+              "weight": 60
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "missing_feature_reports",
+              "measures": "Participants' reports of claimed features that did not work, normalised so 1 = none.",
+              "weight": 40
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "trust_transparency",
+      "order": 6,
+      "name": "Trust and transparency",
+      "weight": 10,
+      "description": "Whether the product tells the truth about itself and about the person's data: claims it can support, privacy and terms, consent, and honest empty, loading and unavailable states.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.7,
+      "floor": 0.7,
+      "shares": {
+        "automated_check": 0.4,
+        "expert_assessment": 0.3,
+        "observed_or_customer": 0.3
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d6.claim_lint",
+              "measures": "Share of user-facing claims that pass the profile's claims policy (unsupported figures, \"enterprise-ready\", licensing or authorisation claims found = lower). Any unsupported claim also raises an `unsupported_claim` finding.",
+              "weight": 30
+            },
+            {
+              "id": "d6.privacy_terms_present",
+              "measures": "Privacy notice and terms are present, reachable from every public page, and not placeholders.",
+              "weight": 20
+            },
+            {
+              "id": "d6.consent_handling",
+              "measures": "Consent is requested before the processing it covers, declining is as easy as accepting, and the choice is honoured.",
+              "weight": 25
+            },
+            {
+              "id": "d6.honest_states",
+              "measures": "Share of empty, loading, error and unavailable states that say what is true and show no invented data.",
+              "weight": 25
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "The product makes claims it cannot support, shows invented data, or hides how data is handled."
+            },
+            {
+              "level": 1,
+              "anchor": "Some claims or states are unsupported, or privacy and consent handling is unclear."
+            },
+            {
+              "level": 2,
+              "anchor": "Claims and data handling are mostly honest; some states or notices are vague or incomplete."
+            },
+            {
+              "level": 3,
+              "anchor": "Claims are supportable, data handling is stated plainly, and states are honest, with minor omissions."
+            },
+            {
+              "level": 4,
+              "anchor": "Every claim is supportable, data handling and consent are stated and honoured plainly, and every state says what is true."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "privacy_comprehension",
+              "measures": "Share of participants who correctly state, in their own words, what happens to their data after reading the product's notice.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "stated_confidence_in_figures",
+              "measures": "Participants' own rating of their confidence that the figures shown are correct and the data is handled as stated, normalised to 0 to 1.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "perceived_demonstrated_value",
+      "order": 7,
+      "name": "Perceived and demonstrated value",
+      "weight": 8,
+      "description": "How quickly and visibly the product delivers something useful, and whether the value shown is real.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.5,
+      "floor": 0.5,
+      "shares": {
+        "automated_check": 0.2,
+        "expert_assessment": 0.3,
+        "observed_or_customer": 0.5
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d7.time_to_first_result",
+              "measures": "Scripted time or step count from first load to a first useful result against the declared budget (1 = within budget).",
+              "weight": 40
+            },
+            {
+              "id": "d7.empty_state_guidance",
+              "measures": "Share of empty states that tell the person what to do next to reach a result.",
+              "weight": 30
+            },
+            {
+              "id": "d7.value_above_fold",
+              "measures": "The first screen shows what the product does for the person, with a real example or action, without scrolling.",
+              "weight": 30
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "A first useful result cannot be reached, or what is shown as value is not real."
+            },
+            {
+              "level": 1,
+              "anchor": "A first result is reachable but only after significant effort or without guidance."
+            },
+            {
+              "level": 2,
+              "anchor": "A first result is reachable with guidance; the value on offer is only partly visible early."
+            },
+            {
+              "level": 3,
+              "anchor": "A first result is reachable quickly and the value on offer is visible early, with minor delay or ambiguity."
+            },
+            {
+              "level": 4,
+              "anchor": "A first useful result is reachable quickly and unaided, and the value shown early is real and verifiable."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "first_session_goal_reached",
+              "measures": "Share of new participants who reach their own stated goal in the first session.",
+              "weight": 40
+            },
+            {
+              "id": "observed_time_to_first_result",
+              "measures": "Observed time to a first useful result against the declared budget, normalised so 1 = within budget.",
+              "weight": 30
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "perceived_value_rating",
+              "measures": "Participants' own rating of how useful the product was to them, normalised to 0 to 1.",
+              "weight": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "accessibility_inclusion",
+      "order": 8,
+      "name": "Accessibility and inclusion",
+      "weight": 12,
+      "description": "Whether people with different abilities, devices and conditions can use the product. A WCAG 2.2 A or AA failure is always a blocker and outranks any brand rule.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.7,
+      "floor": 0.7,
+      "shares": {
+        "automated_check": 0.5,
+        "expert_assessment": 0.2,
+        "observed_or_customer": 0.3
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d8.token_pair_contrast",
+              "measures": "Share of foreground and background token pairs that meet WCAG AA contrast on both themes and on both panel backgrounds.",
+              "weight": 25
+            },
+            {
+              "id": "d8.axe_violations",
+              "measures": "Share of axe-core rules passing from the axe JSON report. Any A or AA violation also raises a `wcag_failure` finding.",
+              "weight": 30
+            },
+            {
+              "id": "d8.labels_alt_lang",
+              "measures": "Share of inputs with labels, images with alternative text, and pages with a language attribute.",
+              "weight": 25
+            },
+            {
+              "id": "d8.focus_visible",
+              "measures": "Share of interactive elements with a visible focus indicator and a logical focus order.",
+              "weight": 20
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "The main flow cannot be completed with a keyboard or a screen reader."
+            },
+            {
+              "level": 1,
+              "anchor": "The main flow is completable but with serious barriers (contrast, labels, focus) in several places."
+            },
+            {
+              "level": 2,
+              "anchor": "The main flow is accessible; secondary screens or states have barriers."
+            },
+            {
+              "level": 3,
+              "anchor": "All reviewed screens meet WCAG 2.2 AA, with minor advisory issues."
+            },
+            {
+              "level": 4,
+              "anchor": "All reviewed screens meet WCAG 2.2 AA with no outstanding issues, and the work is documented."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "assistive_technology_task_completion",
+              "measures": "Share of main-task attempts completed by participants using assistive technology.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "accessibility_issue_reports",
+              "measures": "Participants' reports of accessibility barriers, normalised so 1 = none.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cross_platform_consistency",
+      "order": 9,
+      "name": "Cross-platform consistency",
+      "weight": 6,
+      "description": "Whether the shared PRINCIPLES hold across the ecosystem: honest states, accessibility, error recovery, consistent naming. It does not ask for visual sameness; each platform keeps its own functional identity.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.8,
+      "floor": 0.5,
+      "shares": {
+        "automated_check": 0.5,
+        "expert_assessment": 0.3,
+        "observed_or_customer": 0.2
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d9.token_usage_vs_profile",
+              "measures": "Share of colour, type and spacing values drawn from the tokens the product's profile cites.",
+              "weight": 35
+            },
+            {
+              "id": "d9.shared_components",
+              "measures": "Share of repeated interface patterns built from the shared component set rather than one-off copies.",
+              "weight": 30
+            },
+            {
+              "id": "d9.principle_diff",
+              "measures": "Share of the ecosystem profile's non-negotiable behavioural principles present in the product (a principle diff, not a visual diff).",
+              "weight": 35
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "The product breaks shared principles the ecosystem profile treats as non-negotiable."
+            },
+            {
+              "level": 1,
+              "anchor": "The product follows some shared principles but ignores others in the main flow."
+            },
+            {
+              "level": 2,
+              "anchor": "Shared principles hold in the main flow; naming, states or components diverge elsewhere."
+            },
+            {
+              "level": 3,
+              "anchor": "Shared principles hold throughout, with minor divergences and a written reason for each."
+            },
+            {
+              "level": 4,
+              "anchor": "Shared principles hold throughout, divergences are rare and each has a written reason, and the product keeps its own functional identity."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "cross_product_task_transfer",
+              "measures": "Share of participants who complete a task in a second product using only what they learned in the first, normalised to 0 to 1.",
+              "weight": 60
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "coherence_rating",
+              "measures": "Participants' own rating of how coherent the products felt together, normalised to 0 to 1.",
+              "weight": 40
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reliability_error_recovery",
+      "order": 10,
+      "name": "Reliability and recovery from errors",
+      "weight": 8,
+      "description": "Whether the product keeps working and, when it cannot, says what happened and what to do next.",
+      "measurable_without_observed_or_customer": true,
+      "cap_without_observed_or_customer": 0.8,
+      "floor": 0.6,
+      "shares": {
+        "automated_check": 0.6,
+        "expert_assessment": 0.2,
+        "observed_or_customer": 0.2
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": true,
+          "checks": [
+            {
+              "id": "d10.error_path_tests",
+              "measures": "Share of declared error paths covered by a passing test.",
+              "weight": 30
+            },
+            {
+              "id": "d10.error_pages",
+              "measures": "Share of error statuses (403, 404, 419, 500, 503) that render a designed page with a next step.",
+              "weight": 20
+            },
+            {
+              "id": "d10.health_endpoint",
+              "measures": "A health endpoint exists, answers, and reports failure honestly (1 = all three).",
+              "weight": 20
+            },
+            {
+              "id": "d10.error_copy_lint",
+              "measures": "Share of error messages that state what happened and the next step, with no raw stack trace or internal identifier.",
+              "weight": 30
+            }
+          ]
+        },
+        "expert_assessment": {
+          "allowed": true,
+          "levels": [
+            {
+              "level": 0,
+              "anchor": "Errors lose the person's work or leave them with no explanation or next step."
+            },
+            {
+              "level": 1,
+              "anchor": "Common errors are handled but some lose work or give no next step."
+            },
+            {
+              "level": 2,
+              "anchor": "Common errors are handled with a next step; rare or compound failures are not."
+            },
+            {
+              "level": 3,
+              "anchor": "Errors are handled with a clear next step and no lost work, with minor gaps in rare cases."
+            },
+            {
+              "level": 4,
+              "anchor": "Every reviewed failure preserves the person's work, says what happened and what to do next, and is covered by a test."
+            }
+          ]
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "error_recovery_success_rate",
+              "measures": "Share of observed errors from which participants recovered without help.",
+              "weight": 60
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "reported_incident_impact",
+              "measures": "Participants' reports of failures that affected their work, normalised so 1 = none.",
+              "weight": 40
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "retention_continuing_value",
+      "order": 11,
+      "name": "Retention through continuing value",
+      "weight": 5,
+      "description": "Whether people return because the product keeps delivering the outcome they chose. Defined only by outcomes: goals completed and value delivered. NEVER app opens, streaks, session time, scroll depth or notification click-through (brain.dopemine.md section 2). Not measurable without observed or customer evidence.",
+      "measurable_without_observed_or_customer": false,
+      "cap_without_observed_or_customer": 0,
+      "floor": 0,
+      "shares": {
+        "automated_check": 0,
+        "expert_assessment": 0,
+        "observed_or_customer": 1
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": false,
+          "checks": []
+        },
+        "expert_assessment": {
+          "allowed": false,
+          "levels": []
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "returning_user_goal_completion",
+              "measures": "Share of returning participants who complete a goal they set themselves on return.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "value_delivered_on_return",
+              "measures": "Returning participants' own account of the value they got, coded by a person and normalised to 0 to 1.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "measurable_customer_outcomes",
+      "order": 12,
+      "name": "Measurable customer outcomes",
+      "weight": 5,
+      "description": "Whether the product measurably helps people achieve what they came for. Defined only by outcomes the person stated. Not measurable without observed or customer evidence.",
+      "measurable_without_observed_or_customer": false,
+      "cap_without_observed_or_customer": 0,
+      "floor": 0,
+      "shares": {
+        "automated_check": 0,
+        "expert_assessment": 0,
+        "observed_or_customer": 1
+      },
+      "evidence": {
+        "automated_check": {
+          "allowed": false,
+          "checks": []
+        },
+        "expert_assessment": {
+          "allowed": false,
+          "levels": []
+        },
+        "observed_behaviour": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "stated_goal_achieved",
+              "measures": "Share of participants who achieve the goal they stated before using the product.",
+              "weight": 50
+            }
+          ]
+        },
+        "customer_feedback": {
+          "allowed": true,
+          "metrics": [
+            {
+              "id": "customer_reported_outcome",
+              "measures": "Participants' own account of the outcome achieved, coded by a person and normalised to 0 to 1.",
+              "weight": 50
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "finding_effects": [
+    {
+      "kind": "wcag_failure",
+      "description": "A WCAG 2.2 failure. Level A or AA is a blocker; AAA is recorded as advisory.",
+      "blocker": true,
+      "blocker_levels": [
+        "A",
+        "AA"
+      ],
+      "dimension": "accessibility_inclusion",
+      "max_fraction": 0.5
+    },
+    {
+      "kind": "unsupported_claim",
+      "description": "A user-facing claim the profile's claims policy does not allow or the product cannot support.",
+      "blocker": true,
+      "dimension": "trust_transparency",
+      "max_fraction": 0.5
+    },
+    {
+      "kind": "failing_test",
+      "description": "A failing test in the scope being scored.",
+      "blocker": true,
+      "dimension": "functional_completeness",
+      "max_fraction": 0.5
+    },
+    {
+      "kind": "domain_override_violation",
+      "description": "A domain safety, regulatory or security override recorded in the profile was violated. The finding names the affected dimension.",
+      "blocker": true,
+      "max_fraction": 0.5
+    },
+    {
+      "kind": "ethics_gate_flag",
+      "description": "An ethics-gate flag (brain.governance.md section 5). A blocker until resolved; it does not lower a dimension.",
+      "blocker": true,
+      "clearable_by_resolution": true,
+      "max_fraction": 1
+    }
+  ],
+  "prohibited_metrics": [
+    {
+      "id": "session_time",
+      "aliases": [
+        "session_length",
+        "session_duration",
+        "time_in_app",
+        "time_on_site",
+        "minutes_in_app",
+        "screen_time"
+      ],
+      "source": "brain.dopemine.md section 2: raw session time"
+    },
+    {
+      "id": "app_opens",
+      "aliases": [
+        "app_open_count",
+        "opens",
+        "launches",
+        "daily_active_users",
+        "weekly_active_users",
+        "monthly_active_users",
+        "dau",
+        "wau",
+        "mau",
+        "stickiness"
+      ],
+      "source": "brain.dopemine.md section 2: app-open counts"
+    },
+    {
+      "id": "scroll_depth",
+      "aliases": [
+        "scroll_percentage",
+        "scroll_percent"
+      ],
+      "source": "brain.dopemine.md section 2: scroll depth"
+    },
+    {
+      "id": "notification_click_through",
+      "aliases": [
+        "notification_ctr",
+        "push_ctr",
+        "notification_open_rate",
+        "push_open_rate"
+      ],
+      "source": "brain.dopemine.md section 2: notification click-through as terminal goal"
+    },
+    {
+      "id": "streak_length",
+      "aliases": [
+        "streak",
+        "streak_days",
+        "consecutive_days"
+      ],
+      "source": "brain.dopemine.md section 2: streak length for its own sake"
+    },
+    {
+      "id": "variable_reward_effectiveness",
+      "aliases": [
+        "variable_reward",
+        "reward_schedule_effectiveness"
+      ],
+      "source": "brain.dopemine.md section 2: variable-reward schedule effectiveness"
+    },
+    {
+      "id": "time_to_return",
+      "aliases": [
+        "time_to_return_after_notification",
+        "return_latency"
+      ],
+      "source": "brain.dopemine.md section 2: time-to-return after notification"
+    }
+  ],
+  "semver_policy": {
+    "major": "The dimension set, a weight or a cap changes. Scores are not comparable across a major version unless both were re-run on the same input.",
+    "minor": "Automated checks or observed metrics are added, removed or re-defined, or a floor or policy number changes. Comparable with an annotation that the methodology differs.",
+    "patch": "Wording only (descriptions, anchors, measures text). Scores are unaffected."
+  }
+}

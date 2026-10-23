@@ -1,6 +1,6 @@
 ---
 title: Dot.Brain Glossary
-version: 1.0.4
+version: 1.0.5
 status: active
 owners: [Chief Knowledge Engineer, Repository Steward Agent]
 reviewing-agent: Documentation Agent
@@ -44,6 +44,7 @@ Purpose: one definition per term, ecosystem-wide. Each entry names its **canonic
 | **Engagement-metric prohibition** | Session time, open counts, scroll depth, notification CTR, streak length, etc. may be measured but never optimized as targets | [../brain.dopemine.md](../brain.dopemine.md) §1–2 |
 | **Ethics gate checklist** | Five questions (human-outcome target? not prohibited? guard declared? user benefit? visible + opt-out?); any "no" ⇒ rejection | [../brain.governance.md](../brain.governance.md) §5 |
 | **Evidence class (brand knowledge)** | One of `documented_research` (citation, verified flag), `observed_behaviour` (n, method), `internal_hypothesis`, `validated_finding` (experiment reference), `declared_intent` (an owner choice, not evidence of effect); each class has required and forbidden fields | [../brain.brand_experience.md](../brain.brand_experience.md) §4 |
+| **Evidenced score / ceiling / attainment (BXQS)** | The three numbers a Brand Experience Quality Score report states: points actually earned (unmeasured counts as zero and is shown), the most the evidence classes present could earn (62.2 with automated and expert evidence only), and evidenced divided by ceiling | [../adr/ADR-0022-bxqs-scoring-policy.md](../adr/ADR-0022-bxqs-scoring-policy.md) |
 | **Fact hierarchy** | Facts → Observations → Insights → Hypotheses → Recommendations; speculation is never presented as fact regardless of how confidently phrased | [../brain.market_intelligence.md](../brain.market_intelligence.md) §1 |
 | **Golden signals** | Latency, traffic, errors, saturation per pipeline stage; definitions owned by telemetry | [../brain.telemetry.md](../brain.telemetry.md) §2 |
 | **Guard metric** | Paired harm-detection metric a recommendation must declare; breach auto-opens an incident and retro-flags the gate decision | [../brain.metrics.md](../brain.metrics.md) §5, [../brain.dopemine.md](../brain.dopemine.md) §5 |
@@ -102,6 +103,7 @@ Spelling note: the *file/platform* is **Dopemine** (brain.dopemine.md, Dot.Dopem
 | 1.0.2 | 2026-08-08 | Truth-reconciliation pass | Added "Cushion dimension", "Fact hierarchy", "Research memory" — terms brain.cushion.md and brain.market_intelligence.md defined but never registered here |
 | 1.0.3 | 2026-08-08 | Autonomy Foundation sub-project | Added "Autonomy Score", "Level 1 / 2 / 3 (autonomy classification)", "Owner Intervention Log", "Owner-Free Operating Streak" |
 | 1.0.4 | 2026-10-23 | Brand engine foundation | Added "Brand profile", "Evidence class (brand knowledge)", "Intended feeling" |
+| 1.0.5 | 2026-10-23 | Brand engine scoring | Added "Evidenced score / ceiling / attainment (BXQS)" |
 
 ## Open Questions
 
