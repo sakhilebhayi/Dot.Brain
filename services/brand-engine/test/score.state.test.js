@@ -375,3 +375,9 @@ test('the report records the rubric hash, engine, profile, input commit, timesta
   assert.equal(r.header.generated_at, '2026-10-24T08:30:00Z');
   assert.deepEqual(r.header.assessors, [{ id: HUMAN.id, kind: 'human' }]);
 });
+
+test('util.mean refuses an empty list rather than returning NaN', async () => {
+  const { mean } = await import('../src/score/util.js');
+  assert.equal(mean([2, 4]), 3);
+  assert.throws(() => mean([]), RangeError);
+});

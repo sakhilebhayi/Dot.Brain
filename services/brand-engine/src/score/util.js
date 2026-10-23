@@ -21,7 +21,11 @@ export const sha256Hex = (text) => createHash('sha256').update(text).digest('hex
 /** sha256 of the canonical (sorted-key, compact) JSON, so formatting never changes a hash. */
 export const canonicalHash = (value) => sha256Hex(stableStringify(value, 0));
 
-export const mean = (list) => list.reduce((a, b) => a + b, 0) / list.length;
+/** Arithmetic mean. An empty list is a programming error, never a silent NaN. */
+export function mean(list) {
+  if (!Array.isArray(list) || list.length === 0) throw new RangeError('mean of an empty list');
+  return list.reduce((a, b) => a + b, 0) / list.length;
+}
 
 /** "Product Opens/Day" -> "product_opens_day" */
 export const normaliseId = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
