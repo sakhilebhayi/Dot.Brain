@@ -1,0 +1,55 @@
+name: InfoDot Knowledge Candidates
+
+# Reads approved InfoDot contributions, scores them with fixed rules, and
+# RECOMMENDS the ones that look reusable to the moderators of the Verified
+# library, as decisions in Dot.Memory. It never awards points, never reads
+# balances, never ranks people and never writes to InfoDot. See
+# services/infodot-knowledge/README.md and ADR-0020.
+#
+# MANUAL ONLY, on purpose: there is no schedule yet. The owner enables one
+# after a dry run has been read and Memory and InfoDot share the same
+# KNOWLEDGE_SECRET_BRAIN.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Read and score only; write no decisions to Dot.Memory
+        type: boolean
+        default: true
+
+concurrency:
+  group: infodot-knowledge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  recommend:
+    name: recommend knowledge candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pull, score, record, grade
+        working-directory: services/infodot-knowledge
+        env:
+          INFODOT_URL: https://infodot.co.za
+          DOT_MEMORY_URL: https://memory.infodot.co.za
+          KNOWLEDGE_SECRET_BRAIN: ${{ secrets.KNOWLEDGE_SECRET_BRAIN }}
+          DOT_MEMORY_TOKEN: ${{ secrets.DOT_MEMORY_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        # Counts only go to the log and to the job summary (the CLI appends
+        # to $GITHUB_STEP_SUMMARY itself). A dry run is the default.
+        run: |
+          args=""
+          if [ "$DRY_RUN" = "false" ]; then args="--apply"; fi
+          node src/cli.js run $args

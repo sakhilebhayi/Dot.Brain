@@ -1,12 +1,12 @@
 ---
 title: InfoDot — Platform Knowledge
-version: 1.1.0
+version: 1.2.0
 status: active
 owners: [InfoDot Platform Lead, Registry Agent]
 platform-id: infodot
 dkp-version: 1.0.0
 integration-status: registered
-last-review: 2026-08-07
+last-review: 2026-10-23
 ---
 
 # InfoDot
@@ -35,11 +35,13 @@ No DKP-mapped ecosystem events yet. The one real cross-platform signal is the SS
 
 ## 4. Knowledge Packs Published
 
-None. No DKP manifest or publish pipeline exists — same gap as every other platform in the ecosystem (see §10).
+None. No DKP manifest or publish pipeline exists — same gap as every other platform in the ecosystem (see §10). **No DKP publishing of the Q&A/Solutions content exists yet**, including for the candidate pull described in §5: that is a separate, HMAC-signed read endpoint, not a Knowledge Pack.
 
 ## 5. Intelligence Consumed
 
-None currently subscribed.
+None currently subscribed to as a DKP consumer.
+
+**Knowledge candidates (Brain pulls from InfoDot).** [services/infodot-knowledge](../services/infodot-knowledge/README.md) ([ADR-0020](../adr/ADR-0020-infodot-knowledge-candidates.md)) is written against `GET /api/knowledge/candidates?since=<ISO8601>&limit=100` on InfoDot: HMAC-signed (`X-InfoDot-Timestamp`, `X-InfoDot-Signature: sha256=` over `"{timestamp}."`, secret `KNOWLEDGE_SECRET_BRAIN`, 300 s window), public items only, no bodies or emails, pseudonymous `author_uuid`. Brain scores each item with fixed rules and records a `recommend_for_library` / `watch` / `do_not_recommend` decision in Dot.Memory for the moderators of a Verified library. It never awards points, reads balances, writes to InfoDot or ranks people. The endpoint is InfoDot-side work built against that contract; the service's workflow is manual-only (`workflow_dispatch`) and nothing runs on a schedule yet. This does not make InfoDot a DKP publisher.
 
 ## 6. Cross-Platform Relationships
 
@@ -63,7 +65,7 @@ None identified as in-scope.
 
 ## 9. Active Recommendations
 
-None — no Knowledge Pack publishing yet.
+None — no Knowledge Pack publishing yet. Candidate recommendations for the Verified library (§5) are decisions in Dot.Memory for InfoDot's moderators, not Brain recommendations to this platform's code.
 
 ## 10. Incident History Summary
 
@@ -105,6 +107,7 @@ For InfoDot's first real Level 1 process to exist, it would need at least one op
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.2.0 | 2026-10-23 | InfoDot knowledge build | §4, §5, §9: recorded the knowledge-candidate pull (services/infodot-knowledge, ADR-0020) and that no DKP publishing exists yet |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.0.0 | 2026-08-07 | Dot.Brain truth-reconciliation pass | Initial registration — InfoDot had no platform document or registry row despite being the ecosystem's SSO hub; every other registered platform's cross-platform relationship depends on it. Backfilled §1–10 from InfoDot's own wiki.md (v1.3.0) and CLAUDE.md; added §11 documenting the verified 2026-08-07 legal/Boost/code-quality infrastructure pass. |
 
