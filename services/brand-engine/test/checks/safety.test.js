@@ -174,5 +174,6 @@ test('a hostile checkout does not crash or hang a check', () => {
   });
   const t0 = process.hrtime.bigint();
   for (const [id] of checks) assert.doesNotThrow(() => runOn(checks, id, root, PROFILE), id);
-  assert.ok(Number(process.hrtime.bigint() - t0) / 1e9 < 10, 'finished in a bounded time');
+  // A hang or a runaway regex takes minutes; a slow shared CI runner took 11 s here against 2 s locally.
+  assert.ok(Number(process.hrtime.bigint() - t0) / 1e9 < 30, 'finished in a bounded time');
 });
