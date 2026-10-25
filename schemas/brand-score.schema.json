@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-score.schema.json",
+  "title": "Brand Experience Quality Score Report",
+  "description": "The output of `brand-engine score`. Three headline numbers (evidenced score, ceiling, attainment), a state, a confidence band, every dimension with its evidence, and every blocker, rejection and gap. All engine-written text comes from fixed templates (services/brand-engine/src/score/text.js); every other string is an id or was supplied as input. The report never asserts that a user feels anything. Numbers are truncated, never rounded up.",
+  "type": "object",
+  "required": ["report_version", "header", "headline", "state", "state_reasons", "release_ready_unmet", "confidence", "dimensions", "blockers", "findings_recorded", "rejected_evidence", "missing_evidence", "domain_overrides"],
+  "additionalProperties": false,
+  "properties": {
+    "report_version": { "enum": ["1.0.0", "1.1.0"], "description": "1.1.0 adds header.assessors[].declaration, entries[].saturated and components.automated_check.checks_saturated. A report names the lowest version that can describe it." },
+    "header": {
+      "type": "object",
+      "required": ["rubric", "engine_version", "profile", "input", "generated_at", "assessors"],
+      "additionalProperties": false,
+      "properties": {
+        "rubric": {
+          "type": "object",
+          "required": ["id", "version", "sha256", "status"],
+          "additionalProperties": false,
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "version": { "$ref": "#/$defs/semver" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "status": { "enum": ["proposed", "ratified"] },
+            "ratified_by": { "type": "string", "minLength": 1 },
+            "ratified_at": { "type": "string", "format": "date-time" }
+          }
+        },
+        "engine_version": { "$ref": "#/$defs/semver" },
+        "profile": {
+          "type": "object",
+          "required": ["id", "kind", "version", "sha256", "effective_status", "chain"],
+          "additionalProperties": false,
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "kind": { "enum": ["ecosystem", "brand", "product"] },
+            "version": { "$ref": "#/$defs/semver" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "effective_status": { "enum": ["draft", "proposed", "ratified", "superseded"] },
+            "chain": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "input": {
+          "type": "object",
+          "required": ["repo", "commit", "evidence_sha256"],
+          "additionalProperties": false,
+          "properties": {
+            "repo": { "type": "string", "minLength": 1 },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "evidence_sha256": { "$ref": "#/$defs/sha256" },
+            "scope": { "type": "string", "minLength": 1 },
+            "built_by": { "type": "string", "minLength": 1 }
+          }
+        },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "assessors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["human", "ai"] },
+              "declaration": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "report_version 1.1.0. What the assessor declared about itself, copied from the evidence. Recorded only: no number in this report depends on it.",
+                "properties": {
+                  "built_the_change": { "type": "boolean" },
+                  "fresh_reviewer": { "type": "boolean" },
+                  "ai_only": { "type": "boolean" },
+                  "statement": { "type": "string", "minLength": 1, "maxLength": 700 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "headline": {
+      "type": "object",
+      "required": ["evidenced_score", "ceiling", "attainment_percent", "out_of"],
+      "additionalProperties": false,
+      "properties": {
+        "evidenced_score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "ceiling": { "type": "number", "minimum": 0, "maximum": 100 },
+        "attainment_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "out_of": { "const": 100 }
+      }
+    },
+    "state": { "enum": ["not_ready", "build_verified", "release_ready"] },
+    "state_reasons": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reason" } },
+    "release_ready_unmet": { "type": "array", "items": { "$ref": "#/$defs/reason" } },
+    "confidence": {
+      "type": "object",
+      "required": ["band", "reasons", "disagreements", "coverage"],
+      "additionalProperties": false,
+      "properties": {
+        "band": { "enum": ["Low", "Medium", "High"] },
+        "reasons": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reason" } },
+        "disagreements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dimension", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "dimension": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "required": ["independent_sources_weight", "automated_and_expert_weight", "minimum_weight"],
+          "additionalProperties": false,
+          "properties": {
+            "independent_sources_weight": { "type": "number", "minimum": 0, "maximum": 100 },
+            "automated_and_expert_weight": { "type": "number", "minimum": 0, "maximum": 100 },
+            "minimum_weight": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "dimensions": { "type": "array", "minItems": 12, "maxItems": 12, "items": { "$ref": "#/$defs/dimension" } },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "finding_id", "kind", "text", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "finding_id": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "minLength": 1 },
+          "dimension": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "artifact_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "findings_recorded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "blocker", "text", "detail", "artifact_ref"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "minLength": 1 },
+          "blocker": { "type": "boolean" },
+          "dimension": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "detail": { "type": "string", "minLength": 1 },
+          "artifact_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "rejected_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "source_class", "ref", "reason_code", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": { "type": "string", "minLength": 1 },
+          "source_class": { "$ref": "#/$defs/sourceClass" },
+          "ref": { "type": "string", "minLength": 1 },
+          "reason_code": { "enum": ["class_not_allowed", "builder_sole_assessor", "below_minimum_n", "prohibited_engagement_metric"] },
+          "text": { "type": "string", "minLength": 1 },
+          "requires_human_review": { "type": "boolean" }
+        }
+      }
+    },
+    "missing_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "source_class", "ref"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": { "type": "string", "minLength": 1 },
+          "source_class": { "$ref": "#/$defs/sourceClass" },
+          "ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "domain_overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["principle", "yields_to", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "principle": { "type": "string", "minLength": 1 },
+          "yields_to": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "origin": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sourceClass": { "enum": ["automated_check", "expert_assessment", "observed_behaviour", "customer_feedback"] },
+    "points": { "type": "number", "minimum": 0 },
+    "reason": {
+      "type": "object",
+      "required": ["code", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "required": ["id", "name", "weight", "status", "points_possible", "ceiling_points", "points_earned", "points_not_measured", "cap_applied", "components", "floor", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "weight": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["scored", "partially_evidenced", "not_measured"] },
+        "points_possible": { "$ref": "#/$defs/points" },
+        "ceiling_points": { "$ref": "#/$defs/points" },
+        "points_earned": { "$ref": "#/$defs/points" },
+        "points_not_measured": { "$ref": "#/$defs/points" },
+        "cap_applied": {
+          "type": "object",
+          "required": ["applied", "cap_fraction", "points_capped_away"],
+          "additionalProperties": false,
+          "properties": {
+            "applied": { "type": "boolean" },
+            "cap_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+            "points_capped_away": { "$ref": "#/$defs/points" }
+          }
+        },
+        "finding_cap": {
+          "type": "object",
+          "required": ["max_fraction", "finding_ids", "points_removed"],
+          "additionalProperties": false,
+          "properties": {
+            "max_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+            "finding_ids": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+            "points_removed": { "$ref": "#/$defs/points" }
+          }
+        },
+        "components": {
+          "type": "object",
+          "required": ["automated_check", "expert_assessment", "observed_or_customer"],
+          "additionalProperties": false,
+          "properties": {
+            "automated_check": {
+              "type": "object",
+              "required": ["allowed", "points_possible", "points_earned", "checks_total", "checks_measured"],
+              "additionalProperties": false,
+              "properties": {
+                "allowed": { "type": "boolean" },
+                "points_possible": { "$ref": "#/$defs/points" },
+                "points_earned": { "$ref": "#/$defs/points" },
+                "checks_total": { "type": "integer", "minimum": 0 },
+                "checks_measured": { "type": "integer", "minimum": 0 },
+                "checks_saturated": { "type": "integer", "minimum": 1, "description": "report_version 1.1.0. How many measured checks reached their ceiling (the value is a floor)." }
+              }
+            },
+            "expert_assessment": {
+              "type": "object",
+              "required": ["allowed", "points_possible", "points_earned", "assessors_counted", "ai_only", "points_withheld_ai_only"],
+              "additionalProperties": false,
+              "properties": {
+                "allowed": { "type": "boolean" },
+                "points_possible": { "$ref": "#/$defs/points" },
+                "points_earned": { "$ref": "#/$defs/points" },
+                "assessors_counted": { "type": "integer", "minimum": 0 },
+                "ai_only": { "type": "boolean" },
+                "points_withheld_ai_only": { "$ref": "#/$defs/points" }
+              }
+            },
+            "observed_or_customer": {
+              "type": "object",
+              "required": ["allowed", "points_possible", "points_earned", "metrics_total", "metrics_measured"],
+              "additionalProperties": false,
+              "properties": {
+                "allowed": { "type": "boolean" },
+                "points_possible": { "$ref": "#/$defs/points" },
+                "points_earned": { "$ref": "#/$defs/points" },
+                "metrics_total": { "type": "integer", "minimum": 0 },
+                "metrics_measured": { "type": "integer", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "floor": { "type": "number", "minimum": 0, "maximum": 1 },
+        "floor_attainment_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "floor_met": { "type": "boolean" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["source_class", "result", "disposition"],
+      "additionalProperties": false,
+      "properties": {
+        "source_class": { "$ref": "#/$defs/sourceClass" },
+        "check_id": { "type": "string", "minLength": 1 },
+        "assessor": { "type": "string", "minLength": 1 },
+        "metric_id": { "type": "string", "minLength": 1 },
+        "result": { "enum": ["pass", "partial", "fail", "level_0", "level_1", "level_2", "level_3", "level_4", "measured", "not_measured", "rejected"] },
+        "value": { "type": "number", "minimum": 0, "maximum": 1 },
+        "n": { "type": "integer", "minimum": 1 },
+        "disposition": { "enum": ["counted", "corroborating", "recorded_not_counted", "rejected", "not_measured"] },
+        "reason_code": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 },
+        "artifact_ref": { "type": "string", "minLength": 1 },
+        "saturated": { "const": true, "description": "report_version 1.1.0. Counted as given; left out of the comparison with expert levels." }
+      }
+    }
+  }
+}

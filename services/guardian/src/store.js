@@ -57,6 +57,12 @@ CREATE TABLE IF NOT EXISTS escalations (
   issue_url TEXT,
   raised_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS issue_attempts (
+  incident_uid TEXT PRIMARY KEY,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_attempt_at TEXT NOT NULL,
+  last_error TEXT
+);
 `;
 
 /** Statuses that mean "this incident is still being worked". */
@@ -257,6 +263,41 @@ export function recordEscalation(store, { incident_uid, platform, reason, issue_
   store.prepare(
     'INSERT INTO escalations (incident_uid, platform, reason, issue_url, raised_at) VALUES (?, ?, ?, ?, ?)',
   ).run(incident_uid, platform, reason, issue_url ?? null, now.toISOString());
+}
+
+/**
+ * Failed attempts to open an ADVICE issue (the `recommend` action). Without
+ * this the guardian retried `gh issue create` on every 5-minute poll for as
+ * long as an incident stayed open, so a token that cannot reach a repository
+ * produced a failed call and a log line forever. Escalations (a human must
+ * know) are deliberately NOT backed off.
+ */
+export const ISSUE_RETRY_BASE_MS = 30 * 60 * 1000;
+export const ISSUE_RETRY_MAX_MS = 6 * 60 * 60 * 1000;
+
+export function issueRetryDelayMs(attempts) {
+  return Math.min(ISSUE_RETRY_MAX_MS, ISSUE_RETRY_BASE_MS * 2 ** Math.max(0, attempts - 1));
+}
+
+/** Records a failed attempt and returns the new attempt count. */
+export function recordIssueFailure(store, incidentUid, message, now = new Date()) {
+  store.prepare(
+    `INSERT INTO issue_attempts (incident_uid, attempts, last_attempt_at, last_error) VALUES (?, 1, ?, ?)
+     ON CONFLICT(incident_uid) DO UPDATE SET attempts = attempts + 1, last_attempt_at = excluded.last_attempt_at, last_error = excluded.last_error`,
+  ).run(incidentUid, now.toISOString(), String(message ?? '').slice(0, 500));
+  return store.prepare('SELECT attempts FROM issue_attempts WHERE incident_uid = ?').get(incidentUid).attempts;
+}
+
+/** Milliseconds until the next attempt is allowed; 0 when never failed or already due. */
+export function issueRetryWaitMs(store, incidentUid, now = new Date()) {
+  const row = store.prepare('SELECT attempts, last_attempt_at FROM issue_attempts WHERE incident_uid = ?').get(incidentUid);
+  if (!row) return 0;
+  const dueAt = Date.parse(row.last_attempt_at) + issueRetryDelayMs(row.attempts);
+  return Math.max(0, dueAt - now.getTime());
+}
+
+export function clearIssueFailure(store, incidentUid) {
+  store.prepare('DELETE FROM issue_attempts WHERE incident_uid = ?').run(incidentUid);
 }
 
 export function hasEscalation(store, incidentUid) {

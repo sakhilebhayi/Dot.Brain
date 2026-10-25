@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/brand-rubric.schema.json",
+  "title": "Brand Experience Quality Score Rubric",
+  "description": "A released, immutable scoring rubric (brain.brand_experience.md, ADR-0022). The report records the rubric's sha256; a change to a released rubric is a new version, never an edit. Cross-field rules (weights sum to exactly 100, shares sum to 1, cap equals automated share plus expert share, check and metric weights, unique ids, prohibited-metric consistency) are enforced by services/brand-engine, not expressible here.",
+  "type": "object",
+  "required": ["id", "version", "title", "description", "released_at", "contributors", "policy", "dimensions", "finding_effects", "prohibited_metrics", "semver_policy"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "version": { "$ref": "#/$defs/semver" },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "released_at": { "type": "string", "format": "date-time" },
+    "contributors": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "display_name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["human", "ai"] },
+          "display_name": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "required": ["total_points", "release_evidenced_minimum", "build_verified_attainment_minimum", "ai_only_expert_credit", "expert_level_max", "observed_minimum_n", "disagreement_levels", "confidence_minimum_weight"],
+      "additionalProperties": false,
+      "properties": {
+        "total_points": { "const": 100 },
+        "release_evidenced_minimum": { "type": "number", "minimum": 0, "maximum": 100 },
+        "build_verified_attainment_minimum": { "type": "number", "minimum": 0, "maximum": 100 },
+        "ai_only_expert_credit": { "type": "number", "minimum": 0, "maximum": 0.5 },
+        "expert_level_max": { "const": 4 },
+        "observed_minimum_n": { "type": "integer", "minimum": 1 },
+        "disagreement_levels": { "type": "number", "minimum": 0 },
+        "confidence_minimum_weight": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "dimensions": { "type": "array", "minItems": 12, "maxItems": 12, "items": { "$ref": "#/$defs/dimension" } },
+    "finding_effects": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/findingEffect" } },
+    "prohibited_metrics": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "aliases", "source"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/metricId" },
+          "aliases": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/metricId" } },
+          "source": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "semver_policy": {
+      "type": "object",
+      "required": ["major", "minor", "patch"],
+      "additionalProperties": false,
+      "properties": {
+        "major": { "type": "string", "minLength": 1 },
+        "minor": { "type": "string", "minLength": 1 },
+        "patch": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "metricId": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "dimensionId": {
+      "enum": [
+        "emotional_clarity_positioning", "brand_distinctiveness", "usability_cognitive_load",
+        "visual_interaction_craftsmanship", "functional_completeness", "trust_transparency",
+        "perceived_demonstrated_value", "accessibility_inclusion", "cross_platform_consistency",
+        "reliability_error_recovery", "retention_continuing_value", "measurable_customer_outcomes"
+      ]
+    },
+    "fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+    "weighted": {
+      "type": "object",
+      "required": ["id", "measures", "weight"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_.]*$" },
+        "measures": { "type": "string", "minLength": 1 },
+        "weight": { "type": "integer", "minimum": 1, "maximum": 100 }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "required": ["id", "order", "name", "weight", "description", "measurable_without_observed_or_customer", "cap_without_observed_or_customer", "floor", "shares", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/dimensionId" },
+        "order": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "name": { "type": "string", "minLength": 1 },
+        "weight": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "description": { "type": "string", "minLength": 1 },
+        "measurable_without_observed_or_customer": { "type": "boolean" },
+        "cap_without_observed_or_customer": { "$ref": "#/$defs/fraction" },
+        "floor": { "$ref": "#/$defs/fraction" },
+        "shares": {
+          "type": "object",
+          "required": ["automated_check", "expert_assessment", "observed_or_customer"],
+          "additionalProperties": false,
+          "properties": {
+            "automated_check": { "$ref": "#/$defs/fraction" },
+            "expert_assessment": { "$ref": "#/$defs/fraction" },
+            "observed_or_customer": { "$ref": "#/$defs/fraction" }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "required": ["automated_check", "expert_assessment", "observed_behaviour", "customer_feedback"],
+          "additionalProperties": false,
+          "properties": {
+            "automated_check": {
+              "type": "object",
+              "required": ["allowed", "checks"],
+              "additionalProperties": false,
+              "properties": {
+                "allowed": { "type": "boolean" },
+                "checks": { "type": "array", "items": { "$ref": "#/$defs/weighted" } }
+              }
+            },
+            "expert_assessment": {
+              "type": "object",
+              "required": ["allowed", "levels"],
+              "additionalProperties": false,
+              "properties": {
+                "allowed": { "type": "boolean" },
+                "levels": {
+                  "type": "array", "maxItems": 5,
+                  "items": {
+                    "type": "object",
+                    "required": ["level", "anchor"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "level": { "type": "integer", "minimum": 0, "maximum": 4 },
+                      "anchor": { "type": "string", "minLength": 1 }
+                    }
+                  }
+                }
+              }
+            },
+            "observed_behaviour": { "$ref": "#/$defs/metricBlock" },
+            "customer_feedback": { "$ref": "#/$defs/metricBlock" }
+          }
+        }
+      }
+    },
+    "metricBlock": {
+      "type": "object",
+      "required": ["allowed", "metrics"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "metrics": { "type": "array", "items": { "$ref": "#/$defs/weighted" } }
+      }
+    },
+    "findingEffect": {
+      "type": "object",
+      "required": ["kind", "description", "blocker", "max_fraction"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["wcag_failure", "unsupported_claim", "failing_test", "domain_override_violation", "ethics_gate_flag"] },
+        "description": { "type": "string", "minLength": 1 },
+        "blocker": { "type": "boolean" },
+        "blocker_levels": { "type": "array", "minItems": 1, "items": { "enum": ["A", "AA", "AAA"] } },
+        "clearable_by_resolution": { "type": "boolean" },
+        "dimension": { "$ref": "#/$defs/dimensionId" },
+        "max_fraction": { "$ref": "#/$defs/fraction" }
+      }
+    }
+  }
+}

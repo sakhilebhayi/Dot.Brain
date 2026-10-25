@@ -1,0 +1,47 @@
+# Knowledge data is separate from code and is reviewed by path. Nothing under
+# /brand/ becomes ratified except by the owner's own review and merge
+# (ADR-0021: an AI session may propose a profile or principle, never ratify one).
+# The schemas and the rule file below define what "ratified" has to look like,
+# so they are reviewed the same way.
+/brand/ @sakhilebhayi
+/schemas/brand-profile.schema.json @sakhilebhayi
+/schemas/brand-principle.schema.json @sakhilebhayi
+/schemas/brand-rubric.schema.json @sakhilebhayi
+/schemas/brand-evidence.schema.json @sakhilebhayi
+/schemas/brand-score.schema.json @sakhilebhayi
+/schemas/brand-analysis.schema.json @sakhilebhayi
+/schemas/brand-plan.schema.json @sakhilebhayi
+/services/brand-engine/src/rules.js @sakhilebhayi
+# Scoring: the rules that turn evidence into a score, and the frozen golden reports
+# that pin every released score. A change to either is a methodology change.
+/services/brand-engine/src/score/ @sakhilebhayi
+/services/brand-engine/test/fixtures/score/golden/ @sakhilebhayi
+# Workflow: how external reports become evidence, how findings become a plan, and how a fix is
+# verified. The adapters decide what a tool's output counts for in the score, so they are reviewed
+# like the scoring code. (The built-in checks under src/analyze/checks/ are routed separately.)
+/services/brand-engine/src/analyze/adapters/ @sakhilebhayi
+/services/brand-engine/src/analyze/finding-kinds.js @sakhilebhayi
+/services/brand-engine/src/analyze/verify.js @sakhilebhayi
+/services/brand-engine/src/analyze/plan.js @sakhilebhayi
+/services/brand-engine/src/analyze/tables.js @sakhilebhayi
+# Governance (ADR-0024): the proposal and changelog schemas, the lint that decides what a proposal must
+# carry, the ledger of ratified documents, proposals themselves, the rubric, the doctrine and the
+# decision records. Ratification is the owner's review and merge of exactly these paths.
+/brand/rubrics/ @sakhilebhayi
+/brand/governance/ @sakhilebhayi
+/brand/proposals/ @sakhilebhayi
+/schemas/brand-proposal.schema.json @sakhilebhayi
+/schemas/brand-changelog.schema.json @sakhilebhayi
+/services/brand-engine/src/governance/ @sakhilebhayi
+/brain.brand_experience.md @sakhilebhayi
+/adr/ADR-0021-brand-feeling-engine.md @sakhilebhayi
+/adr/ADR-0022-bxqs-scoring-policy.md @sakhilebhayi
+/adr/ADR-0023-brand-engine-workflow-adapter-boundary.md @sakhilebhayi
+/adr/ADR-0024-brand-engine-governance-skill-action.md @sakhilebhayi
+# The Claude Skill is instructions a model follows and the Action runs code against other repositories'
+# checkouts: both change what the engine does in the world, so both are reviewed like the scoring code.
+/services/brand-engine/skill/ @sakhilebhayi
+/services/brand-engine/ci/ @sakhilebhayi
+/.github/workflows/brand-assess.yml @sakhilebhayi
+# This file decides who reviews all of the above.
+/.github/CODEOWNERS @sakhilebhayi

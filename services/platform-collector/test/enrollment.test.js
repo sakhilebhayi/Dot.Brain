@@ -12,11 +12,11 @@ const WORKFLOW = readFileSync(`${ROOT}.github/workflows/platform-collector.yml`,
 const TESTS_WORKFLOW = readFileSync(`${ROOT}.github/workflows/tests.yml`, 'utf8');
 const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 
-test('the six live platforms are enrolled, in sorted file order, and every committed manifest is valid', () => {
+test('the eleven live platforms are enrolled, in sorted file order, and every committed manifest is valid', () => {
   const manifests = loadManifests(MANIFEST_DIR);
   assert.deepEqual(
     manifests.map((m) => m.platform),
-    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-memory', 'dot-mines'],
+    ['dot-central', 'dot-charts', 'dot-docs', 'dot-dopemine', 'dot-engage', 'dot-forms', 'dot-memory', 'dot-mines', 'dot-press', 'dot-projects', 'dot-sheet'],
   );
   const byId = Object.fromEntries(manifests.map((m) => [m.platform, m]));
   assert.equal(byId['dot-mines'].health_url, 'https://mines.infodot.co.za/guardian/health');

@@ -1,0 +1,1406 @@
+{
+  "blockers": [],
+  "confidence": {
+    "band": "Low",
+    "coverage": {
+      "automated_and_expert_weight": 0,
+      "independent_sources_weight": 0,
+      "minimum_weight": 50
+    },
+    "disagreements": [],
+    "reasons": [
+      {
+        "code": "single_source_or_expert_only",
+        "text": "Automated and expert evidence together cover 0 points of weight; 50 are needed for Medium."
+      }
+    ]
+  },
+  "dimensions": [
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.5,
+        "points_capped_away": 4
+      },
+      "ceiling_points": 4,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.074,
+          "points_possible": 1.2
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2.8,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 4
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d1.copy_profile_language_lint.json",
+          "check_id": "d1.copy_profile_language_lint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d1.purpose_statement_present.json",
+          "check_id": "d1.purpose_statement_present",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.9
+        },
+        {
+          "artifact_ref": "artifact/d1.product_md_consistency.json",
+          "check_id": "d1.product_md_consistency",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.75
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "first_screen_purpose_comprehension",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "described_feeling_matches_intent",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 26.85,
+      "floor_met": false,
+      "id": "emotional_clarity_positioning",
+      "name": "Emotional clarity and positioning",
+      "points_earned": 1.074,
+      "points_not_measured": 2.8,
+      "points_possible": 8,
+      "status": "partially_evidenced",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.6,
+        "points_capped_away": 2.8
+      },
+      "ceiling_points": 4.2,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.4612,
+          "points_possible": 1.75
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2.45,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 2.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d2.impeccable_detect_findings.json",
+          "check_id": "d2.impeccable_detect_findings",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d2.font_palette_deny_list.json",
+          "check_id": "d2.font_palette_deny_list",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.6
+        },
+        {
+          "artifact_ref": "artifact/d2.token_uniqueness.json",
+          "check_id": "d2.token_uniqueness",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.85
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "unlabelled_screen_attribution",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "distinctiveness_rating",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 34.79,
+      "floor_met": false,
+      "id": "brand_distinctiveness",
+      "name": "Brand distinctiveness",
+      "points_earned": 1.4612,
+      "points_not_measured": 2.45,
+      "points_possible": 7,
+      "status": "partially_evidenced",
+      "weight": 7
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.6,
+        "points_capped_away": 4.8
+      },
+      "ceiling_points": 7.2,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 5,
+          "checks_total": 5,
+          "points_earned": 3.267,
+          "points_possible": 3.6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 3.6,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 3,
+          "points_earned": 0,
+          "points_possible": 4.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d3.nav_depth.json",
+          "check_id": "d3.nav_depth",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.field_counts.json",
+          "check_id": "d3.field_counts",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.95
+        },
+        {
+          "artifact_ref": "artifact/d3.heading_structure.json",
+          "check_id": "d3.heading_structure",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.primary_action_per_screen.json",
+          "check_id": "d3.primary_action_per_screen",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.9
+        },
+        {
+          "artifact_ref": "artifact/d3.task_flow_step_counts.json",
+          "check_id": "d3.task_flow_step_counts",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.75
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "task_completion_rate",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "errors_per_task",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "ease_rating",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 45.37,
+      "floor_met": false,
+      "id": "usability_cognitive_load",
+      "name": "Usability and cognitive load",
+      "points_earned": 3.267,
+      "points_not_measured": 3.6,
+      "points_possible": 12,
+      "status": "partially_evidenced",
+      "weight": 12
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.8,
+        "points_capped_away": 1.8
+      },
+      "ceiling_points": 7.2,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 3.915,
+          "points_possible": 4.5
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2.7,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 1.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d4.detector_clean.json",
+          "check_id": "d4.detector_clean",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d4.spacing_type_scale_conformance.json",
+          "check_id": "d4.spacing_type_scale_conformance",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.6
+        },
+        {
+          "artifact_ref": "artifact/d4.reduced_motion.json",
+          "check_id": "d4.reduced_motion",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.85
+        },
+        {
+          "artifact_ref": "artifact/d4.responsive_overflow.json",
+          "check_id": "d4.responsive_overflow",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "interaction_error_rate",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "craft_rating",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 54.37,
+      "floor_met": false,
+      "id": "visual_interaction_craftsmanship",
+      "name": "Visual and interaction craftsmanship",
+      "points_earned": 3.915,
+      "points_not_measured": 2.7,
+      "points_possible": 9,
+      "status": "partially_evidenced",
+      "weight": 9
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.9,
+        "points_capped_away": 1
+      },
+      "ceiling_points": 9,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 6.3175,
+          "points_possible": 7
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 1
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d5.test_pass_counts.json",
+          "check_id": "d5.test_pass_counts",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.95
+        },
+        {
+          "artifact_ref": "artifact/d5.route_inventory_vs_claims.json",
+          "check_id": "d5.route_inventory_vs_claims",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d5.dead_links.json",
+          "check_id": "d5.dead_links",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.9
+        },
+        {
+          "artifact_ref": "artifact/d5.stubs_placeholders.json",
+          "check_id": "d5.stubs_placeholders",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.75
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "feature_task_coverage",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "missing_feature_reports",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 70.19,
+      "floor_met": true,
+      "id": "functional_completeness",
+      "name": "Functional completeness",
+      "points_earned": 6.3175,
+      "points_not_measured": 2,
+      "points_possible": 10,
+      "status": "partially_evidenced",
+      "weight": 10
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.7,
+        "points_capped_away": 3
+      },
+      "ceiling_points": 7,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 3.53,
+          "points_possible": 4
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 3,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 3
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d6.claim_lint.json",
+          "check_id": "d6.claim_lint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d6.privacy_terms_present.json",
+          "check_id": "d6.privacy_terms_present",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.6
+        },
+        {
+          "artifact_ref": "artifact/d6.consent_handling.json",
+          "check_id": "d6.consent_handling",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.85
+        },
+        {
+          "artifact_ref": "artifact/d6.honest_states.json",
+          "check_id": "d6.honest_states",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "privacy_comprehension",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "stated_confidence_in_figures",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 50.42,
+      "floor_met": false,
+      "id": "trust_transparency",
+      "name": "Trust and transparency",
+      "points_earned": 3.53,
+      "points_not_measured": 3,
+      "points_possible": 10,
+      "status": "partially_evidenced",
+      "weight": 10
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.5,
+        "points_capped_away": 4
+      },
+      "ceiling_points": 4,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.52,
+          "points_possible": 1.6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2.4,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 3,
+          "points_earned": 0,
+          "points_possible": 4
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d7.time_to_first_result.json",
+          "check_id": "d7.time_to_first_result",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.95
+        },
+        {
+          "artifact_ref": "artifact/d7.empty_state_guidance.json",
+          "check_id": "d7.empty_state_guidance",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d7.value_above_fold.json",
+          "check_id": "d7.value_above_fold",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.9
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "first_session_goal_reached",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "observed_time_to_first_result",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "perceived_value_rating",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 38,
+      "floor_met": false,
+      "id": "perceived_demonstrated_value",
+      "name": "Perceived and demonstrated value",
+      "points_earned": 1.52,
+      "points_not_measured": 2.4,
+      "points_possible": 8,
+      "status": "partially_evidenced",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.7,
+        "points_capped_away": 3.6
+      },
+      "ceiling_points": 8.4,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 4.845,
+          "points_possible": 6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 2.4,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 3.6
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d8.token_pair_contrast.json",
+          "check_id": "d8.token_pair_contrast",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.75
+        },
+        {
+          "artifact_ref": "artifact/d8.axe_violations.json",
+          "check_id": "d8.axe_violations",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d8.labels_alt_lang.json",
+          "check_id": "d8.labels_alt_lang",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.6
+        },
+        {
+          "artifact_ref": "artifact/d8.focus_visible.json",
+          "check_id": "d8.focus_visible",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.85
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "assistive_technology_task_completion",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "accessibility_issue_reports",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 57.67,
+      "floor_met": false,
+      "id": "accessibility_inclusion",
+      "name": "Accessibility and inclusion",
+      "points_earned": 4.845,
+      "points_not_measured": 2.4,
+      "points_possible": 12,
+      "status": "partially_evidenced",
+      "weight": 12
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.8,
+        "points_capped_away": 1.2
+      },
+      "ceiling_points": 4.8,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 2.955,
+          "points_possible": 3
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 1.8,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 1.2
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d9.token_usage_vs_profile.json",
+          "check_id": "d9.token_usage_vs_profile",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d9.shared_components.json",
+          "check_id": "d9.shared_components",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.95
+        },
+        {
+          "artifact_ref": "artifact/d9.principle_diff.json",
+          "check_id": "d9.principle_diff",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "cross_product_task_transfer",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "coherence_rating",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 61.56,
+      "floor_met": true,
+      "id": "cross_platform_consistency",
+      "name": "Cross-platform consistency",
+      "points_earned": 2.955,
+      "points_not_measured": 1.8,
+      "points_possible": 6,
+      "status": "partially_evidenced",
+      "weight": 6
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0.8,
+        "points_capped_away": 1.6
+      },
+      "ceiling_points": 6.4,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 3.84,
+          "points_possible": 4.8
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 1.6,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 1.6
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d10.error_path_tests.json",
+          "check_id": "d10.error_path_tests",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.9
+        },
+        {
+          "artifact_ref": "artifact/d10.error_pages.json",
+          "check_id": "d10.error_pages",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.75
+        },
+        {
+          "artifact_ref": "artifact/d10.health_endpoint.json",
+          "check_id": "d10.health_endpoint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d10.error_copy_lint.json",
+          "check_id": "d10.error_copy_lint",
+          "disposition": "counted",
+          "result": "partial",
+          "source_class": "automated_check",
+          "value": 0.6
+        },
+        {
+          "detail": "Not measured: no counted expert assessment was supplied for this dimension. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "result": "not_measured",
+          "source_class": "expert_assessment"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "error_recovery_success_rate",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "reported_incident_impact",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 60,
+      "floor_met": true,
+      "id": "reliability_error_recovery",
+      "name": "Reliability and recovery from errors",
+      "points_earned": 3.84,
+      "points_not_measured": 1.6,
+      "points_possible": 8,
+      "status": "partially_evidenced",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0,
+        "points_capped_away": 5
+      },
+      "ceiling_points": 0,
+      "components": {
+        "automated_check": {
+          "allowed": false,
+          "checks_measured": 0,
+          "checks_total": 0,
+          "points_earned": 0,
+          "points_possible": 0
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": false,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 0,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 5
+        }
+      },
+      "evidence": [
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "returning_user_goal_completion",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "value_delivered_on_return",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0,
+      "id": "retention_continuing_value",
+      "name": "Retention through continuing value",
+      "points_earned": 0,
+      "points_not_measured": 0,
+      "points_possible": 5,
+      "status": "not_measured",
+      "weight": 5
+    },
+    {
+      "cap_applied": {
+        "applied": true,
+        "cap_fraction": 0,
+        "points_capped_away": 5
+      },
+      "ceiling_points": 0,
+      "components": {
+        "automated_check": {
+          "allowed": false,
+          "checks_measured": 0,
+          "checks_total": 0,
+          "points_earned": 0,
+          "points_possible": 0
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": false,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 0,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 0,
+          "metrics_total": 2,
+          "points_earned": 0,
+          "points_possible": 5
+        }
+      },
+      "evidence": [
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "stated_goal_achieved",
+          "result": "not_measured",
+          "source_class": "observed_behaviour"
+        },
+        {
+          "detail": "Not measured: no observed or customer result was supplied for this metric. It counts as zero and is shown.",
+          "disposition": "not_measured",
+          "metric_id": "customer_reported_outcome",
+          "result": "not_measured",
+          "source_class": "customer_feedback"
+        }
+      ],
+      "floor": 0,
+      "id": "measurable_customer_outcomes",
+      "name": "Measurable customer outcomes",
+      "points_earned": 0,
+      "points_not_measured": 0,
+      "points_possible": 5,
+      "status": "not_measured",
+      "weight": 5
+    }
+  ],
+  "domain_overrides": [
+    {
+      "origin": "fixture-brand@0.1.0",
+      "principle": "BXP-04",
+      "reason": "A fixture override: reassurance never softens a safety alert.",
+      "yields_to": "safety"
+    }
+  ],
+  "findings_recorded": [],
+  "header": {
+    "assessors": [],
+    "engine_version": "0.3.0",
+    "generated_at": "2026-10-23T12:00:00Z",
+    "input": {
+      "commit": "1111111111111111111111111111111111111111",
+      "evidence_sha256": "bf65f84f280d36a0b0efeb5f51bc2e2f94c0fc18dcb1a90cf6ff87f2364df7ed",
+      "repo": "fixtures/synthetic-product",
+      "scope": "golden scenario automated-only"
+    },
+    "profile": {
+      "chain": [
+        "fixture-product@0.1.0",
+        "fixture-brand@0.1.0"
+      ],
+      "effective_status": "draft",
+      "id": "fixture-product",
+      "kind": "product",
+      "sha256": "40b09445edbf172b3ffe74ddfccebb7acd2312c87ef6b882af54c94544f9bf26",
+      "version": "0.1.0"
+    },
+    "rubric": {
+      "id": "bxqs",
+      "sha256": "f5a4f8cb49b821bb41cb2ea3a5355089f87e60e6233cc6439a0f7ea680342bbd",
+      "status": "proposed",
+      "version": "1.0.0"
+    }
+  },
+  "headline": {
+    "attainment_percent": 52.61,
+    "ceiling": 62.2,
+    "evidenced_score": 32.72,
+    "out_of": 100
+  },
+  "missing_evidence": [
+    {
+      "dimension": "emotional_clarity_positioning",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "emotional_clarity_positioning",
+      "ref": "first_screen_purpose_comprehension",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "emotional_clarity_positioning",
+      "ref": "described_feeling_matches_intent",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "brand_distinctiveness",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "brand_distinctiveness",
+      "ref": "unlabelled_screen_attribution",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "brand_distinctiveness",
+      "ref": "distinctiveness_rating",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "ref": "task_completion_rate",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "ref": "errors_per_task",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "usability_cognitive_load",
+      "ref": "ease_rating",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "ref": "interaction_error_rate",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "visual_interaction_craftsmanship",
+      "ref": "craft_rating",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "functional_completeness",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "functional_completeness",
+      "ref": "feature_task_coverage",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "functional_completeness",
+      "ref": "missing_feature_reports",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "trust_transparency",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "trust_transparency",
+      "ref": "privacy_comprehension",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "trust_transparency",
+      "ref": "stated_confidence_in_figures",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "perceived_demonstrated_value",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "perceived_demonstrated_value",
+      "ref": "first_session_goal_reached",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "perceived_demonstrated_value",
+      "ref": "observed_time_to_first_result",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "perceived_demonstrated_value",
+      "ref": "perceived_value_rating",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "ref": "assistive_technology_task_completion",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "accessibility_inclusion",
+      "ref": "accessibility_issue_reports",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "cross_platform_consistency",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "cross_platform_consistency",
+      "ref": "cross_product_task_transfer",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "cross_platform_consistency",
+      "ref": "coherence_rating",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "ref": "expert_assessment",
+      "source_class": "expert_assessment"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "ref": "error_recovery_success_rate",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "reliability_error_recovery",
+      "ref": "reported_incident_impact",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "retention_continuing_value",
+      "ref": "returning_user_goal_completion",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "retention_continuing_value",
+      "ref": "value_delivered_on_return",
+      "source_class": "customer_feedback"
+    },
+    {
+      "dimension": "measurable_customer_outcomes",
+      "ref": "stated_goal_achieved",
+      "source_class": "observed_behaviour"
+    },
+    {
+      "dimension": "measurable_customer_outcomes",
+      "ref": "customer_reported_outcome",
+      "source_class": "customer_feedback"
+    }
+  ],
+  "rejected_evidence": [],
+  "release_ready_unmet": [
+    {
+      "code": "attainment_below_minimum",
+      "text": "Attainment is 52.61 percent; build_verified needs at least 90 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension emotional_clarity_positioning reaches 26.85 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension brand_distinctiveness reaches 34.79 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension usability_cognitive_load reaches 45.37 percent of its non-observed ceiling; its floor is 60.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension visual_interaction_craftsmanship reaches 54.37 percent of its non-observed ceiling; its floor is 60.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension trust_transparency reaches 50.42 percent of its non-observed ceiling; its floor is 70.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension perceived_demonstrated_value reaches 38.00 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension accessibility_inclusion reaches 57.67 percent of its non-observed ceiling; its floor is 70.00 percent."
+    },
+    {
+      "code": "evidenced_below_release_minimum",
+      "text": "Evidenced score is 32.72; release_ready needs at least 90."
+    },
+    {
+      "code": "observed_missing",
+      "text": "No counted observed or customer evidence for dimension usability_cognitive_load, which release_ready requires."
+    },
+    {
+      "code": "observed_missing",
+      "text": "No counted observed or customer evidence for dimension trust_transparency, which release_ready requires."
+    },
+    {
+      "code": "observed_missing",
+      "text": "No counted observed or customer evidence for dimension perceived_demonstrated_value, which release_ready requires."
+    },
+    {
+      "code": "confidence_below_medium",
+      "text": "Confidence is Low; release_ready needs Medium or High."
+    },
+    {
+      "code": "profile_not_ratified",
+      "text": "The profile is draft, not ratified; a draft or proposed profile caps the state at build_verified."
+    },
+    {
+      "code": "rubric_not_ratified",
+      "text": "The rubric is proposed, not ratified; a proposed rubric caps the state at build_verified."
+    }
+  ],
+  "report_version": "1.0.0",
+  "state": "not_ready",
+  "state_reasons": [
+    {
+      "code": "attainment_below_minimum",
+      "text": "Attainment is 52.61 percent; build_verified needs at least 90 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension emotional_clarity_positioning reaches 26.85 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension brand_distinctiveness reaches 34.79 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension usability_cognitive_load reaches 45.37 percent of its non-observed ceiling; its floor is 60.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension visual_interaction_craftsmanship reaches 54.37 percent of its non-observed ceiling; its floor is 60.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension trust_transparency reaches 50.42 percent of its non-observed ceiling; its floor is 70.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension perceived_demonstrated_value reaches 38.00 percent of its non-observed ceiling; its floor is 50.00 percent."
+    },
+    {
+      "code": "floor_not_met",
+      "text": "Dimension accessibility_inclusion reaches 57.67 percent of its non-observed ceiling; its floor is 70.00 percent."
+    }
+  ]
+}

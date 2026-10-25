@@ -1,0 +1,83 @@
+{
+  "id": "BXP-02",
+  "slug": "identity-professional-confidence",
+  "title": "Identity reinforcement and professional confidence",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "The product lets its user act as the professional they are (owner, operator, analyst), in their own vocabulary, with the capability a larger organisation would have, and without condescension or ceremony.",
+  "intended_outcome": "A user can do real work in their own terms and hand the result to a colleague, customer or regulator without apology or rework.",
+  "applicable_contexts": [
+    "small-business tools",
+    "operational and professional tools",
+    "reports, exports and shared documents",
+    "copy and labels",
+    "plan and permission design"
+  ],
+  "implementation_guidance": [
+    "Use the user's domain vocabulary in labels, errors and help. Keep a glossary file in the product repository and check labels against it.",
+    "Every artefact a user may show to others (report, export, invoice, certificate) is presentable by default: correct units, currency and locale, printable, no obstructive watermark.",
+    "Offer the full capability to every size of business. Gate on what is needed to operate (a permission), not on how large or experienced the customer appears.",
+    "Do not use diminishing copy (\"simple\", \"even beginners\"). Say what the user can now do.",
+    "Show the user's own context (company, role) in persistent chrome where the platform holds it."
+  ],
+  "validation_method": {
+    "automated": [
+      "String scan of user-facing copy against the profile banned_phrases."
+    ],
+    "expert_review": [
+      "Copy audit for condescension and vocabulary fit against the product glossary.",
+      "Export walk-through: could the owner hand this to a third party unchanged?"
+    ],
+    "observed_behaviour": [],
+    "customer_feedback": [
+      "Ask users whether they would show the output to a client or supervisor."
+    ]
+  },
+  "limitations": [
+    "Professional confidence is an internal construct. No validated measure of it is used here.",
+    "What counts as presentable differs by sector and country."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that small-business owners must feel respected and equipped with sophisticated tools regardless of company size.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Presentable output and domain vocabulary make users more willing to rely on the product for work they are accountable for.",
+      "rationale": "Plausible from how work artefacts are used, but untested here."
+    }
+  ],
+  "rubric_dimensions": [
+    "emotional_clarity_positioning",
+    "perceived_demonstrated_value"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}

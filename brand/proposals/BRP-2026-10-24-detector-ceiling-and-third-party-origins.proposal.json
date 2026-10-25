@@ -1,0 +1,97 @@
+{
+  "affected_products": [
+    "ecosystem"
+  ],
+  "author": {
+    "display_name": "Claude Sonnet 5.5 (Claude Code session)",
+    "id": "claude-sonnet-5-5-session",
+    "kind": "ai"
+  },
+  "change": {
+    "details": [
+      {
+        "after": "`impeccable detect` findings in the identity categories (typography, colour, layout templates) on the shipped UI, scaled by the number of DISTINCT detector rules that fire: 1 = none, 0 = ten or more distinct rules. Repeats of one rule add nothing, and rendering more pages can only add a rule that a page really breaks. (Option B for the owner to weigh: hits per rendered page, which needs the page count in the report.)",
+        "before": "`impeccable detect` findings in the identity categories (typography, colour, layout templates) on the shipped UI, scaled so that 1 = no findings and 0 = findings at or above the configured ceiling.",
+        "field": "checks.d2.impeccable_detect_findings.measures"
+      },
+      {
+        "after": "`impeccable detect` findings in the detail categories (spacing, states, motion, interaction), counted apart from d2 so no finding scores twice, scaled by the number of DISTINCT detector rules that fire in these categories (1 = none, 0 = ten or more distinct rules).",
+        "before": "`impeccable detect` findings in the detail categories (spacing, states, motion, interaction), counted apart from d2 so no finding scores twice (1 = none).",
+        "field": "checks.d4.detector_clean.measures"
+      },
+      {
+        "after": "New check d6.third_party_origins: \"Share of third-party origins loaded by the shipped templates and stylesheets (absolute http(s) URLs in script, link, img, source, iframe and @import) that the privacy notice names.\" Read from the checkout, no browser: a template scan plus a text match of each origin's host or well-known service name against the privacy notice. Not measured when no template loads a third-party origin or no privacy notice can be read. Limits to be stated in docs/static-checks.md: origins built from variables or loaded by scripts are not seen, and a name match proves the notice mentions the service, not that the mention is accurate.",
+        "field": "dimensions.trust_transparency.evidence.automated_check.checks[+]"
+      },
+      {
+        "after": "Suggested, for the owner to set: d6.claim_lint 25, d6.privacy_terms_present 20, d6.third_party_origins 15, d6.consent_handling 20, d6.honest_states 20 (sum 100). The dimension weight (10), its shares and its cap do not change.",
+        "before": "d6.claim_lint 30, d6.privacy_terms_present 20, d6.consent_handling 25, d6.honest_states 25 (sum 100)",
+        "field": "dimensions.trust_transparency.evidence.automated_check.checks[].weight"
+      }
+    ],
+    "rubric_change_type": "checks_metrics_floors_policy",
+    "summary": "Two rubric-side changes that the Phase 1 demonstrations show are needed and that the engine may not decide. (1) The two design-detector checks are scaled \"1 = no findings, 0 = at or above the configured ceiling\", and the configured ceiling is a constant ten hits, so the value is a floor: ten hits and 191 hits both read 0.00, and rendering more pages can only lower a product. (2) No check sees third-party services loaded at run time (CDN scripts and styles, font services, icon fonts, avatar and image services), although they matter to trust: the privacy notice should name them. Nothing here is applied. The engine has been changed only to make the saturation visible and to leave a floor out of the automated-versus-expert comparison; its numbers, the weights and the caps are exactly as released in bxqs 1.0.0.",
+    "weakens_precedence": false
+  },
+  "changelog_entry": {
+    "date": "2026-10-24T09:00:00Z",
+    "summary": "Rewrites the scaling of d2.impeccable_detect_findings and d4.detector_clean so the value no longer reads 0.00 at ten hits whatever the count, and adds one statically measurable check, d6.third_party_origins, with a suggested re-split of the d6 automated weights. Proposed only; the owner decides every number.",
+    "version": "1.1.0"
+  },
+  "confidence": 0.45,
+  "created_at": "2026-10-24T09:00:00Z",
+  "evidence": [
+    {
+      "class": "internal_hypothesis",
+      "rationale": "Same-model, single-run demonstrations with synthetic seeds and offline renders. Strong enough to show the scale saturates (that is arithmetic), too thin to choose between counting distinct rules and hits per page, which is why both are written out.",
+      "summary": "Four AI-run demonstrations of engine 0.2.0 on three product codebases, each analysed read-only with the released rubric: the detector read 0.00 at ten hits in every one, and the confidence band went Low in all four, partly because of it. The numbers are in the demonstration reports kept with the maintainer; they are one reviewer and one run each, so this is a hypothesis about the scale, not a measurement of a population."
+    },
+    {
+      "class": "internal_hypothesis",
+      "rationale": "Found by reading templates and privacy copy during the demonstrations. A file scan is enough to list the origins; whether each should be named in the notice is the owner's policy decision, so the check measures the share that are named and takes no position on which services are acceptable.",
+      "summary": "The three product codebases load Google Fonts or icon fonts, CDN-hosted scripts and styles, and an avatar or image service from their shipped templates; none of the checks in bxqs 1.0.0 reads any of it, and one privacy text lists data uses without naming those services."
+    }
+  ],
+  "format": "brand-proposal/1",
+  "history": [
+    {
+      "actor": {
+        "id": "claude-sonnet-5-5-session",
+        "kind": "ai"
+      },
+      "at": "2026-10-24T09:00:00Z",
+      "status": "draft"
+    },
+    {
+      "actor": {
+        "id": "claude-sonnet-5-5-session",
+        "kind": "ai"
+      },
+      "at": "2026-10-24T09:30:00Z",
+      "status": "proposed"
+    }
+  ],
+  "id": "BRP-2026-10-24-detector-ceiling-and-third-party-origins",
+  "precedence": {
+    "acknowledged": true,
+    "conflicts": []
+  },
+  "rationale": "The four Phase 1 demonstrations scored a BI dashboard, a mining-operations product and a mentoring platform (two surfaces). All four landed within three points of each other (19.0 to 21.9 of a 62.2 ceiling), and the detector saturated in every one. For the dashboard the static pass alone found eleven identity hits, so d2 read 0.00 before any page was rendered; the rendered pages then added 191 hits and took d4 to 0.00 as well, so rendering more of the product could only lower it, and the confidence rule read the floor as a level and went Low on disagreement for reasons unrelated to the product. A count that caps at ten cannot tell a product with one broken rule from one with fifty, which is the opposite of what a quality score is for. Counting distinct rules is bounded, cannot be inflated by repetition, and needs no extra input; hits per page is the alternative and needs the page count. Separately, all three codebases loaded run-time third-party services (fonts, icon fonts, CDN scripts, an avatar service) that no check sees, and at least one privacy text does not mention them. That is a trust finding a file scan can measure honestly, so it belongs in the rubric as a check the owner can weigh, not in the engine as an invented number. Two further gaps from the same report are deliberately not proposed as static checks: responsive overflow already has a rubric check (d4.responsive_overflow) and needs a browser, so it belongs to an adapter for a measurement file, not to a new id; and consistency of in-product claims (a count on one screen against another, a \"connected\" label against a wiki that says unverified) is a judgement that a pattern lint cannot make honestly.",
+  "risk": {
+    "description": "A minor rubric version changes what two existing checks measure and adds a check, so scores from bxqs 1.0.0 and 1.1.0 are not directly comparable: `compare` annotates a minor difference as part of the change being methodology, and a baseline would have to be re-run to be verified. Reweighting d6 moves points between its checks without changing the dimension total. Counting distinct rules makes the detector checks more forgiving of a product with many repeats of one rule, which could read as a better score than the old scale gave; the owner may prefer hits per page for that reason. Nothing is ratified by this proposal.",
+    "ethics_review": "not_needed",
+    "level": "medium"
+  },
+  "rollback": "Do not ratify, or ratify and keep bxqs 1.0.0 in use: a released rubric is immutable and each version has its own file and hash, so reports made against 1.0.0 stay valid and comparable with each other. If 1.1.0 is released and then rejected, supersede it with a new patch version that restores the 1.0.0 wording; nothing is edited in place.",
+  "status": "proposed",
+  "target": {
+    "base_sha256": "f5a4f8cb49b821bb41cb2ea3a5355089f87e60e6233cc6439a0f7ea680342bbd",
+    "change_kind": "amend",
+    "edit_mode": "new_version",
+    "from_version": "1.0.0",
+    "id": "bxqs",
+    "kind": "rubric",
+    "to_version": "1.1.0"
+  },
+  "title": "Stop the design-detector checks saturating, and add a static third-party-origin disclosure check to Trust"
+}

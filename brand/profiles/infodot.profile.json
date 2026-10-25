@@ -1,0 +1,496 @@
+{
+  "id": "infodot",
+  "kind": "brand",
+  "extends": "dot-ecosystem@0.1.0",
+  "version": "0.1.0",
+  "status": "draft",
+  "classification": "public",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "purpose": {
+    "text": "InfoDot is the hub and parent of the Dot ecosystem: one sign-in that opens every Dot platform, and the business workspace around it (Knowledge, a directory of live platforms, People, analytics). The experience should help business owners understand their business, access useful collective knowledge, make better decisions and recognise their progress.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "InfoDot is the hub and parent of the Dot ecosystem and the business workspace around its identity provider.",
+        "declared_by": "InfoDot PRODUCT.md, Product Purpose (sha256 0e50486d9509)"
+      },
+      {
+        "class": "declared_intent",
+        "summary": "Section 3, \"InfoDot\": understanding, practical guidance, progress, opportunity and belonging; users understand their business, access collective knowledge, make better decisions and recognise progress.",
+        "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+      }
+    ]
+  },
+  "audience": [
+    {
+      "segment": "Business owners and the people who work for them, from small businesses through enterprises",
+      "identified": true,
+      "description": "Owners and executives, department heads, project managers, information and document managers, IT administrators and employees. They arrive between tasks to find an answer or a document, open the right Dot platform and see who works under the company.",
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Lists these roles and this arrival pattern. A declaration by the product owner, not research.",
+          "declared_by": "InfoDot PRODUCT.md, Users (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "segment": "Small-business owners",
+      "identified": true,
+      "description": "The owner directs that small-business owners feel respected and equipped with sophisticated tools regardless of company size. Whether this is the primary segment is not recorded (see unknowns).",
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": small business owners must feel respected and equipped.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "positioning": {
+    "text": "InfoDot is the origin of the ecosystem and has its own identity, \"The Yard\", drawn from shipping-container ownership: every company has an owner code and everything it owns carries a reference. It is business, not social, and it is not a dark control-room interface, a generic sidebar-and-cards SaaS layout or a social platform.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "States the identity \"The Yard\" and the looks InfoDot must not resemble.",
+        "declared_by": "InfoDot PRODUCT.md, Positioning (sha256 0e50486d9509)"
+      },
+      {
+        "class": "declared_intent",
+        "summary": "Defines the company-yard concept.",
+        "declared_by": "InfoDot DESIGN.md, Concept (sha256 73a0a0e5533d)"
+      }
+    ]
+  },
+  "emotional_promise": [
+    {
+      "feeling": "understanding",
+      "text": "The owner understands their business: where things stand and why.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": reinforce understanding.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "practical guidance",
+      "text": "The owner knows what to do next and has useful collective knowledge to hand.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": reinforce practical guidance.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "progress",
+      "text": "The owner can see and recognise their progress, in terms of their own business.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": reinforce progress and help users recognise it.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "opportunity",
+      "text": "The owner sees what is open to them next. What counts as opportunity is not yet defined (see unknowns).",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": reinforce opportunity.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "belonging",
+      "text": "The owner feels part of a community of businesses, without social counters (see unknowns).",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": reinforce belonging.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "respected and equipped",
+      "text": "A small-business owner feels respected and equipped with sophisticated tools regardless of company size.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": small business owners must feel respected and equipped.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "behavioural_principles": [
+    {
+      "id": "ownership-signature",
+      "text": "Ownership is the signature: the owner code and a reference appear on everything a company owns, and both are searchable.",
+      "principle": "BXP-03",
+      "non_negotiable": false,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Ownership is the signature.",
+          "declared_by": "InfoDot PRODUCT.md, Product Principles (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "id": "area-identity",
+      "text": "Each area has its own layout and container colour. No identical card grids.",
+      "principle": "BXP-03",
+      "non_negotiable": false,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Each area has its own layout and container colour.",
+          "declared_by": "InfoDot PRODUCT.md, Product Principles (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "id": "honest-navigation",
+      "text": "Show only what works today. Only live platforms can be opened. Roadmap items are not advertised until built and verified.",
+      "principle": "BXP-04",
+      "non_negotiable": false,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Honest navigation; roadmap items not advertised until built and verified.",
+          "declared_by": "InfoDot PRODUCT.md, Product Principles and Product Purpose (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "id": "business-not-social",
+      "text": "Business, not social: state and accountability are stated in words (a stamped SOLVED state) instead of counters. Questions and Solutions stay without likes.",
+      "principle": "BXP-03",
+      "non_negotiable": false,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Business, not social; no social counters.",
+          "declared_by": "InfoDot PRODUCT.md, Product Principles and Capabilities (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "id": "server-side-visibility",
+      "text": "Visibility is enforced server-side: company by default, public only by explicit choice. Unknown or hidden items return 404.",
+      "principle": "BXP-04",
+      "non_negotiable": false,
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Visibility is enforced server-side.",
+          "declared_by": "InfoDot PRODUCT.md, Capabilities and Constraints (sha256 0e50486d9509)"
+        }
+      ]
+    },
+    {
+      "id": "progress-in-business-terms",
+      "text": "Progress and understanding are shown in the owner's own business terms, with their source. Nothing is shown as progress that the application cannot measure.",
+      "principle": "BXP-05",
+      "non_negotiable": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": help users understand their businesses and recognise their progress.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "visual_direction": {
+    "source_refs": [
+      {
+        "repo": "sakhilebhayi/InfoDot",
+        "path": "PRODUCT.md",
+        "commit": "14eaa8f3d9be0f690b5f44f1ec89c8557798790c",
+        "sha256": "0e50486d95096763ae2fe628233adb3a7536c64ac82c7bac7f16b6861de15b3a",
+        "role": "product_definition"
+      },
+      {
+        "repo": "sakhilebhayi/InfoDot",
+        "path": "DESIGN.md",
+        "commit": "8668dfee79ca4daa153c5ee0df0e4df1747f9b9f",
+        "sha256": "73a0a0e5533dd061f40c8cb36cb1a3042559fbd7eb9272cbf72e275dcec9172b",
+        "role": "design_system"
+      },
+      {
+        "repo": "sakhilebhayi/InfoDot",
+        "path": "resources/css/infodot.css",
+        "commit": "d6634ae62999533f91500cce6673240421e40447",
+        "sha256": "943b4ebc296edabcd93dd12b5760f9b1fa575b411b66f214ca5961432ef6ee92",
+        "role": "token_source"
+      },
+      {
+        "repo": "sakhilebhayi/InfoDot",
+        "path": "docs/infodot-ui-design-guide.md",
+        "commit": "50fbf1dc7e3f733a9acaed1aa637f62606757234",
+        "sha256": "c45060aea8f502b308e3e32bc0cb4823c94f04f943a0b698534059882081469c",
+        "role": "conflicting_guidance"
+      }
+    ],
+    "constraints": [
+      "Identity concept \"The Yard\": owner code and reference on everything owned; area colours as container liveries (DESIGN.md).",
+      "Standard navigation (top bar, tabs, breadcrumbs); no sidebar (DESIGN.md).",
+      "Light and dark themes of equal quality (PRODUCT.md).",
+      "Text at or above 4.5:1 in both themes, keyboard navigation, visible focus, reduced motion respected, responsive from 375px (PRODUCT.md).",
+      "Each page is laid out for its job, not from one card template (DESIGN.md).",
+      "Tokens live in resources/css/infodot.css; this profile cites that file by hash and does not copy tokens."
+    ],
+    "prohibited": [
+      "The dark control-room look of Dot.Memory, Dot.Central or Dot.Projects (PRODUCT.md).",
+      "A generic SaaS sidebar-and-cards layout (PRODUCT.md).",
+      "Social-platform patterns: likes and counters (PRODUCT.md).",
+      "Sidebar, gradient text, side-stripe borders, identical card grids, decorative hero blocks, stencil type for paragraphs (DESIGN.md)."
+    ],
+    "notes": "docs/infodot-ui-design-guide.md is cited with role conflicting_guidance: it asks for an interface that feels like a control center, which PRODUCT.md and DESIGN.md reject. The constraints above record PRODUCT.md and DESIGN.md. The conflict is unresolved (unknowns u-ui-guide-conflict)."
+  },
+  "language": {
+    "voice": {
+      "text": "Plain language. Business and accountability stated in words, not counters. Practical, and respectful of small-business owners; never condescending.",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Plain language; business, not social.",
+          "declared_by": "InfoDot PRODUCT.md, Accessibility & Inclusion and Product Principles (sha256 0e50486d9509)"
+        },
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"InfoDot\": small-business owners respected and equipped.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    "banned_phrases": [],
+    "claims_policy": {
+      "forbidden": [
+        {
+          "id": "no-invented-customer-counts",
+          "rule": "Do not state or imply a number of customers, businesses, users or documents unless it is read from the application's own live data."
+        },
+        {
+          "id": "no-invented-testimonials",
+          "rule": "Do not show testimonials, quotes or reviews unless a real, attributable one has been supplied."
+        },
+        {
+          "id": "no-invented-compliance-claims",
+          "rule": "Do not claim compliance, certification, audit or security status that has not been established and cited."
+        },
+        {
+          "id": "no-unbuilt-roadmap",
+          "rule": "Do not advertise roadmap items (such as shared files through a Dot.Files API, or approvals) as available until they are built and verified."
+        }
+      ],
+      "evidence_required": [
+        "any number about customers or usage",
+        "any statement about security, privacy or legal compliance"
+      ]
+    }
+  },
+  "experience_standards": [
+    {
+      "principle": "BXP-01",
+      "principle_version": "0.1.0",
+      "stance": "emphasised",
+      "expression": "Design against the six intended feelings in emotional_promise: understanding, practical guidance, progress, opportunity, belonging, respected and equipped.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-02",
+      "principle_version": "0.1.0",
+      "stance": "emphasised",
+      "expression": "Small-business owners are treated as professionals with sophisticated tools regardless of size: no \"starter\" tone, full capability, presentable references and exports.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-03",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Identity is \"The Yard\": ownership references, area liveries and stencilled stamps instead of counters (DESIGN.md).",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-04",
+      "principle_version": "0.1.0",
+      "stance": "emphasised",
+      "expression": "Honest navigation and server-side visibility (PRODUCT.md). InfoDot is the identity provider other platforms trust.",
+      "non_negotiable": true
+    },
+    {
+      "principle": "BXP-05",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Progress and understanding are shown in the owner's business terms with their source. No invented proof.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-07",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "Each page is laid out for its job. The area band and breadcrumbs answer \"where am I\".",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-12",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "InfoDot is the sign-in hub: hand-offs to other Dot platforms preserve context and use shared names, while InfoDot keeps its own identity.",
+      "non_negotiable": true
+    }
+  ],
+  "domain_overrides": [
+    {
+      "principle": "BXP-03",
+      "yields_to": "accessibility",
+      "reason": "DESIGN.md: mustard plates and the Platforms band carry ink, not white, because white on mustard is 2.8:1. The area colour yields to contrast."
+    }
+  ],
+  "overrides": [
+    {
+      "field": "experience_standards:BXP-01",
+      "reason": "The owner's brief names six specific intended feelings for InfoDot; the ecosystem-level feelings alone are too general to design against."
+    },
+    {
+      "field": "experience_standards:BXP-02",
+      "reason": "The owner's brief singles out small-business owners being respected and equipped as a defining InfoDot outcome."
+    },
+    {
+      "field": "experience_standards:BXP-04",
+      "reason": "InfoDot is the identity provider every other platform trusts, so honest navigation and server-side visibility carry more weight here than the ecosystem baseline."
+    },
+    {
+      "field": "language.voice",
+      "reason": "InfoDot's product definition sets a plain-language, business-not-social voice that is more specific than the ecosystem default."
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "u-ui-guide-conflict",
+      "question": "InfoDot's docs/infodot-ui-design-guide.md asks for an interface that \"feels like a control center\". PRODUCT.md and DESIGN.md say InfoDot must not resemble the dark control-room look and define \"The Yard\". Which document governs is not recorded. This draft records PRODUCT.md and DESIGN.md and cites the guide as conflicting; it does not decide. Owner decision needed.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-primary-segment",
+      "question": "PRODUCT.md lists users from small businesses through enterprises; the owner's brief emphasises small-business owners. Which segment is primary is not recorded.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-belonging-without-counters",
+      "question": "The brief asks the experience to reinforce belonging; PRODUCT.md forbids social counters and likes and says business, not social. How belonging is expressed without social mechanics is undecided.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-outcome-evidence",
+      "question": "No measured customer outcome or feeling data is held for InfoDot. PRODUCT.md states that no customer counts, testimonials or compliance claims exist and none may be invented. Every emotional_promise item is intended, not measured.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-opportunity",
+      "question": "What \"opportunity\" means as something a user can see or do in InfoDot is not defined in PRODUCT.md. No feature is claimed for it.",
+      "blocks_ratification": false
+    },
+    {
+      "id": "u-first-result",
+      "question": "InfoDot's first meaningful result (BXP-08) is not defined, so no onboarding rule is bound for it.",
+      "blocks_ratification": false
+    },
+    {
+      "id": "u-hub-inheritance",
+      "question": "This profile extends dot-ecosystem because InfoDot is a Dot platform. PRODUCT.md calls InfoDot the hub and parent of the ecosystem with its own identity. Whether the hub should inherit ecosystem rules or define them is the owner's call.",
+      "blocks_ratification": false
+    },
+    {
+      "id": "u-popia-wording",
+      "question": "PRODUCT.md describes the legal pages as POPIA-aligned. Under this profile's compliance-claims rule, that wording needs a cited basis before it appears in public copy.",
+      "blocks_ratification": false
+    }
+  ],
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "github:sakhilebhayi/InfoDot/PRODUCT.md@14eaa8f3d9be0f690b5f44f1ec89c8557798790c",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "github:sakhilebhayi/InfoDot/DESIGN.md@8668dfee79ca4daa153c5ee0df0e4df1747f9b9f",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "github:sakhilebhayi/InfoDot/resources/css/infodot.css@d6634ae62999533f91500cce6673240421e40447",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "github:sakhilebhayi/InfoDot/docs/infodot-ui-design-guide.md@50fbf1dc7e3f733a9acaed1aa637f62606757234",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5",
+    "notes": [
+      "Cited InfoDot files were read at main 280206382253feb6f9077a81de85c9d378acbfd6 on 2026-10-23; each source_ref records the last commit that touched the file and its sha256.",
+      "Documented conflict: docs/infodot-ui-design-guide.md (control center) versus PRODUCT.md and DESIGN.md (The Yard). Not resolved here."
+    ]
+  },
+  "confidence": 0.5
+}

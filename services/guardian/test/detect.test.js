@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reconcile, severityFor } from '../src/detect.js';
+import { SYNTHETIC_CHECK_KEYS } from '../src/health.js';
 import { listIncidents } from '../src/store.js';
 import { healthDoc, manifest, tempStore } from './helpers.js';
 
@@ -83,4 +84,79 @@ test('an unreachable platform becomes a sev1 availability incident', () => {
   assert.equal(opened.length, 1);
   assert.equal(opened[0].check_key, 'availability');
   assert.equal(opened[0].severity, 'sev1');
+});
+
+const WINDOW = { failureStreak: 2, failureElapsedMs: 20 * 60 * 1000, availabilityWindowMs: 600000 };
+
+test('the synthetic check keys are exactly the ones a fetch failure can file under', () => {
+  assert.deepEqual([...SYNTHETIC_CHECK_KEYS].sort(), ['access', 'availability', 'contract', 'maintenance']);
+});
+
+test('an access incident closes when the platform answers a valid document again', () => {
+  const store = tempStore();
+  const blip = reconcile(store, manifest(), { reachable: false, kind: 'access', reason: 'HTTP 403' }, new Date(), WINDOW);
+  assert.equal(blip.opened.length, 1);
+  assert.equal(blip.opened[0].check_key, 'access');
+
+  const back = reconcile(store, manifest(), reachable({ database: { status: 'healthy' } }));
+
+  assert.equal(back.resolved.length, 1, 'recovery must close the access incident');
+  assert.equal(back.resolved[0].check_key, 'access');
+  assert.equal(back.resolved[0].status, 'resolved');
+  assert.ok(back.resolved[0].resolved_at);
+  assert.equal(listIncidents(store).filter((incident) => incident.status === 'open').length, 0);
+});
+
+test('every synthetic incident kind closes on recovery, including a sev1 outage', () => {
+  for (const [kind, key, severity] of [
+    ['unreachable', 'availability', 'sev1'],
+    ['platform_error', 'availability', 'sev1'],
+    ['maintenance', 'maintenance', 'sev3'],
+    ['contract', 'contract', 'sev3'],
+    ['config', 'access', 'sev2'],
+  ]) {
+    const store = tempStore();
+    const down = reconcile(store, manifest(), { reachable: false, kind, reason: 'x' }, new Date(), WINDOW);
+    assert.equal(down.opened.length, 1, `${kind} should open`);
+    assert.equal(down.opened[0].check_key, key);
+    assert.equal(down.opened[0].severity, severity);
+
+    const back = reconcile(store, manifest(), reachable({ queue: { status: 'healthy' } }));
+    assert.equal(back.resolved.length, 1, `${kind} should close on recovery`);
+    assert.equal(back.resolved[0].check_key, key);
+  }
+});
+
+test('a still-unreachable platform does not close a synthetic incident', () => {
+  const store = tempStore();
+  reconcile(store, manifest(), { reachable: false, kind: 'access', reason: 'HTTP 403' }, new Date(), WINDOW);
+
+  const still = reconcile(store, manifest(), { reachable: false, kind: 'access', reason: 'HTTP 403' }, new Date(), WINDOW);
+
+  assert.equal(still.resolved.length, 0);
+  assert.equal(still.ongoing.length, 1);
+});
+
+test('recovery closes the synthetic incident but leaves a genuinely failing platform check open', () => {
+  const store = tempStore();
+  reconcile(store, manifest(), { reachable: false, kind: 'access', reason: 'HTTP 403' }, new Date(), WINDOW);
+  reconcile(store, manifest(), reachable({ queue: { status: 'critical' } }));
+
+  const next = reconcile(store, manifest(), reachable({ queue: { status: 'critical' } }));
+
+  assert.equal(next.resolved.length, 0, 'the access incident was already closed by the first reachable poll');
+  assert.equal(next.ongoing.length, 1);
+  assert.equal(next.ongoing[0].check_key, 'queue');
+});
+
+test('a platform check that shares a synthetic key name is judged by its own status', () => {
+  const store = tempStore();
+  const opened = reconcile(store, manifest(), reachable({ access: { status: 'warning' } }));
+  assert.equal(opened.opened.length, 1);
+
+  const stillBad = reconcile(store, manifest(), reachable({ access: { status: 'warning' } }));
+  assert.equal(stillBad.resolved.length, 0, 'its own check says warning, so it stays open');
+
+  const healed = reconcile(store, manifest(), reachable({ access: { status: 'healthy' } }));
+  assert.equal(healed.resolved.length, 1);
 });

@@ -1,0 +1,26 @@
+[
+  {
+    "testEngine": { "name": "axe-core", "version": "4.10.0" },
+    "url": "https://fixture.example/index.html?token=should-not-appear#frag",
+    "violations": [
+      {
+        "id": "image-alt", "impact": "critical", "tags": ["cat.text-alternatives", "wcag2a", "wcag111"],
+        "help": "Images must have alternate text", "description": "Ensures <img> elements have alternate text",
+        "nodes": [{ "target": ["img.hero"], "html": "<img class=\"hero\" src=\"hero.png\">" }, { "target": ["img.logo"], "html": "<img class=\"logo\">" }]
+      },
+      {
+        "id": "color-contrast", "impact": "serious", "tags": ["cat.color", "wcag2aa", "wcag143"],
+        "help": "Elements must meet minimum color contrast ratio thresholds", "description": "Ensures contrast",
+        "nodes": [{ "target": ["p.muted"] }]
+      },
+      {
+        "id": "region", "impact": "moderate", "tags": ["cat.keyboard", "best-practice"],
+        "help": "All page content should be contained by landmarks", "description": "Ensures landmarks",
+        "nodes": [{ "target": ["div.banner"] }]
+      }
+    ],
+    "passes": [{ "id": "html-has-lang" }, { "id": "document-title" }, { "id": "label" }, { "id": "link-name" }, { "id": "button-name" }, { "id": "aria-roles" }],
+    "incomplete": [{ "id": "color-contrast-enhanced" }],
+    "inapplicable": [{ "id": "video-caption" }]
+  }
+]

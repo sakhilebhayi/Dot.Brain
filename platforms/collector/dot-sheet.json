@@ -1,0 +1,5 @@
+{
+  "platform": "dot-sheet",
+  "health_url": "https://sheets.infodot.co.za/guardian/health",
+  "token_env": "DOT_SHEET_GUARDIAN_TOKEN"
+}

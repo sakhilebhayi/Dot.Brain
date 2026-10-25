@@ -1,0 +1,18 @@
+{
+  "id": "fixture-product",
+  "kind": "product",
+  "version": "0.1.0",
+  "effective_status": "draft",
+  "chain": [
+    "fixture-product@0.1.0",
+    "fixture-brand@0.1.0"
+  ],
+  "domain_overrides": [
+    {
+      "principle": "BXP-04",
+      "yields_to": "safety",
+      "reason": "A fixture override: reassurance never softens a safety alert.",
+      "origin": "fixture-brand@0.1.0"
+    }
+  ]
+}

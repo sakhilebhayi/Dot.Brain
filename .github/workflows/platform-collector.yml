@@ -59,6 +59,11 @@ jobs:
           DOT_DOPEMINE_GUARDIAN_TOKEN: ${{ secrets.DOT_DOPEMINE_GUARDIAN_TOKEN }}
           DOT_DOCS_GUARDIAN_TOKEN: ${{ secrets.DOT_DOCS_GUARDIAN_TOKEN }}
           DOT_CHARTS_GUARDIAN_TOKEN: ${{ secrets.DOT_CHARTS_GUARDIAN_TOKEN }}
+          DOT_PROJECTS_GUARDIAN_TOKEN: ${{ secrets.DOT_PROJECTS_GUARDIAN_TOKEN }}
+          DOT_FORMS_GUARDIAN_TOKEN: ${{ secrets.DOT_FORMS_GUARDIAN_TOKEN }}
+          DOT_ENGAGE_GUARDIAN_TOKEN: ${{ secrets.DOT_ENGAGE_GUARDIAN_TOKEN }}
+          DOT_PRESS_GUARDIAN_TOKEN: ${{ secrets.DOT_PRESS_GUARDIAN_TOKEN }}
+          DOT_SHEET_GUARDIAN_TOKEN: ${{ secrets.DOT_SHEET_GUARDIAN_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           args=""

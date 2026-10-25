@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/infodot-knowledge",
+  "version": "1.0.0",
+  "description": "Turns approved InfoDot contributions into RECOMMENDATIONS for a moderator-curated Verified library. Rules only, no LLM; never awards points, never ranks people. See ../../adr/ADR-0020-infodot-knowledge-candidates.md.",
+  "type": "module",
+  "bin": { "infodot-knowledge": "./src/cli.js" },
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}

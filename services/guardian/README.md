@@ -150,6 +150,15 @@ State lives in `services/guardian/data/guardian.sqlite` (override with
 `GUARDIAN_DB`). The dashboard is a self-contained HTML file — no CDN, no
 external requests.
 
+## Incident hygiene
+
+How incidents open, close and get raised, with the failure each rule exists for:
+
+- **A failed health fetch is filed under a synthetic check** (`availability`, `maintenance`, `access`, `contract`). A healthy platform's own document never contains those keys, so `reconcile()` closes such an incident explicitly as soon as the platform returns a valid `dot-guardian/v1` document. Before this, they stayed open forever, in the store and in Dot.Memory (including, for `availability`, a real sev1 outage).
+- **`access` (HTTP 401/403) is held at `unknown` until it has persisted** (at least two polls and `availability_window_s`, default 10 minutes), like an outage. The shared host's edge firewall occasionally refuses a runner for one poll, for every app on the host at once (2026-10-17 06:55 UTC). A revoked token fails every poll, so it still opens after the window. `config` (no token, wrong URL) is our own fault and opens immediately.
+- **A failed advice issue is retried with a growing delay** (30 min, 1 h, 2 h, 4 h, then every 6 h), not on every poll, and the log line names the repository and the likely cause (usually `GUARDIAN_GH_TOKEN` scope). The incident is still recorded in Dot.Memory every poll. **A failed escalation is never backed off**: a human must know, so it retries and fails loudly each poll.
+- **`.github/workflows/token-check.yml`** (daily) asks GitHub whether `GUARDIAN_GH_TOKEN` is valid, when it expires, and whether it can read issues in every enrolled repository. It fails the run (GitHub emails it) when the token is rejected or expires within 7 days, and warns at 14 days or when an enrolled repository is out of reach. GitHub reports no expiry for classic tokens; the check says so.
+
 ## Security posture
 
 - One bearer token per platform health endpoint, injected via env

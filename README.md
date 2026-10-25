@@ -1,9 +1,9 @@
 ---
 title: Dot.Brain — Repository Root
-version: 1.7.0
+version: 1.10.0
 status: active
 owners: [Chief Intelligence Architect, Repository Steward Agent]
-last-review: 2026-08-07
+last-review: 2026-10-23
 ---
 
 # Dot.Brain
@@ -100,6 +100,7 @@ dot-brain/
 ├── brain.agents.md                  # Agent Colony architecture & duties · Governance Agent · AI agents
 ├── brain.analytics.md               # Intelligence analytics (with Dot.Analytics) · Data Agent · executives
 ├── brain.design.md                  # Design standards (with Dot.Design) · UX Agent · UX, engineers
+├── brain.brand_experience.md        # Brand Feeling Engine doctrine: intended feelings, evidence classes, status rules, precedence · UX Agent · UX, engineers, owner
 ├── brain.security.md                # Security, privacy, threat model · Security Agent · security reviewers
 ├── brain.api.md                     # API surface & contracts · Architecture Agent · platform engineers
 ├── brain.search.md                  # Search & retrieval architecture · Architecture Agent · platform engineers
@@ -127,7 +128,8 @@ dot-brain/
 ├── brain.operating_model.md         # How humans + agents run the brain · Governance Agent · everyone
 ├── adr/
 │   └── ADR-0001-repository-structure.md  # This structure's decision record · Architecture Agent · engineers
-├── schemas/                         # JSON Schemas (DKP, graph objects) · Architecture Agent · platform engineers
+├── schemas/                         # JSON Schemas (DKP, graph objects, brand profile and principle) · Architecture Agent · platform engineers
+├── brand/                           # Reviewed Brand Feeling Engine data: framework principles, brand profiles, the immutable BXQS rubric and the governance changelog and ratification ledger (public; owner-reviewed by path) · UX Agent · UX, engineers, owner
 ├── templates/                       # Document/ADR/DKP/incident templates · Repository Steward Agent · contributors
 ├── platforms/                       # One knowledge doc per platform · Registry Agent + platform owner · that platform
 │   ├── dot-brain.md
@@ -165,7 +167,8 @@ dot-brain/
 └── services/                        # Dot.Brain's own runnable code, one directory per brain.*.md that hosts an implementation · Business Agent · Dot.Brain itself
     ├── market-research/             # Implements brain.market_intelligence.md · Business Agent · Dot.Brain itself
     ├── intervention-log/            # Implements brain.autonomy.md §8 · Business Agent · Dot.Brain itself
-    └── autonomy-score/              # Implements brain.autonomy.md §3 scoring · Business Agent · Dot.Brain itself
+    ├── autonomy-score/              # Implements brain.autonomy.md §3 scoring · Business Agent · Dot.Brain itself
+    └── brand-engine/                # Implements brain.brand_experience.md: profile registry, validator, extends resolution, drift check, BXQS scoring engine, analyse/plan/verify workflow, governance (propose, lint-proposal), the Claude Skill and the assessment Action's CI helper · UX Agent · Dot.Brain itself
 ```
 
 All `platforms/*.md` documents follow `templates/platform-knowledge.template.md` (defined by prompt 03 — referenced here, not written here).
@@ -187,6 +190,7 @@ All `platforms/*.md` documents follow `templates/platform-knowledge.template.md`
 | brain.agents.md | Governance Agent | Documentation Agent | Chief AI Engineer | Quarterly |
 | brain.analytics.md, brain.metrics.md, brain.business.md | Data / Business Agents | Governance Agent | Executive Sponsor | Quarterly |
 | brain.design.md, brain.personas.md | UX Agent | Documentation Agent | UX Architect | Semi-annual |
+| brain.brand_experience.md, brand/, services/brand-engine/ | UX Agent | Governance Agent | Owner (strategic direction is Level 3) | Quarterly |
 | brain.security.md, brain.telemetry.md | Security / Data Agents | Architecture Agent | Security Officer | Monthly |
 | brain.api.md, brain.search.md, brain.events.md, brain.workflows.md | Architecture Agent | Testing Agent | Chief Architect | Quarterly |
 | brain.recommendations.md | Reasoning Agent | Dopamine Agent | Chief AI Engineer | Quarterly |
@@ -250,6 +254,10 @@ Followed by a one-paragraph purpose statement and a "Related documents" cross-li
 | 1.5.0 | 2026-08-08 | Truth-reconciliation pass | Registered `brain.cushion.md` and `brain.market_intelligence.md` — both existed in the repository but were missing from the annotated tree, ownership matrix, and change log. Added `services/` as a first-class repository-tree entry (previously undocumented) now that `brain.market_intelligence.md` has a real reference implementation at `services/market-research/`. |
 | 1.6.0 | 2026-08-08 | Autonomy Foundation sub-project | Registered `brain.autonomy.md` and `services/intervention-log/` — annotated tree, ownership matrix, document count. Registered as part of this sub-project's own deliverable, not deferred to a later reconciliation pass. |
 | 1.7.0 | 2026-08-08 | Autonomy Score sub-project | Registered `services/autonomy-score/` and `platforms/autonomy-signals.json` in the services/ tree entry. |
+| 1.8.0 | 2026-10-23 | Brand engine foundation | Registered `brain.brand_experience.md`, `brand/` and `services/brand-engine/` (tree, ownership matrix); `schemas/` now also holds the brand profile and principle schemas. All brand data is `draft`; the owner ratifies. |
+| 1.9.0 | 2026-10-23 | Brand engine scoring | `brand/` now also holds the released, immutable BXQS rubric (`brand/rubrics/`); `schemas/` holds the rubric, evidence and score schemas; `services/brand-engine` gained `score`, `compare` and `rubric` (ADR-0022). Rubric is `proposed`; no real product has been scored. |
+| 1.10.0 | 2026-10-23 | Brand engine workflow | `services/brand-engine` gained `analyze`, `plan`, `verify` and `evidence assemble`, adapters for external tool reports and the analysis and plan schemas (ADR-0023, proposed). The engine reads reports and never runs a tool. Nothing is ratified; no real product has been scored. |
+| 1.11.0 | 2026-10-23 | Brand engine governance, Skill and Action | `services/brand-engine` gained `propose` and `lint-proposal` (proposals, the ratification ledger, `--check-ratified`), the thin Claude Skill `dot-brand-experience` with its installer, and the CI helper behind the reusable `.github/workflows/brand-assess.yml`; `brand/governance/` and `schemas/` gained the proposal and changelog schemas; CODEOWNERS extended (ADR-0024, proposed). No command ratifies anything; nothing is ratified; no real product has been scored. |
 
 ## Open Questions
 

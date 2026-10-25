@@ -1,0 +1,1252 @@
+{
+  "blockers": [],
+  "confidence": {
+    "band": "High",
+    "coverage": {
+      "automated_and_expert_weight": 90,
+      "independent_sources_weight": 100,
+      "minimum_weight": 50
+    },
+    "disagreements": [],
+    "reasons": [
+      {
+        "code": "independent_sources_with_observed",
+        "text": "100 points of weight carry two or more source classes including observed or customer evidence (minimum 50)."
+      }
+    ]
+  },
+  "dimensions": [
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.5,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 8,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.2,
+          "points_possible": 1.2
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2.8,
+          "points_possible": 2.8,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 4,
+          "points_possible": 4
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d1.copy_profile_language_lint.json",
+          "check_id": "d1.copy_profile_language_lint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d1.purpose_statement_present.json",
+          "check_id": "d1.purpose_statement_present",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d1.product_md_consistency.json",
+          "check_id": "d1.product_md_consistency",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/emotional_clarity_positioning-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for emotional_clarity_positioning.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/first_screen_purpose_comprehension.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "first_screen_purpose_comprehension",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/described_feeling_matches_intent.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "described_feeling_matches_intent",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "emotional_clarity_positioning",
+      "name": "Emotional clarity and positioning",
+      "points_earned": 8,
+      "points_not_measured": 0,
+      "points_possible": 8,
+      "status": "scored",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.6,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 7,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.75,
+          "points_possible": 1.75
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2.45,
+          "points_possible": 2.45,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 2.8,
+          "points_possible": 2.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d2.impeccable_detect_findings.json",
+          "check_id": "d2.impeccable_detect_findings",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d2.font_palette_deny_list.json",
+          "check_id": "d2.font_palette_deny_list",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d2.token_uniqueness.json",
+          "check_id": "d2.token_uniqueness",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/brand_distinctiveness-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for brand_distinctiveness.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/unlabelled_screen_attribution.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "unlabelled_screen_attribution",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/distinctiveness_rating.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "distinctiveness_rating",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "brand_distinctiveness",
+      "name": "Brand distinctiveness",
+      "points_earned": 7,
+      "points_not_measured": 0,
+      "points_possible": 7,
+      "status": "scored",
+      "weight": 7
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.6,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 12,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 5,
+          "checks_total": 5,
+          "points_earned": 3.6,
+          "points_possible": 3.6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 3.6,
+          "points_possible": 3.6,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 3,
+          "metrics_total": 3,
+          "points_earned": 4.8,
+          "points_possible": 4.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d3.nav_depth.json",
+          "check_id": "d3.nav_depth",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.field_counts.json",
+          "check_id": "d3.field_counts",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.heading_structure.json",
+          "check_id": "d3.heading_structure",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.primary_action_per_screen.json",
+          "check_id": "d3.primary_action_per_screen",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d3.task_flow_step_counts.json",
+          "check_id": "d3.task_flow_step_counts",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/usability_cognitive_load-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for usability_cognitive_load.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/task_completion_rate.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "task_completion_rate",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/errors_per_task.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "errors_per_task",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/ease_rating.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "ease_rating",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "usability_cognitive_load",
+      "name": "Usability and cognitive load",
+      "points_earned": 12,
+      "points_not_measured": 0,
+      "points_possible": 12,
+      "status": "scored",
+      "weight": 12
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.8,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 9,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 4.5,
+          "points_possible": 4.5
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2.7,
+          "points_possible": 2.7,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 1.8,
+          "points_possible": 1.8
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d4.detector_clean.json",
+          "check_id": "d4.detector_clean",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d4.spacing_type_scale_conformance.json",
+          "check_id": "d4.spacing_type_scale_conformance",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d4.reduced_motion.json",
+          "check_id": "d4.reduced_motion",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d4.responsive_overflow.json",
+          "check_id": "d4.responsive_overflow",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/visual_interaction_craftsmanship-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for visual_interaction_craftsmanship.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/interaction_error_rate.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "interaction_error_rate",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/craft_rating.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "craft_rating",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "visual_interaction_craftsmanship",
+      "name": "Visual and interaction craftsmanship",
+      "points_earned": 9,
+      "points_not_measured": 0,
+      "points_possible": 9,
+      "status": "scored",
+      "weight": 9
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.9,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 10,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 7,
+          "points_possible": 7
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2,
+          "points_possible": 2,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 1,
+          "points_possible": 1
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d5.test_pass_counts.json",
+          "check_id": "d5.test_pass_counts",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d5.route_inventory_vs_claims.json",
+          "check_id": "d5.route_inventory_vs_claims",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d5.dead_links.json",
+          "check_id": "d5.dead_links",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d5.stubs_placeholders.json",
+          "check_id": "d5.stubs_placeholders",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/functional_completeness-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for functional_completeness.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/feature_task_coverage.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "feature_task_coverage",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/missing_feature_reports.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "missing_feature_reports",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "functional_completeness",
+      "name": "Functional completeness",
+      "points_earned": 10,
+      "points_not_measured": 0,
+      "points_possible": 10,
+      "status": "scored",
+      "weight": 10
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.7,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 10,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 4,
+          "points_possible": 4
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 3,
+          "points_possible": 3,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 3,
+          "points_possible": 3
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d6.claim_lint.json",
+          "check_id": "d6.claim_lint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d6.privacy_terms_present.json",
+          "check_id": "d6.privacy_terms_present",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d6.consent_handling.json",
+          "check_id": "d6.consent_handling",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d6.honest_states.json",
+          "check_id": "d6.honest_states",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/trust_transparency-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for trust_transparency.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/privacy_comprehension.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "privacy_comprehension",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/stated_confidence_in_figures.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "stated_confidence_in_figures",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "trust_transparency",
+      "name": "Trust and transparency",
+      "points_earned": 10,
+      "points_not_measured": 0,
+      "points_possible": 10,
+      "status": "scored",
+      "weight": 10
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.5,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 8,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 1.6,
+          "points_possible": 1.6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2.4,
+          "points_possible": 2.4,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 3,
+          "metrics_total": 3,
+          "points_earned": 4,
+          "points_possible": 4
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d7.time_to_first_result.json",
+          "check_id": "d7.time_to_first_result",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d7.empty_state_guidance.json",
+          "check_id": "d7.empty_state_guidance",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d7.value_above_fold.json",
+          "check_id": "d7.value_above_fold",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/perceived_demonstrated_value-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for perceived_demonstrated_value.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/first_session_goal_reached.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "first_session_goal_reached",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/observed_time_to_first_result.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "observed_time_to_first_result",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/perceived_value_rating.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "perceived_value_rating",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "perceived_demonstrated_value",
+      "name": "Perceived and demonstrated value",
+      "points_earned": 8,
+      "points_not_measured": 0,
+      "points_possible": 8,
+      "status": "scored",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.7,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 12,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 6,
+          "points_possible": 6
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 2.4,
+          "points_possible": 2.4,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 3.6,
+          "points_possible": 3.6
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d8.token_pair_contrast.json",
+          "check_id": "d8.token_pair_contrast",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d8.axe_violations.json",
+          "check_id": "d8.axe_violations",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d8.labels_alt_lang.json",
+          "check_id": "d8.labels_alt_lang",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d8.focus_visible.json",
+          "check_id": "d8.focus_visible",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/accessibility_inclusion-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for accessibility_inclusion.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/assistive_technology_task_completion.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "assistive_technology_task_completion",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/accessibility_issue_reports.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "accessibility_issue_reports",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.7,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "accessibility_inclusion",
+      "name": "Accessibility and inclusion",
+      "points_earned": 12,
+      "points_not_measured": 0,
+      "points_possible": 12,
+      "status": "scored",
+      "weight": 12
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.8,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 6,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 3,
+          "checks_total": 3,
+          "points_earned": 3,
+          "points_possible": 3
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 1.8,
+          "points_possible": 1.8,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 1.2,
+          "points_possible": 1.2
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d9.token_usage_vs_profile.json",
+          "check_id": "d9.token_usage_vs_profile",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d9.shared_components.json",
+          "check_id": "d9.shared_components",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d9.principle_diff.json",
+          "check_id": "d9.principle_diff",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/cross_platform_consistency-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for cross_platform_consistency.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/cross_product_task_transfer.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "cross_product_task_transfer",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/coherence_rating.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "coherence_rating",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.5,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "cross_platform_consistency",
+      "name": "Cross-platform consistency",
+      "points_earned": 6,
+      "points_not_measured": 0,
+      "points_possible": 6,
+      "status": "scored",
+      "weight": 6
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0.8,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 8,
+      "components": {
+        "automated_check": {
+          "allowed": true,
+          "checks_measured": 4,
+          "checks_total": 4,
+          "points_earned": 4.8,
+          "points_possible": 4.8
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": true,
+          "assessors_counted": 1,
+          "points_earned": 1.6,
+          "points_possible": 1.6,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 1.6,
+          "points_possible": 1.6
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/d10.error_path_tests.json",
+          "check_id": "d10.error_path_tests",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d10.error_pages.json",
+          "check_id": "d10.error_pages",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d10.health_endpoint.json",
+          "check_id": "d10.health_endpoint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/d10.error_copy_lint.json",
+          "check_id": "d10.error_copy_lint",
+          "disposition": "counted",
+          "result": "pass",
+          "source_class": "automated_check",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/reliability_error_recovery-human-reviewer.json",
+          "assessor": "human-reviewer",
+          "detail": "Fixture rationale for reliability_error_recovery.",
+          "disposition": "counted",
+          "result": "level_4",
+          "source_class": "expert_assessment",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/error_recovery_success_rate.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "error_recovery_success_rate",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/reported_incident_impact.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "reported_incident_impact",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0.6,
+      "floor_attainment_percent": 100,
+      "floor_met": true,
+      "id": "reliability_error_recovery",
+      "name": "Reliability and recovery from errors",
+      "points_earned": 8,
+      "points_not_measured": 0,
+      "points_possible": 8,
+      "status": "scored",
+      "weight": 8
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 5,
+      "components": {
+        "automated_check": {
+          "allowed": false,
+          "checks_measured": 0,
+          "checks_total": 0,
+          "points_earned": 0,
+          "points_possible": 0
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": false,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 0,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 5,
+          "points_possible": 5
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/returning_user_goal_completion.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "returning_user_goal_completion",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/value_delivered_on_return.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "value_delivered_on_return",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0,
+      "id": "retention_continuing_value",
+      "name": "Retention through continuing value",
+      "points_earned": 5,
+      "points_not_measured": 0,
+      "points_possible": 5,
+      "status": "scored",
+      "weight": 5
+    },
+    {
+      "cap_applied": {
+        "applied": false,
+        "cap_fraction": 0,
+        "points_capped_away": 0
+      },
+      "ceiling_points": 5,
+      "components": {
+        "automated_check": {
+          "allowed": false,
+          "checks_measured": 0,
+          "checks_total": 0,
+          "points_earned": 0,
+          "points_possible": 0
+        },
+        "expert_assessment": {
+          "ai_only": false,
+          "allowed": false,
+          "assessors_counted": 0,
+          "points_earned": 0,
+          "points_possible": 0,
+          "points_withheld_ai_only": 0
+        },
+        "observed_or_customer": {
+          "allowed": true,
+          "metrics_measured": 2,
+          "metrics_total": 2,
+          "points_earned": 5,
+          "points_possible": 5
+        }
+      },
+      "evidence": [
+        {
+          "artifact_ref": "artifact/stated_goal_achieved.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "stated_goal_achieved",
+          "n": 12,
+          "result": "measured",
+          "source_class": "observed_behaviour",
+          "value": 1
+        },
+        {
+          "artifact_ref": "artifact/customer_reported_outcome.json",
+          "detail": "Fixture method: synthetic sessions.",
+          "disposition": "counted",
+          "metric_id": "customer_reported_outcome",
+          "n": 12,
+          "result": "measured",
+          "source_class": "customer_feedback",
+          "value": 1
+        }
+      ],
+      "floor": 0,
+      "id": "measurable_customer_outcomes",
+      "name": "Measurable customer outcomes",
+      "points_earned": 5,
+      "points_not_measured": 0,
+      "points_possible": 5,
+      "status": "scored",
+      "weight": 5
+    }
+  ],
+  "domain_overrides": [
+    {
+      "origin": "fixture-brand@0.1.0",
+      "principle": "BXP-04",
+      "reason": "A fixture override: reassurance never softens a safety alert.",
+      "yields_to": "safety"
+    }
+  ],
+  "findings_recorded": [],
+  "header": {
+    "assessors": [
+      {
+        "id": "human-reviewer",
+        "kind": "human"
+      }
+    ],
+    "engine_version": "0.3.0",
+    "generated_at": "2026-10-23T12:00:00Z",
+    "input": {
+      "built_by": "ai-builder",
+      "commit": "1111111111111111111111111111111111111111",
+      "evidence_sha256": "64094dd75af94bc12aaad69366b28565f2a03ea99a12b55b2670c79f449b0f07",
+      "repo": "fixtures/synthetic-product",
+      "scope": "golden scenario pilot-release-ready"
+    },
+    "profile": {
+      "chain": [
+        "fixture-product@0.1.0",
+        "fixture-brand@0.1.0"
+      ],
+      "effective_status": "ratified",
+      "id": "fixture-product",
+      "kind": "product",
+      "sha256": "2be187cd10676bcbdfb2ee05c85eeed0621fb554f48e8de8d0be083eaae2b4ff",
+      "version": "0.1.0"
+    },
+    "rubric": {
+      "id": "bxqs",
+      "ratified_at": "2026-10-30T09:00:00Z",
+      "ratified_by": "fixture-owner",
+      "sha256": "f5a4f8cb49b821bb41cb2ea3a5355089f87e60e6233cc6439a0f7ea680342bbd",
+      "status": "ratified",
+      "version": "1.0.0"
+    }
+  },
+  "headline": {
+    "attainment_percent": 100,
+    "ceiling": 100,
+    "evidenced_score": 100,
+    "out_of": 100
+  },
+  "missing_evidence": [],
+  "rejected_evidence": [],
+  "release_ready_unmet": [],
+  "report_version": "1.0.0",
+  "state": "release_ready",
+  "state_reasons": [
+    {
+      "code": "release_ready_met",
+      "text": "Every release_ready condition is met."
+    }
+  ]
+}

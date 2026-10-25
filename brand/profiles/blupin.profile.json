@@ -1,0 +1,313 @@
+{
+  "id": "blupin",
+  "kind": "brand",
+  "version": "0.1.0",
+  "status": "draft",
+  "classification": "public",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "purpose": {
+    "text": "BluPin Incorporated is recorded in Dot.Brain as the holding company (an ecosystem entity, not a Dot.Charts feature). What brand experience it needs beyond the intended feelings below is not established.",
+    "confidence": 0.3,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "platforms/dot-charts.md (1.1.1, 1.1.2) records that BluPin is the holding company, BluPin Incorporated, and that its former signal engine was removed from Dot.Charts on 2026-10-16.",
+        "declared_by": "repository record (platforms/dot-charts.md)"
+      }
+    ]
+  },
+  "audience": [
+    {
+      "segment": "unknown",
+      "identified": false,
+      "description": "No shipping product with an identified audience has been found under BluPin Incorporated. The engine must inspect BluPin's actual products and audience before deciding how the intended feelings are expressed in any interface.",
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": the system must inspect Blupin's actual products and audience before deciding how these principles are expressed in each interface.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "positioning": {
+    "text": "Not established. To be set after BluPin's products and audience are identified.",
+    "confidence": 0,
+    "evidence": [
+      {
+        "class": "declared_intent",
+        "summary": "Section 3, \"Blupin\": inspect actual products and audience first.",
+        "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+      }
+    ]
+  },
+  "emotional_promise": [
+    {
+      "feeling": "precision",
+      "text": "The experience feels exact: correct, specific, with nothing vague or padded.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": reinforce precision.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "confidence",
+      "text": "The user feels sure of what they are looking at and of what to do.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": reinforce confidence.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "discipline",
+      "text": "The experience feels ordered and rule-governed, not improvised.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": reinforce discipline.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "performance",
+      "text": "Read here as an experience quality: responsive, rigorous execution. It is not a claim about trading, investment or business results (see unknowns u-performance-reading).",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": reinforce performance.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "feeling": "informed decision-making",
+      "text": "The user decides with the relevant information in view and its limits stated.",
+      "label": "intended",
+      "measured": false,
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": reinforce informed decision-making.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    }
+  ],
+  "behavioural_principles": [
+    {
+      "id": "inspect-before-expressing",
+      "text": "Do not derive interface rules from this profile until the actual product and its audience have been inspected and recorded in the product profile.",
+      "principle": "BXP-01",
+      "non_negotiable": false,
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "Section 3, \"Blupin\": inspect actual products and audience before deciding how to express the principles.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+        }
+      ]
+    },
+    {
+      "id": "evidence-before-claim",
+      "text": "A statement about outcomes, performance, returns, licensing or authorisation is made only with a cited, current source.",
+      "principle": "BXP-04",
+      "non_negotiable": true,
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "class": "declared_intent",
+          "summary": "The owner's instruction that fabricated data and unsupported claims are not acceptable, applied to the holding-company brand.",
+          "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23, sections 6 and 9)"
+        }
+      ]
+    }
+  ],
+  "visual_direction": {
+    "source_refs": [],
+    "constraints": [],
+    "prohibited": [
+      "Imagery or copy implying guaranteed returns, regulated status or endorsement by any authority."
+    ],
+    "notes": "No visual direction is established. No BluPin design source has been identified to cite."
+  },
+  "language": {
+    "voice": {
+      "text": "Not established; to be set per product. Until then: precise, restrained, no hype.",
+      "confidence": 0.2,
+      "evidence": [
+        {
+          "class": "internal_hypothesis",
+          "summary": "Restraint fits the intended feelings of precision and discipline.",
+          "rationale": "Derived from the intended feelings only; no BluPin copy has been reviewed."
+        }
+      ]
+    },
+    "banned_phrases": [
+      "guaranteed",
+      "risk-free",
+      "beat the market",
+      "proven track record"
+    ],
+    "claims_policy": {
+      "forbidden": [
+        {
+          "id": "no-performance-claims",
+          "rule": "No claim about trading, investment or business performance, win rates, profits, track record or results, including backtests and historical figures presented as indicative of the future."
+        },
+        {
+          "id": "no-return-claims",
+          "rule": "No claim or implication of returns, income, profit, yield or guaranteed outcomes."
+        },
+        {
+          "id": "no-authorisation-claims",
+          "rule": "Never state or imply that BluPin or any product is authorised, licensed, registered, regulated, approved or endorsed by any authority, unless the owner supplies the current reference and it is cited."
+        },
+        {
+          "id": "no-unsupported-figures",
+          "rule": "No number (users, assets, clients, percentages, ratings, years) without a cited, current source."
+        },
+        {
+          "id": "no-entity-claims",
+          "rule": "No statement of legal-entity details, registrations, addresses or ownership without an owner-supplied source."
+        }
+      ],
+      "evidence_required": [
+        "any figure",
+        "any statement of legal status"
+      ]
+    }
+  },
+  "experience_standards": [
+    {
+      "principle": "BXP-01",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "The five intended feelings are precision, confidence, discipline, performance and informed decision-making. Expression per interface is undecided until a product is identified.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-04",
+      "principle_version": "0.1.0",
+      "stance": "emphasised",
+      "expression": "No unsupported claims; see claims_policy. Limits and sources are stated wherever a figure appears.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-05",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "A displayed figure is correct and sourced. Value is shown as a checkable result.",
+      "non_negotiable": false
+    },
+    {
+      "principle": "BXP-11",
+      "principle_version": "0.1.0",
+      "stance": "applies",
+      "expression": "The accessibility baseline applies to any interface under this brand and outranks brand expression.",
+      "non_negotiable": true
+    }
+  ],
+  "domain_overrides": [
+    {
+      "principle": "BXP-02",
+      "yields_to": "regulation",
+      "reason": "A confident, professional tone must never state or imply regulated status, advice or guaranteed outcomes. If any financial product is ever shown, regulatory constraints win."
+    },
+    {
+      "principle": "BXP-05",
+      "yields_to": "functional_correctness",
+      "reason": "A displayed figure must be correct and sourced; polish never outranks correctness."
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "u-products",
+      "question": "No shipping product with an audience has been identified under BluPin Incorporated. The signal engine that was once associated with the name was removed from Dot.Charts and its Brain wiring retired on 2026-10-16. Which products, if any, this brand will cover is undecided.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-audience",
+      "question": "Who the audience is. Nothing is asserted.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-entity",
+      "question": "Legal entity details, registrations and any authorisations are not recorded here. None may be claimed.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-performance-reading",
+      "question": "The brief lists \"performance\" among the intended feelings. This draft reads it as an experience quality (responsive, rigorous execution) and not as investment or business performance, which the claims policy forbids. The owner must confirm that reading.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-ecosystem-relationship",
+      "question": "brain.autonomy.md treats BluPin as a separate entity from Dot. Whether this brand shares any of the dot-ecosystem principles (and so should extend it) is undecided, so this profile extends nothing.",
+      "blocks_ratification": true
+    },
+    {
+      "id": "u-evidence",
+      "question": "No behavioural or customer evidence exists. Every emotional_promise item is intended, not measured.",
+      "blocks_ratification": true
+    }
+  ],
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "repo:sakhilebhayi/Dot.Brain/platforms/dot-charts.md",
+        "observed_at": "2026-10-23T00:00:00Z"
+      },
+      {
+        "kind": "document",
+        "uri": "repo:sakhilebhayi/Dot.Brain/brain.autonomy.md",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5",
+    "notes": [
+      "Deliberately minimal: audience, positioning and visual direction are not invented."
+    ]
+  },
+  "confidence": 0.2
+}

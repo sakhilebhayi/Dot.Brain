@@ -1,0 +1,82 @@
+{
+  "id": "BXP-06",
+  "slug": "visual-craftsmanship-interaction-quality",
+  "title": "Visual craftsmanship and interaction quality",
+  "version": "0.1.0",
+  "status": "draft",
+  "contributors": [
+    {
+      "id": "claude-sonnet-5-5",
+      "kind": "ai",
+      "display_name": "Claude Sonnet 5.5"
+    }
+  ],
+  "definition": "Visual and interaction details are deliberate and consistent: type scale, spacing, alignment, colour roles, states, motion and response time are specified, implemented and checked rather than left to defaults.",
+  "intended_outcome": "The interface looks and responds as if made with care: no broken states, layout shift, jank or inconsistent affordances.",
+  "applicable_contexts": [
+    "all user interfaces",
+    "component libraries",
+    "motion and transitions",
+    "responsive layouts"
+  ],
+  "implementation_guidance": [
+    "Define tokens (type, spacing, colour roles, radii, motion durations) in one source file. Components consume tokens; raw values in component CSS are findings.",
+    "Every interactive element has default, hover, focus, active, disabled, loading and error appearances, and a test or screenshot covers them.",
+    "Motion has a purpose (state change, orientation), respects prefers-reduced-motion and never delays a task.",
+    "Check the narrowest supported width and a wide width. No horizontal page scroll.",
+    "Run the design tooling's anti-pattern scan on rendered pages in the Claude session and record the findings. The product's own DESIGN.md prohibitions are the checklist."
+  ],
+  "validation_method": {
+    "automated": [
+      "Token usage check: raw colour and spacing literals outside the token file.",
+      "Rendered-page checks: no horizontal overflow at the narrowest width; focus visible.",
+      "Interaction-state tests."
+    ],
+    "expert_review": [
+      "Design critique against the product DESIGN.md prohibitions."
+    ],
+    "observed_behaviour": [
+      "Interaction timing from real sessions where telemetry exists."
+    ],
+    "customer_feedback": []
+  },
+  "limitations": [
+    "Craft is partly aesthetic judgement. Automated checks catch defects, not quality.",
+    "Anti-pattern scanners encode their authors' taste."
+  ],
+  "evidence": [
+    {
+      "class": "declared_intent",
+      "summary": "The owner directs that products have a distinctive, sophisticated and trustworthy experience.",
+      "declared_by": "owner (Brand Feeling Engine brief, 2026-10-23)"
+    },
+    {
+      "class": "internal_hypothesis",
+      "summary": "Specified and tested states prevent the broken-state defects that undermine trust.",
+      "rationale": "Reasoned from common defect types; not measured on Dot products."
+    }
+  ],
+  "rubric_dimensions": [
+    "visual_interaction_craftsmanship"
+  ],
+  "engagement_related": false,
+  "provenance": {
+    "sources": [
+      {
+        "kind": "human_observation",
+        "uri": "owner-instruction:2026-10-23/brand-feeling-engine-brief",
+        "observed_at": "2026-10-23T00:00:00Z"
+      }
+    ],
+    "transformations": [
+      {
+        "step": "drafted",
+        "tool": "claude-code",
+        "tool_version": "claude-sonnet-5-5",
+        "actor": "claude-sonnet-5-5"
+      }
+    ],
+    "published_by": "claude-sonnet-5-5"
+  },
+  "confidence": 0.4
+}
