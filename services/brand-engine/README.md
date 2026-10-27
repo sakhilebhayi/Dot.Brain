@@ -274,6 +274,7 @@ The metric must be one the rubric defines for that dimension and class. `partici
 | `fixed` | in the baseline, gone now, **and its check was measured again** |
 | `still_open` | in both |
 | `new` | a regression: not in the baseline, from a check measured in both |
+| `restated` | (verify 1.1.0) the same finding under a different id because a count, line or colour literal in its text moved; same check, same file, same text once digits and hex colours are blanked. Paired one to one and taken out of `fixed` and `new`; its plan task has **not** landed. Whether the product got worse is still decided by the check's measured value |
 | `newly_measured` | from a check the baseline did not measure; information, not a regression |
 | `unverifiable` | its check is no longer measured; neither fixed nor open |
 

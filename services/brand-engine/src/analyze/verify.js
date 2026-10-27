@@ -11,6 +11,12 @@
 //                  measured in both (a regression). A finding from a check that
 //                  was not measured before is `newly_measured`, information only
 //   unverifiable   the check that raised it is no longer measured
+//   restated       the same finding in both analyses under a different id: its
+//                  message carries a count, a line or a colour literal that moved
+//                  (same check, same file, same message once digits and hex
+//                  colours are blanked). Paired one to one, taken out of `fixed`
+//                  and `new`, and listed with both messages. Whether the product
+//                  got worse is still decided by the check's measured value
 // and, per plan task, whether its acceptance now passes (the check is measured
 // and none of the task's findings remain). A task someone CLAIMS is done whose
 // acceptance still fails is reported as `claimed_not_landed`.
@@ -27,7 +33,7 @@ import { canonicalHash } from '../score/util.js';
 import { integrityProblems } from './analyze.js';
 import { byText } from './text.js';
 
-export const VERIFY_VERSION = '1.0.0';
+export const VERIFY_VERSION = '1.1.0';
 export const VERIFY_EXIT = { OK: 0, REGRESSED: 1, INVALID: 2, REFUSED: 3 };
 const EPS = 1e-9;
 
@@ -75,6 +81,7 @@ export function verify(before, after, { plan, claimed = new Set(), claimAll = fa
   const unverifiable = [];
   const added = [];
   const newlyMeasured = [];
+  const restated = [];
   for (const [id, f] of [...bf].sort(([a], [b]) => byText(a, b))) {
     if (af.has(id)) stillOpen.push(brief(f));
     else if (measuredAfter(f.check_id)) fixed.push(brief(f));
@@ -84,6 +91,17 @@ export function verify(before, after, { plan, claimed = new Set(), claimAll = fa
     if (bf.has(id)) continue;
     if (measuredBefore(f.check_id)) added.push(brief(f));
     else newlyMeasured.push(brief(f));
+  }
+
+  // A finding whose id changed only because a number in its text changed is the same finding, not a fix plus a regression.
+  const shape = (f) => `${f.check_id}\n${f.location?.file ?? ''}\n${f.message.replace(/#[0-9a-fA-F]{3,8}\b/g, '#').replace(/\d+/g, '#').replace(/\s+/g, ' ')}`;
+  for (let i = 0; i < fixed.length; i += 1) {
+    const j = added.findIndex((a) => shape(a) === shape(fixed[i]));
+    if (j === -1) continue;
+    restated.push({ before: fixed[i], after: added[j] });
+    fixed.splice(i, 1);
+    added.splice(j, 1);
+    i -= 1;
   }
 
   const checkIds = [...new Set([...bEvidence.keys(), ...aEvidence.keys()])].sort(byText);
@@ -104,12 +122,14 @@ export function verify(before, after, { plan, claimed = new Set(), claimAll = fa
     }
   }
 
+  const restatedBefore = new Set(restated.map((r) => r.before.id));
   const taskResults = [];
   if (plan) {
     for (const t of plan.tasks) {
       const isClaimed = claimAll || claimed.has(t.id);
       const measured = measuredAfter(t.acceptance.check_id);
-      const remaining = t.acceptance.finding_ids.filter((id) => af.has(id));
+      // a restated finding is still there under a new id: its task has not landed
+      const remaining = t.acceptance.finding_ids.filter((id) => af.has(id) || restatedBefore.has(id));
       let acceptance;
       if (!measured) acceptance = 'unverifiable';
       else acceptance = remaining.length === 0 ? 'passes' : 'fails';
@@ -149,6 +169,7 @@ export function verify(before, after, { plan, claimed = new Set(), claimAll = fa
   if (unverifiable.length) reasons.push(`${unverifiable.length} earlier finding(s) cannot be verified because their check is no longer measured; they are neither fixed nor open.`);
   if (verdict === 'improved') reasons.push(`${fixed.length} finding(s) fixed and measured as fixed; ${checks.filter((c) => c.status === 'improved').length} check value(s) higher.`);
   if (verdict === 'no_change') reasons.push('Nothing measured differs from the baseline.');
+  if (restated.length) reasons.push(`${restated.length} finding(s) restated: the same finding with a different count, line or colour in its text; not counted as fixed or new (the check's measured value decides whether things got worse).`);
   if (newlyMeasured.length) reasons.push(`${newlyMeasured.length} finding(s) come from checks that were not measured in the baseline; they are not counted as regressions.`);
 
   const doc = {
@@ -159,11 +180,11 @@ export function verify(before, after, { plan, claimed = new Set(), claimAll = fa
     verdict,
     exit,
     reasons,
-    findings: { fixed, still_open: stillOpen, new: added, newly_measured: newlyMeasured, unverifiable },
+    findings: { fixed, still_open: stillOpen, new: added, newly_measured: newlyMeasured, restated, unverifiable },
     checks,
     tasks: taskResults,
     counts: {
-      fixed: fixed.length, still_open: stillOpen.length, new: added.length, newly_measured: newlyMeasured.length, unverifiable: unverifiable.length,
+      fixed: fixed.length, still_open: stillOpen.length, new: added.length, newly_measured: newlyMeasured.length, restated: restated.length, unverifiable: unverifiable.length,
       tasks_landed: taskResults.filter((t) => t.outcome === 'landed').length, claimed_not_landed: claimsNotLanded.length,
     },
   };
