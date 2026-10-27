@@ -104,6 +104,7 @@ export function renderVerification(v) {
   section('Still open', v.findings.still_open, fmtF);
   section('New (regressions)', v.findings.new, fmtF);
   section('Newly measured (not regressions)', v.findings.newly_measured, fmtF);
+  section('Restated (same finding, different numbers)', v.findings.restated ?? [], (r) => `- ${code(r.before.id)} to ${code(r.after.id)}: ${esc(r.before.message)} became ${esc(r.after.message)}`);
   section('Cannot be verified', v.findings.unverifiable, (f) => `- ${code(f.id)} ${esc(f.message)}: ${esc(f.reason)}`);
   section('Checks', v.checks.filter((c) => c.status !== 'same'), (c) => `- ${code(c.check_id)} ${c.status.replace(/_/g, ' ')}${c.delta !== null ? ` (${c.before} to ${c.after})` : ''}`);
   section('Plan tasks', v.tasks, (t) => `- ${code(t.id)} ${t.outcome.replace(/_/g, ' ')}${t.claimed ? ' (claimed)' : ''}: acceptance ${t.acceptance} on ${code(t.check_id)}`);

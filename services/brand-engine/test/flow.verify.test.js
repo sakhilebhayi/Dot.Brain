@@ -28,7 +28,7 @@ test('fixed, still open and new are separated by finding id, and only measured c
   assert.deepEqual(idsOf(r.findings.new), [`d8.labels_alt_lang.${D.fingerprint}`]);
   assert.equal(r.verdict, 'regressed', 'a new finding is a regression even when others were fixed');
   assert.equal(r.exit, 1);
-  assert.deepEqual(r.counts, { fixed: 2, still_open: 1, new: 1, newly_measured: 0, unverifiable: 0, tasks_landed: 0, claimed_not_landed: 0 });
+  assert.deepEqual(r.counts, { fixed: 2, still_open: 1, new: 1, newly_measured: 0, restated: 0, unverifiable: 0, tasks_landed: 0, claimed_not_landed: 0 });
 });
 
 test('improved: findings fixed and the check measured again with a higher value, exit 0', () => {
@@ -202,4 +202,52 @@ test('the verification is deterministic and carries its own integrity hash', () 
   assert.equal(JSON.stringify(one), JSON.stringify(two));
   assert.match(one.integrity.sha256, /^[0-9a-f]{64}$/);
   assert.equal(renderVerification(one), renderVerification(two));
+});
+
+test('restated: a finding whose id changed only because a count in its text moved is neither fixed nor new', () => {
+  const colours = (n, tok, hex) => F('d8.labels_alt_lang', `colours ${n}/${tok}`, {
+    message: `${n} hard-coded colour literal(s) against ${tok} token reference(s); first: ${hex}.`, location: { file: 'resources/css/app.css', line: n },
+  });
+  const before = makeAnalysis({ findings: [colours(4, 10, '#112233')], evidence: [E('d8.labels_alt_lang', 0.5)] });
+  const after = makeAnalysis({ findings: [colours(5, 12, '#445566')], evidence: [E('d8.labels_alt_lang', 0.5)] });
+  const r = run(before, after);
+  assert.equal(r.findings.restated.length, 1);
+  assert.match(r.findings.restated[0].before.message, /^4 hard-coded/);
+  assert.match(r.findings.restated[0].after.message, /^5 hard-coded/);
+  assert.deepEqual([r.findings.fixed.length, r.findings.new.length], [0, 0]);
+  assert.equal(r.verdict, 'no_change', 'a restated finding is not a regression; only the measured value can say it got worse');
+  assert.match(renderVerification(r), /Restated/);
+});
+
+test('restated pairs only the same shape in the same file: another file, or another wording, stays fixed plus new', () => {
+  const g = (file, msg) => F('d8.labels_alt_lang', `${file}${msg}`, { message: msg, location: { file, line: 1 } });
+  const before = makeAnalysis({ findings: [g('a.css', '3 literals.')], evidence: [E('d8.labels_alt_lang', 0.5)] });
+  const after = makeAnalysis({ findings: [g('b.css', '4 literals.'), g('a.css', 'something else entirely.')], evidence: [E('d8.labels_alt_lang', 0.5)] });
+  const r = run(before, after);
+  assert.equal(r.findings.restated.length, 0);
+  assert.equal(r.findings.fixed.length, 1);
+  assert.equal(r.findings.new.length, 2);
+  assert.equal(r.verdict, 'regressed');
+});
+
+test('restated: a worse check value is still a regression', () => {
+  const colours = (n) => F('d8.labels_alt_lang', `c${n}`, { message: `${n} literal(s).`, location: { file: 'a.css', line: 1 } });
+  const before = makeAnalysis({ findings: [colours(2)], evidence: [E('d8.labels_alt_lang', 0.8)] });
+  const after = makeAnalysis({ findings: [colours(6)], evidence: [E('d8.labels_alt_lang', 0.4)] });
+  const r = run(before, after);
+  assert.equal(r.findings.restated.length, 1);
+  assert.equal(r.verdict, 'regressed');
+  assert.deepEqual(r.regressions ?? r.checks.filter((c) => c.status === 'regressed').map((c) => c.check_id), ['d8.labels_alt_lang']);
+});
+
+test('restated: a claimed task whose finding only changed its numbers has not landed', () => {
+  const colours = (n) => F('d8.labels_alt_lang', `n${n}`, { message: `${n} fields have no label.`, location: { file: 'a.blade.php', line: n } });
+  const before = makeAnalysis({ findings: [colours(4)], evidence: [E('d8.labels_alt_lang', 0.5)] });
+  const p = plan(before, ctx);
+  const alt = p.tasks.find((t) => t.check_id === 'd8.labels_alt_lang');
+  const after = makeAnalysis({ findings: [colours(3)], evidence: [E('d8.labels_alt_lang', 0.6)] });
+  const r = run(before, after, { plan: p, claimed: new Set([alt.id]) });
+  assert.equal(r.findings.restated.length, 1);
+  assert.equal(r.tasks[0].outcome, 'claimed_not_landed');
+  assert.equal(r.verdict, 'claims_not_landed');
 });
