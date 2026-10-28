@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dot.brain/schemas/ux-interaction-event.schema.json",
+  "title": "UX interaction event (R-12), schema version 1.0.0",
+  "description": "One privacy-minimised interaction event. It carries no free text, no query text, no URL query string, no identifiers other than a pseudonymous session and an optional tenant uuid. The authoritative validator is services/ux-interactions (it also applies per-type rules and value detectors that JSON Schema cannot express).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "occurred_at",
+    "schema_version",
+    "product",
+    "session",
+    "type",
+    "name",
+    "status",
+    "consent"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "occurred_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?Z$"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "product": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,31}$"
+    },
+    "tenant": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "session": {
+      "type": "string",
+      "pattern": "^ps_[0-9a-f]{16,64}$",
+      "description": "Pseudonymous, rotating; never a user id."
+    },
+    "type": {
+      "enum": [
+        "nav.view",
+        "nav.loop",
+        "ui.click",
+        "ui.repeat_click",
+        "form.start",
+        "form.validation_failed",
+        "form.submit",
+        "form.complete",
+        "form.abandon",
+        "search.run",
+        "search.empty",
+        "feature.discover",
+        "feature.use",
+        "workflow.step",
+        "workflow.complete",
+        "workflow.abandon",
+        "request.failed",
+        "request.slow",
+        "error.shown",
+        "help.open",
+        "help.dismiss",
+        "goal.complete",
+        "recovery.success"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,63}$"
+    },
+    "route": {
+      "type": "string",
+      "maxLength": 120,
+      "pattern": "^/[A-Za-z0-9_\\-/{}.:]{0,119}$",
+      "description": "A route template, never a concrete URL: no query string, no ids."
+    },
+    "status": {
+      "enum": [
+        "success",
+        "failure",
+        "abandoned",
+        "partial",
+        "unknown"
+      ]
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{1,63}$"
+        },
+        "step": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{1,63}$"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
+    "perf": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000
+        },
+        "ttfb_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000
+        },
+        "render_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600000
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "validation",
+            "network",
+            "timeout",
+            "server",
+            "client",
+            "permission",
+            "not_found",
+            "rate_limited",
+            "unknown"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "loop_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "repeat_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "field_count_failed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "query_length": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "results_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reformulated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis"
+      ],
+      "properties": {
+        "basis": {
+          "enum": [
+            "consent",
+            "contract",
+            "legitimate_interest",
+            "aggregate_only"
+          ]
+        }
+      }
+    },
+    "instrument": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,63}$"
+    }
+  }
+}
