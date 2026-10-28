@@ -1,0 +1,9 @@
+{
+  "name": "@dot-brain/ux-interactions",
+  "version": "1.0.0",
+  "description": "The versioned event contract for user interaction intelligence (R-12): taxonomy, a validator that refuses anything outside it or anything that looks personal, and batch handling. No pipeline, no storage, no network. See ../../adr/ADR-0025-ux-interaction-intelligence.md.",
+  "type": "module",
+  "main": "./src/index.js",
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22.5.0" }
+}
