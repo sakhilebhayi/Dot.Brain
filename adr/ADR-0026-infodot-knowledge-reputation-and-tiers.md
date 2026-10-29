@@ -27,7 +27,7 @@ R-13 asks for four configurable tiers (Spark, Venture, Growth, Luminary) driven 
 1. **Private progress only.** A person sees their own score, tier and the evidence behind each number. There is no leaderboard, no public tier, no comparison between people, and nothing about a tier appears on another person's pages.
 2. **Rule-derived and explainable.** The score is a pure function of facts already in InfoDot (public, published, unhidden work; never help you gave yourself) under versioned rules in configuration. Every result carries the evidence behind each number; snapshots are append-only so a number can always be re-derived and an appeal checked.
 3. **No trust inference.** The score is never used to rank content, weight a vote, skip moderation or decide who may do what. Reputation and organisation permissions are separate systems: a tier never grants a company role (InfoDot `TeamRoles`), a seat or an admin right.
-4. **Manipulation controls in the first increment.** Dimension caps; work counted only when public and unhidden; no self-help; accepted answers from the same asker decay (1, 1/2, 1/4, then nothing); no streaks and no penalty for a gap (Consistency is small and only rewards weeks active in a window); a moderator hiding someone's work costs Trust. **Not built:** detection of rings of accounts rewarding each other beyond the same-asker decay.
+4. **Manipulation controls in the first increment.** Dimension caps; work counted only when public and unhidden; no self-help; accepted answers from the same asker decay (1, 1/2, 1/4, then nothing); no streaks and no penalty for a gap (Consistency is small and only rewards weeks active in a window); a moderator hiding someone's work costs Trust. Two people accepting each other's answers count at half weight for that pair. **Not built:** detection of larger rings beyond that and the same-asker decay.
 5. **Appeals.** A person can ask a moderator to check their score; the moderator sees the current evidence, the score is recalculated from the facts as they are, and the person sees the moderator's note.
 6. **Thresholds are proposals.** Every weight, cap and tier threshold is a starting guess labelled as such in `config/reputation.php`; there is no real usage data. Changing one raises `version`; each snapshot stores the version used.
 7. **No emission to Dopemine or Memory.** Neither has an event type for a tier, badge, seminar or attendance, and this increment adds none.
@@ -36,7 +36,7 @@ R-13 asks for four configurable tiers (Spark, Venture, Growth, Luminary) driven 
 
 - Human-outcome target: people getting practical business answers and being recognised for work other people found useful, not time spent or points chased.
 - Guard metrics (proposed, to be registered per `brain.metrics.md`): share of contributions hidden or flagged among people near a tier threshold (a rise suggests gaming); share of accepted answers coming from one asker pair; appeal rate and the share of appeals that change the outcome.
-- Visible and opt-out-able: the page is visible to its owner only. **A per-person opt-out is not built** and is recommended before switching the feature on.
+- Visible and opt-out-able: the page is visible to its owner only. A per-person opt-out (deletes what is stored, stops the nightly run) and a download of one's own score data are built in InfoDot.
 - Proxy-laundering table (`brain.dopemine.md`): Consistency is the "habit consistency" case, so it is user-declared-equivalent only if breaking a run carries no penalty; here it has none and a small cap.
 
 ## Decisions the owner must make (not decided here)
@@ -45,7 +45,7 @@ R-13 asks for four configurable tiers (Spark, Venture, Growth, Luminary) driven 
 |---|---|---|---|
 | D1 | Do tiers ever become public? | (a) never; (b) public tier badge; (c) public only for topic specialist badges | (c): specialist badges describe topic knowledge earned from verified solutions; an overall tier stays private. |
 | D2 | Weights, caps and tier thresholds | Keep the starting proposals; set from data after weeks of use | Keep and review after four weeks of real data. |
-| D3 | A per-person opt-out and a data export of one's own score history | Build before enabling, or accept | Build before enabling (consent and POPIA s23). |
+| D3 | A per-person opt-out and a data export of one's own score history | Built; confirm the wording | Keep. |
 | D4 | Ring detection | Build before any visible reward, or rely on same-asker decay | Build before any tier has a visible effect. |
 
 ## Consequences
@@ -63,3 +63,4 @@ R-13 asks for four configurable tiers (Spark, Venture, Growth, Luminary) driven 
 ## Change log
 
 - 2026-10-29: proposed.
+- 2026-10-29: opt-out, own-data download and a reciprocal-acceptance discount built in InfoDot.
