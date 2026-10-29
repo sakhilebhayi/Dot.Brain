@@ -1,12 +1,12 @@
 ---
 title: InfoDot — Platform Knowledge
-version: 1.2.0
+version: 1.3.0
 status: active
 owners: [InfoDot Platform Lead, Registry Agent]
 platform-id: infodot
 dkp-version: 1.0.0
 integration-status: registered
-last-review: 2026-10-23
+last-review: 2026-10-29
 ---
 
 # InfoDot
@@ -32,6 +32,8 @@ InfoDot is the **hub of the Dot Ecosystem** — the central identity provider th
 ## 3. Events Emitted
 
 No DKP-mapped ecosystem events yet. The one real cross-platform signal is the SSO handoff itself (token issuance → satellite redemption), which is a synchronous HTTP handoff, not a published event.
+
+**Contribution events to Dot.Dopemine (not DKP events).** InfoDot reports contributions to the Dot Points ledger over the signed `POST /api/ingest/contributions` intake; Brain is not on that path. Proposed, per [ADR-0027](../adr/ADR-0027-infodot-seminar-host-points.md) (receiving side in Dot.Dopemine PR #48, not yet merged or sending): `infodot.seminar.hosted`, `contribution_ref` `seminar:{id}`, `user_uuid` = the seminar's host, `facts` limited to `attendee_count` (integer), `rating_count` (integer) and `average_rating` (0 to 5, one decimal). Sent only for a finished seminar with at least 3 distinct attendees and an average rating of 4.0 or more from at least 3 ratings; Dopemine re-checks and refuses anything else with 422. Hosts only: attending earns nothing, and no attendee identity, free text, tier or reputation figure is ever in the event. A later cancellation is `infodot.contribution.reward_reversed`.
 
 ## 4. Knowledge Packs Published
 
@@ -61,7 +63,7 @@ Mixed by design, audited directly against migrations rather than assumed: `Obj`/
 
 ## 8. Dopamine Surface
 
-None identified as in-scope.
+None identified as in-scope for Brain's own recommendations. One proposed points surface sits in the Dot Points ledger rather than in InfoDot: seminar host points (§3, [ADR-0027](../adr/ADR-0027-infodot-seminar-host-points.md)), host-only, flat award, with guard metrics proposed in the ADR. Tier and reputation (ADR-0026) are not part of it.
 
 ## 9. Active Recommendations
 
@@ -107,6 +109,7 @@ For InfoDot's first real Level 1 process to exist, it would need at least one op
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| 1.3.0 | 2026-10-29 | R-13 seminar session | §3, §8: recorded the proposed `infodot.seminar.hosted` contribution event to Dot.Dopemine (host-only; no tier data) and ADR-0027 |
 | 1.2.0 | 2026-10-23 | InfoDot knowledge build | §4, §5, §9: recorded the knowledge-candidate pull (services/infodot-knowledge, ADR-0020) and that no DKP publishing exists yet |
 | 1.1.0 | 2026-08-08 | Platform Autonomy Classification sub-project | Added Autonomy Classification section per brain.autonomy.md §2 |
 | 1.0.0 | 2026-08-07 | Dot.Brain truth-reconciliation pass | Initial registration — InfoDot had no platform document or registry row despite being the ecosystem's SSO hub; every other registered platform's cross-platform relationship depends on it. Backfilled §1–10 from InfoDot's own wiki.md (v1.3.0) and CLAUDE.md; added §11 documenting the verified 2026-08-07 legal/Boost/code-quality infrastructure pass. |
